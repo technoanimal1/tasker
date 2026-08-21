@@ -17,4 +17,10 @@ export const supabase = createClient(url, anonKey, {
   auth: { persistSession: true, autoRefreshToken: true },
 })
 
+export const SUPABASE_URL = url
 export const BRAND_BUCKET = 'brand-assets'
+
+/** Public URL for a path inside the brand-assets bucket. */
+export function storageUrl(path: string | null | undefined): string | null {
+  return path ? `${url}/storage/v1/object/public/${BRAND_BUCKET}/${path}` : null
+}

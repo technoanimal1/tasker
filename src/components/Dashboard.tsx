@@ -6,15 +6,16 @@ import { useBrandAssets } from '../hooks/useBrandAssets'
 import { BrandAssets } from './BrandAssets'
 import { FramesView } from './FramesView'
 import { BranchMenu } from './BranchMenu'
+import { ThumbnailStudio } from './ThumbnailStudio'
 
-type View = 'frames' | 'assets'
+type View = 'studio' | 'frames' | 'assets'
 
 export function Dashboard() {
   const { session } = useAuth()
   const branchesApi = useBranches()
   const assetsApi = useBrandAssets()
 
-  const [view, setView] = useState<View>('frames')
+  const [view, setView] = useState<View>('studio')
   const [branchId, setBranchId] = useState<string | null>(null)
 
   // Default to the default branch (or the first) once loaded.
@@ -48,6 +49,12 @@ export function Dashboard() {
 
           <div className="flex items-center gap-1 rounded-lg bg-slate-900 p-1 text-sm">
             <button
+              onClick={() => setView('studio')}
+              className={`rounded-md px-3 py-1.5 ${view === 'studio' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+            >
+              Thumbnails
+            </button>
+            <button
               onClick={() => setView('frames')}
               className={`rounded-md px-3 py-1.5 ${view === 'frames' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
             >
@@ -74,7 +81,9 @@ export function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6">
-        {view === 'assets' ? (
+        {view === 'studio' ? (
+          <ThumbnailStudio />
+        ) : view === 'assets' ? (
           <BrandAssets api={assetsApi} />
         ) : branch ? (
           <FramesView branch={branch} assets={assetsApi} />
