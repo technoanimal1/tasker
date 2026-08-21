@@ -1,47 +1,60 @@
 import { storageUrl } from '../lib/supabase'
-import { CARD_W, CARD_H, hexA, type TemplateParams, type Thumbnail } from '../lib/thumb'
+import { resolveColor } from '../lib/palettes'
+import {
+  CORNER_MODES,
+  CORNER_REF,
+  frameSize,
+  hexA,
+  type TemplateParams,
+  type Thumbnail,
+} from '../lib/thumb'
 
 interface Props {
   thumb: Thumbnail
   params: TemplateParams
-  scale?: number
+  /** Display width in px; the frame scales to fit it (keeps ratio). */
+  displayW?: number
   className?: string
 }
 
-/**
- * Renders one thumbnail through the control-area template. Everything is laid
- * out on a fixed CARD_W×CARD_H canvas and scaled with a CSS transform, so the
- * same component serves both the grid (small) and the editor preview (large).
- */
-export function ThumbnailCard({ thumb, params, scale = 1, className }: Props) {
+export function ThumbnailCard({ thumb, params, displayW = 244, className }: Props) {
+  const size = frameSize(params.sizeKey)
+  const W = size.w
+  const H = size.h
+  const scale = displayW / W
+
+  const color = resolveColor(params.palette, params.colorKey)
   const bg = storageUrl(thumb.bg_path)
   const kv = storageUrl(thumb.kv_path)
   const logo = storageUrl(
     params.logoVariant === 'white' ? thumb.logo_white_path : thumb.logo_color_path,
   )
-  const accent = thumb.accent_color || '#0c8022'
 
-  const bgW = CARD_W * params.bgScale
-  const bgH = CARD_H * params.bgScale
-  const kvW = CARD_W * params.kvScale
-  const kvH = CARD_H * params.kvScale
+  const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
+  const strokeW = Math.max(2, W * 0.006)
+
+  // background — always cover-fill, bgScale zooms further
+  const bgW = W * params.bgScale
+  const bgH = H * params.bgScale
+  // key visual — height = kvSizePct% of frame, bottom-anchored, centered
+  const kvBoxH = H * (params.kvSizePct / 100)
+  const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
 
   return (
-    <div className={className} style={{ width: CARD_W * scale, height: CARD_H * scale }}>
+    <div className={className} style={{ width: W * scale, height: H * scale }}>
       <div
         style={{
           position: 'relative',
-          width: CARD_W,
-          height: CARD_H,
+          width: W,
+          height: H,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
-          borderRadius: params.cornerRadius,
+          borderRadius: radius,
           overflow: 'hidden',
           background: '#0a0f0c',
-          boxShadow: `inset 0 0 0 2px ${accent}, 0 6px 24px ${hexA(accent, 0.35)}`,
+          boxShadow: `inset 0 0 0 ${strokeW}px ${color.stroke}, 0 6px 30px ${hexA(color.blur, 0.4)}`,
         }}
       >
-        {/* Background image — scalable, centered */}
         {bg && (
           <img
             src={bg}
@@ -51,19 +64,19 @@ export function ThumbnailCard({ thumb, params, scale = 1, className }: Props) {
               position: 'absolute',
               width: bgW,
               height: bgH,
-              left: (CARD_W - bgW) / 2 + params.bgOffsetX,
-              top: (CARD_H - bgH) / 2 + params.bgOffsetY,
+              left: (W - bgW) / 2 + params.bgOffsetXPct * W,
+              top: (H - bgH) / 2 + params.bgOffsetYPct * H,
               objectFit: 'cover',
             }}
           />
         )}
 
-        {/* Accent glow from the bottom + top darkening for legibility */}
+        {/* colour glow from bottom + top darken */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: `radial-gradient(135% 68% at 50% 116%, ${accent} 0%, ${hexA(accent, 0.55)} 34%, ${hexA(accent, 0)} 62%)`,
+            background: `radial-gradient(140% 62% at 50% 118%, ${color.blur} 0%, ${color.semantic} 30%, ${hexA(color.blur, 0)} 60%)`,
           }}
         />
         <div
@@ -71,11 +84,10 @@ export function ThumbnailCard({ thumb, params, scale = 1, className }: Props) {
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(180deg, rgba(3,7,5,0.45) 0%, rgba(3,7,5,0) 28%, rgba(3,7,5,0) 58%, rgba(3,7,5,0.18) 100%)',
+              'linear-gradient(180deg, rgba(3,7,5,0.42) 0%, rgba(3,7,5,0) 26%, rgba(3,7,5,0) 60%, rgba(3,7,5,0.15) 100%)',
           }}
         />
 
-        {/* Key visual — centered, scalable */}
         {kv && (
           <img
             src={kv}
@@ -83,16 +95,15 @@ export function ThumbnailCard({ thumb, params, scale = 1, className }: Props) {
             draggable={false}
             style={{
               position: 'absolute',
-              width: kvW,
-              height: kvH,
-              left: (CARD_W - kvW) / 2,
-              top: (CARD_H - kvH) / 2 + params.kvOffsetY,
+              left: 0,
+              top: kvTop,
+              width: W,
+              height: kvBoxH,
               objectFit: 'contain',
             }}
           />
         )}
 
-        {/* Logo — position + size, color/white variant */}
         {logo && (
           <img
             src={logo}
@@ -100,31 +111,30 @@ export function ThumbnailCard({ thumb, params, scale = 1, className }: Props) {
             draggable={false}
             style={{
               position: 'absolute',
-              left: params.logo.x,
-              top: params.logo.y,
-              width: params.logo.w,
-              height: params.logo.h,
+              left: params.logo.xPct * W,
+              top: params.logo.yPct * H,
+              width: params.logo.wPct * W,
+              height: params.logo.hPct * H,
               objectFit: 'contain',
             }}
           />
         )}
 
-        {/* Provider label pill */}
         {params.showProvider && thumb.provider && (
           <div
             style={{
               position: 'absolute',
               left: '50%',
-              bottom: 12,
+              bottom: H * 0.035,
               transform: 'translateX(-50%)',
-              background: accent,
+              background: color.blur,
               color: '#ffffff',
-              font: '700 12px "Helvetica Neue", Arial, sans-serif',
-              letterSpacing: 0.3,
-              padding: '4px 16px',
+              font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
+              letterSpacing: W * 0.001,
+              padding: `${W * 0.016}px ${W * 0.06}px`,
               borderRadius: 999,
               whiteSpace: 'nowrap',
-              boxShadow: `0 0 16px ${hexA(accent, 0.7)}`,
+              boxShadow: `0 0 ${W * 0.06}px ${hexA(color.blur, 0.75)}`,
             }}
           >
             {thumb.provider}

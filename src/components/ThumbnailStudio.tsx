@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
-import { CARD_W, withDefaults, type TemplateParams } from '../lib/thumb'
+import { FRAME_SIZES, withDefaults, type TemplateParams } from '../lib/thumb'
+import { PALETTES, type PaletteMode } from '../lib/palettes'
 import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng } from '../lib/exportThumb'
 
 export function ThumbnailStudio() {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, setAccent } = useThumbnailsData()
+  const { thumbnails, loading: thLoading } = useThumbnailsData()
 
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -17,7 +18,6 @@ export function ThumbnailStudio() {
   useEffect(() => {
     if (template && !params) setParams(withDefaults(template.params))
   }, [template, params])
-
   useEffect(() => {
     if (!selectedId && thumbnails.length) setSelectedId(thumbnails[0].id)
   }, [thumbnails, selectedId])
@@ -48,7 +48,6 @@ export function ThumbnailStudio() {
       setSaving(false)
     }
   }
-
   async function exportAll() {
     if (!params) return
     setExporting(true)
@@ -62,55 +61,83 @@ export function ThumbnailStudio() {
     }
   }
 
+  const swatches = PALETTES[params.palette]
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-      {/* Editor */}
-      <aside className="space-y-5">
+    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <aside className="space-y-4">
         <div>
           <h1 className="text-lg font-semibold">Thumbnail Studio</h1>
           <p className="text-sm text-slate-400">
-            One template drives every thumbnail. Adjust below — all {thumbnails.length} update live.
+            One template · {thumbnails.length} thumbnails · edits apply to all.
           </p>
         </div>
 
-        <Section title="Logo">
-          <div className="mb-1 flex rounded-lg bg-slate-800 p-1 text-xs">
-            {(['color', 'white'] as const).map((v) => (
+        <Section title="Frame size">
+          <select
+            value={params.sizeKey}
+            onChange={(e) => set('sizeKey', e.target.value)}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-brand"
+          >
+            {FRAME_SIZES.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+          <Toggle
+            label="Corners"
+            options={['sharp', 'friendly', 'playful']}
+            value={params.cornerMode}
+            onChange={(v) => set('cornerMode', v as TemplateParams['cornerMode'])}
+          />
+        </Section>
+
+        <Section title="Colour">
+          <Toggle
+            label="Palette"
+            options={['dark', 'light']}
+            value={params.palette}
+            onChange={(v) => set('palette', v as PaletteMode)}
+          />
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {swatches.map((c) => (
               <button
-                key={v}
-                onClick={() => set('logoVariant', v)}
-                className={`flex-1 rounded-md py-1.5 capitalize ${params.logoVariant === v ? 'bg-slate-600 text-white' : 'text-slate-400'}`}
-              >
-                {v}
-              </button>
+                key={c.key}
+                title={c.label}
+                onClick={() => set('colorKey', c.key)}
+                className={`h-7 w-7 rounded-full ring-2 ${params.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
+                style={{ background: c.stroke }}
+              />
             ))}
           </div>
-          <Slider label="X" min={-40} max={CARD_W} value={params.logo.x} onChange={(v) => setLogo({ x: v })} />
-          <Slider label="Y" min={0} max={340} value={params.logo.y} onChange={(v) => setLogo({ y: v })} />
-          <Slider label="Width" min={40} max={CARD_W} value={params.logo.w} onChange={(v) => setLogo({ w: v })} />
-          <Slider label="Height" min={30} max={220} value={params.logo.h} onChange={(v) => setLogo({ h: v })} />
         </Section>
 
-        <Section title="Background">
-          <Slider label="Scale" min={0.6} max={2.5} step={0.01} value={params.bgScale} onChange={(v) => set('bgScale', v)} suffix="×" />
-          <Slider label="Offset X" min={-120} max={120} value={params.bgOffsetX} onChange={(v) => set('bgOffsetX', v)} />
-          <Slider label="Offset Y" min={-120} max={120} value={params.bgOffsetY} onChange={(v) => set('bgOffsetY', v)} />
+        <Section title="Background (fills frame)">
+          <Slider label="Zoom" min={1} max={3} step={0.01} value={params.bgScale} onChange={(v) => set('bgScale', v)} suffix="×" />
+          <Slider label="Offset X" min={-0.3} max={0.3} step={0.005} value={params.bgOffsetXPct} onChange={(v) => set('bgOffsetXPct', v)} pct />
+          <Slider label="Offset Y" min={-0.3} max={0.3} step={0.005} value={params.bgOffsetYPct} onChange={(v) => set('bgOffsetYPct', v)} pct />
         </Section>
 
-        <Section title="Key visual (centered)">
-          <Slider label="Scale" min={0.3} max={2} step={0.01} value={params.kvScale} onChange={(v) => set('kvScale', v)} suffix="×" />
-          <Slider label="Offset Y" min={-160} max={160} value={params.kvOffsetY} onChange={(v) => set('kvOffsetY', v)} />
+        <Section title="Key visual (bottom, centered)">
+          <Slider label="Size" min={20} max={120} value={params.kvSizePct} onChange={(v) => set('kvSizePct', v)} suffix="%" />
+          <Slider label="Lift from bottom" min={-15} max={45} value={params.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} suffix="%" />
         </Section>
 
-        <Section title="Frame">
-          <Slider label="Corner radius" min={0} max={40} value={params.cornerRadius} onChange={(v) => set('cornerRadius', v)} />
-          <label className="flex items-center justify-between text-xs text-slate-400">
+        <Section title="Logo">
+          <Toggle
+            label="Variant"
+            options={['color', 'white']}
+            value={params.logoVariant}
+            onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])}
+          />
+          <Slider label="X" min={-0.1} max={1} step={0.005} value={params.logo.xPct} onChange={(v) => setLogo({ xPct: v })} pct />
+          <Slider label="Y" min={0} max={1} step={0.005} value={params.logo.yPct} onChange={(v) => setLogo({ yPct: v })} pct />
+          <Slider label="Width" min={0.1} max={1} step={0.005} value={params.logo.wPct} onChange={(v) => setLogo({ wPct: v })} pct />
+          <Slider label="Height" min={0.05} max={0.6} step={0.005} value={params.logo.hPct} onChange={(v) => setLogo({ hPct: v })} pct />
+          <label className="flex items-center justify-between pt-1 text-xs text-slate-400">
             Show provider label
-            <input
-              type="checkbox"
-              checked={params.showProvider}
-              onChange={(e) => set('showProvider', e.target.checked)}
-            />
+            <input type="checkbox" checked={params.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
           </label>
         </Section>
 
@@ -132,53 +159,44 @@ export function ThumbnailStudio() {
         </div>
       </aside>
 
-      {/* Preview + grid */}
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-start gap-6">
-          {selected && (
-            <div className="shrink-0">
-              <ThumbnailCard thumb={selected} params={params} scale={1.15} />
-              <div className="mt-3 flex items-center gap-2">
-                <label className="text-xs text-slate-400">Accent</label>
-                <input
-                  type="color"
-                  value={selected.accent_color}
-                  onChange={(e) => setAccent(selected.id, e.target.value)}
-                  className="h-7 w-10 cursor-pointer rounded border border-slate-700 bg-slate-950"
-                />
-                <button
-                  onClick={() => exportThumbPng(selected, params)}
-                  className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800"
-                >
-                  Export PNG
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm text-slate-400">All thumbnails ({thumbnails.length})</span>
+      <div className="flex flex-wrap items-start gap-6">
+        {selected && (
+          <div className="shrink-0">
+            <ThumbnailCard thumb={selected} params={params} displayW={300} />
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-sm text-slate-300">{selected.name}</span>
               <button
-                onClick={exportAll}
-                disabled={exporting}
-                className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:opacity-60"
+                onClick={() => exportThumbPng(selected, params)}
+                className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800"
               >
-                {exporting ? 'Exporting…' : 'Export all'}
+                Export PNG
               </button>
             </div>
-            <div className="flex flex-wrap gap-4">
-              {thumbnails.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedId(t.id)}
-                  className={`rounded-xl p-1 ${t.id === selectedId ? 'ring-2 ring-brand' : 'ring-1 ring-slate-800'}`}
-                  title={t.name}
-                >
-                  <ThumbnailCard thumb={t} params={params} scale={0.62} />
-                </button>
-              ))}
-            </div>
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm text-slate-400">All thumbnails ({thumbnails.length})</span>
+            <button
+              onClick={exportAll}
+              disabled={exporting}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:opacity-60"
+            >
+              {exporting ? 'Exporting…' : 'Export all'}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            {thumbnails.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedId(t.id)}
+                className={`rounded-xl p-1 ${t.id === selectedId ? 'ring-2 ring-brand' : 'ring-1 ring-slate-800'}`}
+                title={t.name}
+              >
+                <ThumbnailCard thumb={t} params={params} displayW={170} />
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -195,6 +213,35 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
+function Toggle({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string
+  options: string[]
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div>
+      <div className="mb-1 text-[11px] text-slate-400">{label}</div>
+      <div className="flex rounded-lg bg-slate-800 p-1 text-xs">
+        {options.map((o) => (
+          <button
+            key={o}
+            onClick={() => onChange(o)}
+            className={`flex-1 rounded-md py-1.5 capitalize ${value === o ? 'bg-slate-600 text-white' : 'text-slate-400'}`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function Slider({
   label,
   min,
@@ -203,6 +250,7 @@ function Slider({
   value,
   onChange,
   suffix,
+  pct,
 }: {
   label: string
   min: number
@@ -211,13 +259,14 @@ function Slider({
   value: number
   onChange: (v: number) => void
   suffix?: string
+  pct?: boolean
 }) {
   return (
     <label className="block">
       <div className="mb-0.5 flex items-center justify-between text-[11px] text-slate-400">
         <span>{label}</span>
         <span className="tabular-nums text-slate-300">
-          {step < 1 ? value.toFixed(2) : Math.round(value)}
+          {pct ? `${Math.round(value * 100)}%` : step < 1 ? value.toFixed(2) : Math.round(value)}
           {suffix ?? ''}
         </span>
       </div>
