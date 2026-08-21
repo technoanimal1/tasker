@@ -62,21 +62,27 @@ export async function exportFramePng(frame: Frame, resolve: (k: AssetKind) => st
 
   const layers = [...frame.layout].sort((a, b) => a.z - b.z)
 
-  // Preload asset images.
+  // Resolve the image URL for a layer: shared asset by kind, or an image layer's own src.
+  const urlOf = (l: Layer): string | null =>
+    l.type === 'asset' && l.assetKind
+      ? resolve(l.assetKind)
+      : l.type === 'image'
+        ? l.src ?? null
+        : null
+
+  // Preload all images (asset + image layers).
   const imgs = new Map<string, HTMLImageElement>()
   await Promise.all(
-    layers
-      .filter((l) => l.type === 'asset' && l.assetKind)
-      .map(async (l) => {
-        const url = resolve(l.assetKind as AssetKind)
-        if (url && !imgs.has(url)) {
-          try {
-            imgs.set(url, await loadImage(url))
-          } catch {
-            /* skip broken asset */
-          }
+    layers.map(async (l) => {
+      const url = urlOf(l)
+      if (url && !imgs.has(url)) {
+        try {
+          imgs.set(url, await loadImage(url))
+        } catch {
+          /* skip broken asset */
         }
-      }),
+      }
+    }),
   )
 
   for (const l of layers) {
@@ -87,8 +93,8 @@ export async function exportFramePng(frame: Frame, resolve: (k: AssetKind) => st
     ctx.translate(cx, cy)
     ctx.rotate((l.rotation * Math.PI) / 180)
 
-    if (l.type === 'asset' && l.assetKind) {
-      const url = resolve(l.assetKind)
+    if ((l.type === 'asset' && l.assetKind) || l.type === 'image') {
+      const url = urlOf(l)
       const img = url ? imgs.get(url) : undefined
       if (img) {
         const s = Math.min(l.w / img.naturalWidth, l.h / img.naturalHeight)

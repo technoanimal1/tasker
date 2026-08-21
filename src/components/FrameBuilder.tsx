@@ -60,7 +60,13 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
       id: newId(),
       type,
       name:
-        type === 'asset' ? (assetKind as string) : type === 'text' ? 'Text' : 'Rectangle',
+        type === 'asset'
+          ? (assetKind as string)
+          : type === 'image'
+            ? 'Image'
+            : type === 'text'
+              ? 'Text'
+              : 'Rectangle',
       x: 40,
       y: 40,
       w: 300,
@@ -81,6 +87,8 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
       })
     } else if (type === 'asset' && assetKind === 'logo') {
       Object.assign(base, { assetKind, w: 220, h: 80, x: 40, y: 40 })
+    } else if (type === 'image') {
+      Object.assign(base, { src: '', w: 320, h: 320, x: 60, y: 60 })
     } else if (type === 'text') {
       Object.assign(base, {
         w: 480,
@@ -262,6 +270,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
           <ToolButton label="Background" hint="shared asset" onClick={() => addLayer('asset', 'background')} />
           <ToolButton label="Key visual" hint="shared asset" onClick={() => addLayer('asset', 'key_visual')} />
           <ToolButton label="Logotype" hint="shared asset" onClick={() => addLayer('asset', 'logo')} />
+          <ToolButton label="Image (URL)" onClick={() => addLayer('image')} />
           <ToolButton label="Text" onClick={() => addLayer('text')} />
           <ToolButton label="Rectangle" onClick={() => addLayer('rect')} />
 
@@ -506,6 +515,18 @@ function PropertiesPanel({
             />
           </div>
           <Num label="Radius" value={layer.radius ?? 0} onChange={(v) => onChange({ radius: v })} />
+        </div>
+      )}
+
+      {layer.type === 'image' && (
+        <div className="mt-3 space-y-1 border-t border-slate-800 pt-3">
+          <label className="block text-[11px] text-slate-500">Image URL</label>
+          <input
+            value={layer.src ?? ''}
+            onChange={(e) => onChange({ src: e.target.value })}
+            placeholder="https://…"
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-brand"
+          />
         </div>
       )}
 

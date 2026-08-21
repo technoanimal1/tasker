@@ -29,7 +29,7 @@ export interface Branch {
   created_at: string
 }
 
-export type LayerType = 'asset' | 'text' | 'rect'
+export type LayerType = 'asset' | 'image' | 'text' | 'rect'
 
 export interface Layer {
   id: string
@@ -44,6 +44,8 @@ export interface Layer {
   z: number
   // asset layers reference a shared brand asset by KIND (resolved at render time)
   assetKind?: AssetKind
+  // image layers carry their own image URL (e.g. a per-game key visual or logo)
+  src?: string
   // text layers
   text?: string
   fontSize?: number

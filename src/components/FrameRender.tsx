@@ -31,6 +31,22 @@ export function LayerContent({ layer, assetUrl }: { layer: Layer; assetUrl?: str
     )
   }
 
+  if (layer.type === 'image') {
+    return layer.src ? (
+      <img
+        src={layer.src}
+        alt=""
+        draggable={false}
+        crossOrigin="anonymous"
+        style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
+      />
+    ) : (
+      <div className="grid h-full w-full place-items-center border border-dashed border-slate-500/60 text-[10px] text-slate-400">
+        image — no URL
+      </div>
+    )
+  }
+
   if (layer.type === 'text') {
     return (
       <div
