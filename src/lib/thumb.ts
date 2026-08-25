@@ -228,13 +228,24 @@ export function bandStops(
   const sb = clamp01(p.gradBottom / 100)
   const lo = Math.min(s1, s2)
   const hi = Math.max(s1, s2)
-  return [
-    { offset: 0, color: hexA(semantic, 0) },
-    { offset: lo, color: hexA(semantic, a) },
-    { offset: hi, color: hexA(blur, a) },
-    { offset: Math.max(hi, sb), color: hexA(blur, a) },
-    { offset: 1, color: hexA(blur, 0) },
-  ]
+  const bot = Math.max(hi, sb)
+  const smooth = (t: number) => t * t * (3 - 2 * t) // smoothstep — no hard seam
+  const N = 6
+  const stops: { offset: number; color: string }[] = []
+  // top fade: transparent → full semantic, eased over 0..lo
+  for (let i = 0; i <= N; i++) {
+    const t = i / N
+    stops.push({ offset: lo * t, color: hexA(semantic, a * smooth(t)) })
+  }
+  // colour crossover semantic → blur (both full alpha), lo..hi
+  stops.push({ offset: hi, color: hexA(blur, a) })
+  // hold, then bottom fade: full → transparent, eased over bot..1
+  stops.push({ offset: bot, color: hexA(blur, a) })
+  for (let i = 1; i <= N; i++) {
+    const t = i / N
+    stops.push({ offset: bot + (1 - bot) * t, color: hexA(blur, a * smooth(1 - t)) })
+  }
+  return stops
 }
 
 export function hexA(hex: string, alpha: number): string {
