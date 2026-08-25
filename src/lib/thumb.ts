@@ -84,7 +84,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   textAlign: 'center',
   textColorMode: 'game',
   textColor: '#ffffff',
-  textAllCaps: false,
+  textAllCaps: true,
   textShadow: false,
   textLetterPct: 1,
   textLineHeight: 1.04,
@@ -229,8 +229,10 @@ export function bandStops(
   const lo = Math.min(s1, s2)
   const hi = Math.max(s1, s2)
   const bot = Math.max(hi, sb)
-  const smooth = (t: number) => t * t * (3 - 2 * t) // smoothstep — no hard seam
-  const N = 6
+  // smootherstep: zero 1st AND 2nd derivative at both ends → the point where the
+  // band reaches full opacity is imperceptible (no seam).
+  const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10)
+  const N = 12
   const stops: { offset: number; color: string }[] = []
   // top fade: transparent → full semantic, eased over 0..lo
   for (let i = 0; i <= N; i++) {
