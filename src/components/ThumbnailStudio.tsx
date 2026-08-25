@@ -5,6 +5,7 @@ import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
+  ANIM_PRESETS,
   branchParams,
   effectiveParams,
   frameSize,
@@ -17,7 +18,9 @@ import { FONT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
-import { exportThumbPng } from '../lib/exportThumb'
+import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
+
+type ExportFormat = StillFormat | 'anim'
 
 type Scope = 'global' | 'selected'
 
@@ -39,6 +42,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [format, setFormat] = useState<ExportFormat>('png')
+  const [playing, setPlaying] = useState(false)
+  const [phase, setPhase] = useState(0)
 
   const isDesigner = role === 'designer'
   const editingBranch = !!branch && !branch.is_default // a client branch = frame-design mode
@@ -82,6 +88,23 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   useEffect(() => {
     if (activeParams?.textLogo) ensureFont(activeParams.fontFamily)
   }, [activeParams?.textLogo, activeParams?.fontFamily])
+
+  // animation preview: drive a 0..1 loop phase while playing
+  useEffect(() => {
+    if (!playing || !activeParams?.animEnabled) {
+      setPhase(0)
+      return
+    }
+    const dur = Math.max(0.5, activeParams.animSpeed) * 1000
+    let raf = 0
+    const t0 = performance.now()
+    const loop = () => {
+      setPhase(((performance.now() - t0) % dur) / dur)
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, activeParams?.animEnabled, activeParams?.animSpeed])
 
   const globalDirty = useMemo(
     () => (template && params ? JSON.stringify(params) !== JSON.stringify(template.params) : false),
@@ -140,12 +163,16 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     else if (scope === 'global') template && setParams(withDefaults(template.params))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: {} }))
   }
+  async function exportOne(t: (typeof thumbnails)[number], pp: TemplateParams) {
+    if (format === 'anim') await exportThumbAnim(t, pp)
+    else await exportThumbPng(t, pp, 1, format)
+  }
   async function exportAll() {
     setExporting(true)
     try {
       for (const t of thumbnails) {
         const pp = paramsForThumb(t)
-        if (pp) await exportThumbPng(t, pp)
+        if (pp) await exportOne(t, pp)
         await new Promise((r) => setTimeout(r, 250))
       }
     } finally {
@@ -156,7 +183,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const p = activeParams
   const size = frameSize(p.sizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
+  const gridW = Math.min(260, Math.round(size.w * (260 / size.h)))
   const selectedParams = selected ? paramsForThumb(selected) : null
+  // Single canvas only when a specific thumbnail is targeted; otherwise a grid.
+  const singleView = !editingBranch && scope === 'selected' && !!selected
+  const previewPhase = playing ? phase : 0
+  const canExportAnim = animSupported()
 
   return (
     <div className="flex h-[calc(100vh-7.5rem)] gap-3">
@@ -200,35 +232,90 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         </div>
       </aside>
 
-      {/* CENTER — canvas */}
+      {/* CENTER — canvas / grid */}
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40">
         <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
-          <span className="text-sm font-medium">{selected?.name}</span>
+          <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500">{size.label}</span>
-            {selected && selectedParams && (
+            <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
+            {p.animEnabled && (
               <button
-                onClick={() => exportThumbPng(selected, selectedParams)}
+                onClick={() => setPlaying((v) => !v)}
                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
               >
-                Export PNG
+                {playing ? '❚❚ Pause' : '▶ Play'}
+              </button>
+            )}
+            <select
+              value={format}
+              onChange={(e) => setFormat(e.target.value as ExportFormat)}
+              className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500"
+              title="Export format"
+            >
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+              <option value="avif">AVIF</option>
+              <option value="anim" disabled={!canExportAnim}>
+                Animated (WebM)
+              </option>
+            </select>
+            {singleView && selected && selectedParams && (
+              <button
+                onClick={() => exportOne(selected, selectedParams)}
+                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
+              >
+                Export
               </button>
             )}
           </div>
         </div>
-        <div
-          className="flex flex-1 items-center justify-center overflow-auto p-8"
-          style={{
-            backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
-            backgroundSize: '22px 22px',
-          }}
-        >
-          {selected && selectedParams && (
+        {singleView && selected && selectedParams ? (
+          <div
+            className="flex flex-1 items-center justify-center overflow-auto p-8"
+            style={{
+              backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
+              backgroundSize: '22px 22px',
+            }}
+          >
             <div className="shadow-2xl">
-              <ThumbnailCard thumb={selected} params={selectedParams} assets={assetsFor(selected)} displayW={previewW} />
+              <ThumbnailCard thumb={selected} params={selectedParams} assets={assetsFor(selected)} displayW={previewW} phase={previewPhase} />
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            className="flex-1 overflow-auto p-6"
+            style={{
+              backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
+              backgroundSize: '22px 22px',
+            }}
+          >
+            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${gridW}px, 1fr))` }}>
+              {thumbnails.map((t) => {
+                const pp = paramsForThumb(t)
+                if (!pp) return null
+                const active = t.id === selectedId
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setSelectedId(t.id)
+                      if (showScope) setScope('selected')
+                    }}
+                    className={`group flex flex-col items-center gap-2 rounded-xl p-2 transition ${
+                      active ? 'bg-zinc-800/60 ring-1 ring-zinc-600' : 'hover:bg-zinc-800/30'
+                    }`}
+                    title={showScope ? 'Open in canvas' : t.name}
+                  >
+                    <div className="overflow-hidden rounded-lg shadow-lg">
+                      <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} />
+                    </div>
+                    <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* RIGHT — controls */}
@@ -358,6 +445,39 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
               <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
               <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
+            </Section>
+          )}
+
+          {showFrameSections && (
+            <Section title="Animation">
+              <Row label="Enable">
+                <input
+                  type="checkbox"
+                  checked={p.animEnabled}
+                  onChange={(e) => {
+                    set('animEnabled', e.target.checked)
+                    setPlaying(e.target.checked)
+                  }}
+                />
+              </Row>
+              {p.animEnabled && (
+                <>
+                  <Seg
+                    options={ANIM_PRESETS.map((o) => ({ value: o, label: o }))}
+                    value={p.animPreset}
+                    onChange={(v) => set('animPreset', v as TemplateParams['animPreset'])}
+                  />
+                  <Slider label="Speed" min={0.5} max={8} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
+                  <Slider label="Intensity" min={0} max={1} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} fmt={pctFmt} />
+                  <button
+                    onClick={() => setPlaying((v) => !v)}
+                    className="w-full rounded-lg bg-zinc-800 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+                  >
+                    {playing ? '❚❚ Pause preview' : '▶ Play preview'}
+                  </button>
+                  <p className="text-[11px] text-zinc-500">Export with the “Animated (WebM)” format to save the motion.</p>
+                </>
+              )}
             </Section>
           )}
 

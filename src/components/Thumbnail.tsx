@@ -1,5 +1,6 @@
 import { resolveColor } from '../lib/palettes'
 import { ensureFont, fitFontSize } from '../lib/fonts'
+import { motionAt } from '../lib/animate'
 import {
   CORNER_MODES,
   CORNER_REF,
@@ -16,10 +17,12 @@ interface Props {
   assets: AssetUrls
   /** Display width in px; the frame scales to fit it (keeps ratio). */
   displayW?: number
+  /** Animation loop phase 0..1 (drives motion when params.animEnabled). */
+  phase?: number
   className?: string
 }
 
-export function ThumbnailCard({ thumb, params, assets, displayW = 244, className }: Props) {
+export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0, className }: Props) {
   const size = frameSize(params.sizeKey)
   const W = size.w
   const H = size.h
@@ -40,6 +43,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
   const bandH = H * (params.gradBandPct / 100)
+
+  const m = motionAt(params, phase)
 
   return (
     <div className={className} style={{ width: W * scale, height: H * scale }}>
@@ -66,7 +71,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transform: `scale(${params.bgScale})`,
+                transform: `scale(${params.bgScale * m.bgScaleMul})`,
                 transformOrigin: 'center center',
               }}
             />
@@ -87,7 +92,15 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           <img
             src={kv}
             draggable={false}
-            style={{ position: 'absolute', left: 0, top: kvTop, width: W, height: kvBoxH, objectFit: 'contain' }}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: kvTop,
+              width: W,
+              height: kvBoxH,
+              objectFit: 'contain',
+              transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
+            }}
           />
         )}
 
@@ -120,7 +133,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
             position: 'absolute',
             left: '50%',
             bottom: -H * 0.123,
-            transform: 'translateX(-50%)',
+            transform: `translateX(-50%) scale(${m.bloomScale})`,
+            opacity: m.bloomOpacity,
             width: W * 0.811,
             height: H * 0.275,
             borderRadius: '50%',
@@ -131,7 +145,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
 
         {/* logo — image or text variant */}
         {params.textLogo
-          ? renderTextLogo(thumb.name, params, W, H, color)
+          ? renderTextLogo(thumb.name, params, W, H, color, m.logoScale)
           : logo && (
               <img
                 src={logo}
@@ -143,9 +157,24 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
                   width: params.logo.wPct * W,
                   height: params.logo.hPct * H,
                   objectFit: 'contain',
+                  transform: `scale(${m.logoScale})`,
+                  transformOrigin: 'center center',
                 }}
               />
             )}
+
+        {/* shine sweep */}
+        {m.shine != null && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              mixBlendMode: 'overlay',
+              background: `linear-gradient(105deg, transparent ${m.shine * 140 - 30}%, rgba(255,255,255,0.55) ${m.shine * 140 - 18}%, transparent ${m.shine * 140 - 6}%)`,
+            }}
+          />
+        )}
 
         {/* provider label */}
         {params.showProvider && thumb.provider && (
@@ -180,6 +209,7 @@ function renderTextLogo(
   W: number,
   H: number,
   color: { stroke: string; blur: string },
+  scale = 1,
 ) {
   ensureFont(params.fontFamily)
   const boxW = params.logo.wPct * W
@@ -207,6 +237,8 @@ function renderTextLogo(
         textShadow: params.logoVariant === 'white' ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
         whiteSpace: 'nowrap',
         overflow: 'visible',
+        transform: `scale(${scale})`,
+        transformOrigin: 'center center',
       }}
     >
       {name}

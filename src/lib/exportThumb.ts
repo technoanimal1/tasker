@@ -1,6 +1,7 @@
 import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { fitFontSize, loadFontFace } from './fonts'
+import { motionAt } from './animate'
 import { CORNER_MODES, CORNER_REF, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -39,24 +40,13 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   ctx.closePath()
 }
 
-export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, mult = 1): Promise<Blob> {
-  const size = frameSize(params.sizeKey)
-  const W = size.w * mult
-  const H = size.h * mult
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')!
-  const color = resolveColor(params.palette, params.colorKey)
-  if (params.textLogo) await loadFontFace(params.fontFamily)
-  const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
+interface Assets {
+  bg: HTMLImageElement | null
+  kv: HTMLImageElement | null
+  logo: HTMLImageElement | null
+}
 
-  roundRectPath(ctx, 0, 0, W, H, radius)
-  ctx.save()
-  ctx.clip()
-  ctx.fillStyle = '#0a0f0c'
-  ctx.fillRect(0, 0, W, H)
-
+async function loadAssets(thumb: Thumbnail, params: TemplateParams): Promise<Assets> {
   const fk = thumb.figma_file_key
   const proxy = (node: string | null) => (fk && node ? figmaProxyUrl(fk, node, 3) : null)
   const bgU = proxy(thumb.figma_bg_node)
@@ -69,10 +59,38 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
     kvU ? loadImage(kvU).catch(() => null) : null,
     logoU ? loadImage(logoU).catch(() => null) : null,
   ])
+  return { bg, kv, logo }
+}
 
+type Color = ReturnType<typeof resolveColor>
+
+/** Draw a single frame (static, or one animation phase) onto ctx. */
+function drawFrame(
+  ctx: CanvasRenderingContext2D,
+  thumb: Thumbnail,
+  params: TemplateParams,
+  W: number,
+  H: number,
+  assets: Assets,
+  color: Color,
+  phase: number,
+) {
+  const m = motionAt(params, phase)
+  const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
+  const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+
+  ctx.clearRect(0, 0, W, H)
+  roundRectPath(ctx, 0, 0, W, H, radius)
+  ctx.save()
+  ctx.clip()
+  ctx.fillStyle = '#0a0f0c'
+  ctx.fillRect(0, 0, W, H)
+
+  const { bg, kv, logo } = assets
   if (bg) {
-    const bgW = W * params.bgScale
-    const bgH = H * params.bgScale
+    const s = params.bgScale * m.bgScaleMul
+    const bgW = W * s
+    const bgH = H * s
     drawFit(ctx, bg, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH, 'cover')
   }
 
@@ -86,22 +104,21 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   if (kv) {
     const kvBoxH = H * (params.kvSizePct / 100)
     const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
-    drawFit(ctx, kv, 0, kvTop, W, kvBoxH, 'contain')
+    drawFit(ctx, kv, m.kvDXFrac * W, kvTop + m.kvDYFrac * H, W, kvBoxH, 'contain')
   }
 
-  // ── light effect (Figma control-area) ──
-  // bottom gradient band: bg-semantic → bg-blur (stops configurable)
+  // light band
   const bandH = H * (params.gradBandPct / 100)
   const band = ctx.createLinearGradient(0, H - bandH, 0, H)
-  const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
   band.addColorStop(clamp01(params.gradStop1 / 100), color.semantic)
   band.addColorStop(clamp01(params.gradStop2 / 100), color.blur)
   ctx.fillStyle = band
   ctx.fillRect(0, H - bandH, W, bandH)
 
-  const ellipse = (cy: number, rw: number, rh: number, inner: string, outer: string, blend?: GlobalCompositeOperation) => {
+  const ellipse = (cy: number, rw: number, rh: number, inner: string, outer: string, blend?: GlobalCompositeOperation, alpha = 1) => {
     ctx.save()
     if (blend) ctx.globalCompositeOperation = blend
+    ctx.globalAlpha = alpha
     ctx.translate(W / 2, cy)
     ctx.scale(rw, rh)
     const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
@@ -111,34 +128,55 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
     ctx.fillRect(-1, -1, 2, 2)
     ctx.restore()
   }
-  // base bloom
   ellipse(H * 0.88, W * 0.45, H * 0.17, hexA(color.blur, 0.85), hexA(color.blur, 0))
-  // bright overlay bloom (mix-blend-overlay)
-  ellipse(H * 0.985, W * 0.4055, H * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay')
+  ellipse(H * 0.985, W * 0.4055 * m.bloomScale, H * 0.1375 * m.bloomScale, '#ffffff', 'rgba(255,255,255,0)', 'overlay', m.bloomOpacity)
 
+  // logo — image or text, with optional motion scale
+  const boxX = params.logo.xPct * W
+  const boxY = params.logo.yPct * H
+  const boxW = params.logo.wPct * W
+  const boxH = params.logo.hPct * H
+  ctx.save()
+  if (m.logoScale !== 1) {
+    const cx = boxX + boxW / 2
+    const cy = boxY + boxH / 2
+    ctx.translate(cx, cy)
+    ctx.scale(m.logoScale, m.logoScale)
+    ctx.translate(-cx, -cy)
+  }
   if (params.textLogo && thumb.name) {
-    const boxW = params.logo.wPct * W
-    const boxH = params.logo.hPct * H
     const fs = fitFontSize(thumb.name, params.fontFamily, boxW, boxH)
     ctx.font = `900 ${fs}px "${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    const cx = params.logo.xPct * W + boxW / 2
-    const cy = params.logo.yPct * H + boxH / 2
+    const cx = boxX + boxW / 2
+    const cy = boxY + boxH / 2
     if (params.logoVariant === 'white') {
-      ctx.save()
       ctx.shadowColor = 'rgba(0,0,0,0.45)'
       ctx.shadowBlur = H * 0.02
       ctx.shadowOffsetY = H * 0.006
       ctx.fillStyle = '#ffffff'
-      ctx.fillText(thumb.name, cx, cy)
-      ctx.restore()
     } else {
       ctx.fillStyle = color.stroke
-      ctx.fillText(thumb.name, cx, cy)
     }
+    ctx.fillText(thumb.name, cx, cy)
   } else if (logo) {
-    drawFit(ctx, logo, params.logo.xPct * W, params.logo.yPct * H, params.logo.wPct * W, params.logo.hPct * H, 'contain')
+    drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
+  }
+  ctx.restore()
+
+  // shine sweep
+  if (m.shine != null) {
+    ctx.save()
+    ctx.globalCompositeOperation = 'overlay'
+    const center = m.shine * 1.4 - 0.2
+    const g = ctx.createLinearGradient(0, 0, W, 0)
+    g.addColorStop(clamp01(center - 0.12), 'rgba(255,255,255,0)')
+    g.addColorStop(clamp01(center), 'rgba(255,255,255,0.55)')
+    g.addColorStop(clamp01(center + 0.12), 'rgba(255,255,255,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, W, H)
+    ctx.restore()
   }
 
   if (params.showProvider && thumb.provider) {
@@ -172,20 +210,112 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   ctx.lineWidth = sw
   ctx.strokeStyle = color.stroke
   ctx.stroke()
+}
 
-  const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/png'))
+// ── still image export ───────────────────────────────────────────────────────
+export type StillFormat = 'png' | 'webp' | 'avif'
+const MIME: Record<StillFormat, string> = { png: 'image/png', webp: 'image/webp', avif: 'image/avif' }
+
+export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, mult = 1, format: StillFormat = 'png'): Promise<Blob> {
+  const size = frameSize(params.sizeKey)
+  const W = size.w * mult
+  const H = size.h * mult
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  const color = resolveColor(params.palette, params.colorKey)
+  const assets = await loadAssets(thumb, params)
+  if (params.textLogo) await loadFontFace(params.fontFamily)
+  drawFrame(ctx, thumb, params, W, H, assets, color, 0)
+
+  const type = MIME[format]
+  let blob: Blob | null = await new Promise((res) => canvas.toBlob(res, type, 0.95))
+  // Some browsers can't encode AVIF/WebP → fall back to PNG.
+  if (!blob || (blob.type !== type && format !== 'png')) {
+    blob = await new Promise((res) => canvas.toBlob(res, 'image/png'))
+  }
   if (!blob) throw new Error('export failed')
   return blob
 }
 
-export async function exportThumbPng(thumb: Thumbnail, params: TemplateParams, mult = 1) {
-  const blob = await renderThumbBlob(thumb, params, mult)
+function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${thumb.slug}_${params.sizeKey.replace(':', 'x')}.png`
+  a.download = filename
   document.body.appendChild(a)
   a.click()
   a.remove()
   URL.revokeObjectURL(url)
+}
+
+function baseName(thumb: Thumbnail, params: TemplateParams) {
+  return `${thumb.slug}_${params.sizeKey.replace(':', 'x')}`
+}
+
+export async function exportThumbPng(thumb: Thumbnail, params: TemplateParams, mult = 1, format: StillFormat = 'png') {
+  const blob = await renderThumbBlob(thumb, params, mult, format)
+  const ext = blob.type === 'image/png' ? 'png' : format
+  download(blob, `${baseName(thumb, params)}.${ext}`)
+}
+
+// ── animated export (WebM) ───────────────────────────────────────────────────
+function pickAnimMime(): string | null {
+  if (typeof MediaRecorder === 'undefined') return null
+  const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+  return candidates.find((c) => MediaRecorder.isTypeSupported(c)) ?? null
+}
+
+export function animSupported(): boolean {
+  return pickAnimMime() !== null
+}
+
+/** Record one seamless loop of the animation to a WebM blob. */
+export async function renderThumbAnimBlob(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30): Promise<Blob> {
+  const mime = pickAnimMime()
+  if (!mime) throw new Error('Animated export is not supported in this browser.')
+  const size = frameSize(params.sizeKey)
+  const W = size.w * mult
+  const H = size.h * mult
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  const color = resolveColor(params.palette, params.colorKey)
+  const assets = await loadAssets(thumb, params)
+  if (params.textLogo) await loadFontFace(params.fontFamily)
+
+  const stream = canvas.captureStream(fps)
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 })
+  const chunks: Blob[] = []
+  rec.ondataavailable = (e) => {
+    if (e.data.size) chunks.push(e.data)
+  }
+  const durationMs = Math.max(0.5, params.animSpeed) * 1000
+
+  return new Promise<Blob>((resolve) => {
+    rec.onstop = () => resolve(new Blob(chunks, { type: mime }))
+    // draw the first frame before starting so the stream has content
+    drawFrame(ctx, thumb, params, W, H, assets, color, 0)
+    rec.start()
+    const t0 = performance.now()
+    const loop = () => {
+      const el = performance.now() - t0
+      const phase = (el % durationMs) / durationMs
+      drawFrame(ctx, thumb, params, W, H, assets, color, phase)
+      if (el >= durationMs) {
+        drawFrame(ctx, thumb, params, W, H, assets, color, 1)
+        rec.stop()
+      } else {
+        requestAnimationFrame(loop)
+      }
+    }
+    requestAnimationFrame(loop)
+  })
+}
+
+export async function exportThumbAnim(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30) {
+  const blob = await renderThumbAnimBlob(thumb, params, mult, fps)
+  download(blob, `${baseName(thumb, params)}.webm`)
 }

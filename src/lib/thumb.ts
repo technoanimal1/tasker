@@ -44,7 +44,15 @@ export interface TemplateParams {
   gradStop1: number
   gradStop2: number
   gradBandPct: number // band height as % of frame height
+  // animation
+  animEnabled: boolean
+  animPreset: AnimPreset
+  animSpeed: number // seconds per loop
+  animIntensity: number // 0..1
 }
+
+export type AnimPreset = 'float' | 'pulse' | 'kenburns' | 'shine'
+export const ANIM_PRESETS: AnimPreset[] = ['float', 'pulse', 'kenburns', 'shine']
 
 export const DEFAULT_PARAMS: TemplateParams = {
   sizeKey: '3:4',
@@ -66,6 +74,10 @@ export const DEFAULT_PARAMS: TemplateParams = {
   gradStop1: 29.327,
   gradStop2: 74.038,
   gradBandPct: 44.2,
+  animEnabled: false,
+  animPreset: 'float',
+  animSpeed: 3,
+  animIntensity: 0.5,
 }
 
 export interface Template {
@@ -128,6 +140,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'showProvider', 'providerPos', 'providerRadius', 'providerPadX', 'providerPadY',
   'gradStop1', 'gradStop2', 'gradBandPct',
   'logoVariant', 'textLogo', 'fontFamily',
+  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity',
 ]
 
 /** Keep only the frame-design keys from an arbitrary params bag (never `logo`). */
