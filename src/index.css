@@ -7,7 +7,8 @@
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply text-zinc-100 antialiased;
+  background: #0a0b0d;
 }
 
 /* Checkerboard used behind transparent asset previews. */

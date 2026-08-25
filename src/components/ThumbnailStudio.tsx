@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
-import { FRAME_SIZES, effectiveParams, withDefaults, type ParamOverride, type TemplateParams } from '../lib/thumb'
+import {
+  FRAME_SIZES,
+  effectiveParams,
+  frameSize,
+  withDefaults,
+  type ParamOverride,
+  type TemplateParams,
+} from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
 import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng } from '../lib/exportThumb'
@@ -25,7 +32,6 @@ export function ThumbnailStudio() {
     if (template && !params) setParams(withDefaults(template.params))
   }, [template, params])
   useEffect(() => {
-    // seed local overrides from DB once thumbnails arrive
     setOverrides((cur) =>
       Object.keys(cur).length ? cur : Object.fromEntries(thumbnails.map((t) => [t.id, t.overrides ?? {}])),
     )
@@ -47,16 +53,15 @@ export function ThumbnailStudio() {
   const dirty = scope === 'global' ? globalDirty : selDirty
 
   if (tLoading || thLoading || !params || !activeParams) {
-    return <div className="py-20 text-center text-slate-500">Loading studio…</div>
+    return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
   }
 
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
-    if (scope === 'global') setParams((p) => (p ? { ...p, [key]: value } : p))
-    else if (selectedId)
-      setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
+    if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
+    else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
   }
   function setLogo(patch: Partial<TemplateParams['logo']>) {
-    if (scope === 'global') setParams((p) => (p ? { ...p, logo: { ...p.logo, ...patch } } : p))
+    if (scope === 'global') setParams((prev) => (prev ? { ...prev, logo: { ...prev.logo, ...patch } } : prev))
     else if (selectedId)
       setOverrides((o) => {
         const cur = o[selectedId] ?? {}
@@ -91,197 +96,250 @@ export function ThumbnailStudio() {
     }
   }
 
-  const swatches = PALETTES[activeParams.palette]
   const p = activeParams
+  const size = frameSize(p.sizeKey)
+  const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <aside className="space-y-4 lg:sticky lg:top-[76px] lg:max-h-[calc(100vh-92px)] lg:overflow-y-auto lg:pr-2">
-        <div>
-          <h1 className="text-lg font-semibold">Thumbnail Studio</h1>
-          <p className="text-sm text-slate-400">{thumbnails.length} thumbnails · Figma-linked</p>
+    <div className="flex h-[calc(100vh-7.5rem)] gap-3">
+      {/* LEFT — thumbnails */}
+      <aside className="flex w-[236px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5">
+          <span className="text-sm font-medium">Thumbnails</span>
+          <span className="text-xs text-zinc-500">{thumbnails.length}</span>
         </div>
+        <div className="flex-1 space-y-1 overflow-y-auto p-2">
+          {thumbnails.map((t) => {
+            const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
+            return (
+              <button
+                key={t.id}
+                onClick={() => setSelectedId(t.id)}
+                className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
+                  t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
+                }`}
+              >
+                <div className="overflow-hidden rounded">
+                  <ThumbnailCard thumb={t} params={effectiveParams(params, overrides[t.id])} assets={assetsFor(t)} displayW={52} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
+                  <p className="text-[10px] text-zinc-500">{hasOv ? 'custom' : t.provider}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+        <div className="border-t border-zinc-800 p-2">
+          <button
+            onClick={exportAll}
+            disabled={exporting}
+            className="w-full rounded-lg bg-zinc-800 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 disabled:opacity-60"
+          >
+            {exporting ? 'Exporting…' : 'Export all'}
+          </button>
+        </div>
+      </aside>
 
-        {/* Scope */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-          <div className="flex rounded-lg bg-slate-800 p-1 text-xs">
-            <button
-              onClick={() => setScope('global')}
-              className={`flex-1 rounded-md py-1.5 ${scope === 'global' ? 'bg-slate-600 text-white' : 'text-slate-400'}`}
-            >
-              All thumbnails
-            </button>
-            <button
-              onClick={() => setScope('selected')}
-              disabled={!selected}
-              className={`flex-1 rounded-md py-1.5 ${scope === 'selected' ? 'bg-slate-600 text-white' : 'text-slate-400'} disabled:opacity-40`}
-            >
-              This one
-            </button>
+      {/* CENTER — canvas */}
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
+          <span className="text-sm font-medium">{selected?.name}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500">{size.label}</span>
+            {selected && (
+              <button
+                onClick={() => exportThumbPng(selected, effectiveParams(params, overrides[selected.id]))}
+                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
+              >
+                Export PNG
+              </button>
+            )}
           </div>
-          <p className="mt-2 text-[11px] text-slate-500">
-            {scope === 'global'
-              ? 'Editing the template — applies to every thumbnail.'
-              : `Overriding “${selected?.name}” only. Other games keep the template.`}
+        </div>
+        <div
+          className="flex flex-1 items-center justify-center overflow-auto p-8"
+          style={{
+            backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+          }}
+        >
+          {selected && (
+            <div className="shadow-2xl">
+              <ThumbnailCard thumb={selected} params={effectiveParams(params, overrides[selected.id])} assets={assetsFor(selected)} displayW={previewW} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* RIGHT — controls */}
+      <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
+        <div className="border-b border-zinc-800 p-3">
+          <Seg
+            options={[
+              { value: 'global', label: 'All thumbnails' },
+              { value: 'selected', label: 'This one', disabled: !selected },
+            ]}
+            value={scope}
+            onChange={(v) => setScope(v as Scope)}
+          />
+          <p className="mt-2 text-[11px] text-zinc-500">
+            {scope === 'global' ? 'Editing the template — applies to all.' : `Overriding “${selected?.name}” only.`}
           </p>
         </div>
 
-        {scope === 'global' && (
-          <Section title="Frame size">
-            <select
-              value={p.sizeKey}
-              onChange={(e) => set('sizeKey', e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-brand"
-            >
-              {FRAME_SIZES.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
+        <div className="flex-1 space-y-4 overflow-y-auto p-3">
+          {scope === 'global' && (
+            <Section title="Frame">
+              <Row label="Aspect">
+                <select
+                  value={p.sizeKey}
+                  onChange={(e) => set('sizeKey', e.target.value)}
+                  className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                >
+                  {FRAME_SIZES.map((s) => (
+                    <option key={s.key} value={s.key}>
+                      {s.key}
+                    </option>
+                  ))}
+                </select>
+              </Row>
+              <Seg options={['sharp', 'friendly', 'playful'].map((o) => ({ value: o, label: o }))} value={p.cornerMode} onChange={(v) => set('cornerMode', v as TemplateParams['cornerMode'])} />
+            </Section>
+          )}
+
+          <Section title="Colour">
+            <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {PALETTES[p.palette].map((c) => (
+                <button
+                  key={c.key}
+                  title={c.label}
+                  onClick={() => set('colorKey', c.key)}
+                  className={`h-6 w-6 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
+                  style={{ background: c.stroke }}
+                />
               ))}
-            </select>
-            <Toggle label="Corners" options={['sharp', 'friendly', 'playful']} value={p.cornerMode} onChange={(v) => set('cornerMode', v as TemplateParams['cornerMode'])} />
+            </div>
           </Section>
-        )}
 
-        <Section title="Colour">
-          <Toggle label="Palette" options={['dark', 'light']} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {swatches.map((c) => (
-              <button
-                key={c.key}
-                title={c.label}
-                onClick={() => set('colorKey', c.key)}
-                className={`h-7 w-7 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
-                style={{ background: c.stroke }}
-              />
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Background (fills frame)">
-          <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} suffix="×" />
-          <p className="text-[11px] text-slate-500">Always centered &amp; fills the frame.</p>
-        </Section>
-
-        <Section title="Key visual (bottom, centered)">
-          <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} suffix="%" />
-          <Slider label="Lift from bottom" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} suffix="%" />
-        </Section>
-
-        <Section title="Logo">
-          <Toggle label="Variant" options={['color', 'white']} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
-          <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} pct />
-          <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} pct />
-          <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} pct />
-          <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} pct />
-        </Section>
-
-        {scope === 'global' && (
-          <Section title="Provider label">
-            <label className="flex items-center justify-between text-xs text-slate-400">
-              Show
-              <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
-            </label>
-            <Toggle label="Placement" options={['bottom', 'top']} value={p.providerPos} onChange={(v) => set('providerPos', v as TemplateParams['providerPos'])} />
-            <Slider label="Corner radius" min={0} max={30} value={p.providerRadius} onChange={(v) => set('providerRadius', v)} />
+          <Section title="Background">
+            <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} fmt={(v) => `${v.toFixed(2)}×`} />
+            <p className="text-[11px] text-zinc-500">Centered · fills the frame.</p>
           </Section>
-        )}
 
-        <div className="flex gap-2">
+          <Section title="Key visual">
+            <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
+            <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+          </Section>
+
+          <Section title="Logo">
+            <Seg options={['color', 'white'].map((o) => ({ value: o, label: o }))} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
+            <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
+            <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
+            <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
+            <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
+          </Section>
+
+          {scope === 'global' && (
+            <Section title="Provider label">
+              <Row label="Show">
+                <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
+              </Row>
+              <Seg options={['bottom', 'top'].map((o) => ({ value: o, label: o }))} value={p.providerPos} onChange={(v) => set('providerPos', v as TemplateParams['providerPos'])} />
+              <Slider label="Radius" min={0} max={30} value={p.providerRadius} onChange={(v) => set('providerRadius', v)} fmt={(v) => `${Math.round(v)}`} />
+            </Section>
+          )}
+        </div>
+
+        <div className="flex gap-2 border-t border-zinc-800 p-3">
           <button
             onClick={handleSave}
             disabled={saving || !dirty}
             className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
           >
-            {saving ? 'Saving…' : dirty ? (scope === 'global' ? 'Save template' : `Save “${selected?.name}”`) : 'Saved'}
+            {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
           </button>
-          <button onClick={handleReset} disabled={!dirty} className="rounded-lg border border-slate-700 px-3 py-2 text-sm disabled:opacity-40">
+          <button onClick={handleReset} disabled={!dirty} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 disabled:opacity-40">
             {scope === 'global' ? 'Reset' : 'Clear'}
           </button>
         </div>
       </aside>
-
-      <div className="flex flex-wrap items-start gap-6">
-        {selected && (
-          <div className="shrink-0 self-start lg:sticky lg:top-[76px]">
-            <ThumbnailCard thumb={selected} params={effectiveParams(params, overrides[selected.id])} assets={assetsFor(selected)} displayW={300} />
-            <div className="mt-3 flex items-center gap-2">
-              <span className="text-sm text-slate-300">{selected.name}</span>
-              <button onClick={() => exportThumbPng(selected, effectiveParams(params, overrides[selected.id]))} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800">
-                Export PNG
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm text-slate-400">All thumbnails ({thumbnails.length})</span>
-            <button onClick={exportAll} disabled={exporting} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:opacity-60">
-              {exporting ? 'Exporting…' : 'Export all'}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            {thumbnails.map((t) => {
-              const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedId(t.id)}
-                  className={`relative rounded-xl p-1 ${t.id === selectedId ? 'ring-2 ring-brand' : 'ring-1 ring-slate-800'}`}
-                  title={t.name}
-                >
-                  <ThumbnailCard thumb={t} params={effectiveParams(params, overrides[t.id])} assets={assetsFor(t)} displayW={170} />
-                  {hasOv && (
-                    <span className="absolute right-2 top-2 rounded-full bg-brand px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                      custom
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
 
+const pctFmt = (v: number) => `${Math.round(v * 100)}%`
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+    <div className="space-y-2">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
 }
 
-function Toggle({ label, options, value, onChange }: { label: string; options: string[]; value: string; onChange: (v: string) => void }) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div className="mb-1 text-[11px] text-slate-400">{label}</div>
-      <div className="flex rounded-lg bg-slate-800 p-1 text-xs">
-        {options.map((o) => (
-          <button key={o} onClick={() => onChange(o)} className={`flex-1 rounded-md py-1.5 capitalize ${value === o ? 'bg-slate-600 text-white' : 'text-slate-400'}`}>
-            {o}
-          </button>
-        ))}
-      </div>
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-zinc-400">{label}</span>
+      {children}
     </div>
   )
 }
 
-function Slider({ label, min, max, step = 1, value, onChange, suffix, pct }: { label: string; min: number; max: number; step?: number; value: number; onChange: (v: number) => void; suffix?: string; pct?: boolean }) {
+function Seg({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string; disabled?: boolean }[]
+  value: string
+  onChange: (v: string) => void
+}) {
   return (
-    <label className="block">
-      <div className="mb-0.5 flex items-center justify-between text-[11px] text-slate-400">
-        <span>{label}</span>
-        <span className="tabular-nums text-slate-300">
-          {pct ? `${Math.round(value * 100)}%` : step < 1 ? value.toFixed(2) : Math.round(value)}
-          {suffix ?? ''}
-        </span>
+    <div className="flex rounded-lg bg-zinc-800/70 p-0.5 text-xs">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          disabled={o.disabled}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 rounded-md py-1.5 capitalize transition ${
+            value === o.value ? 'bg-zinc-100 font-medium text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
+          } disabled:opacity-40`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function Slider({
+  label,
+  min,
+  max,
+  step = 1,
+  value,
+  onChange,
+  fmt,
+}: {
+  label: string
+  min: number
+  max: number
+  step?: number
+  value: number
+  onChange: (v: number) => void
+  fmt: (v: number) => string
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between">
+        <span className="text-xs text-zinc-400">{label}</span>
+        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] tabular-nums text-zinc-200">{fmt(value)}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-brand" />
-    </label>
+    </div>
   )
 }
