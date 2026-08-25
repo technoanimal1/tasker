@@ -60,5 +60,11 @@ export function useBranches() {
     return branch
   }
 
-  return { branches, loading, refresh, create, fork }
+  async function saveFrameParams(id: string, frame_params: Record<string, unknown>): Promise<void> {
+    setBranches((bs) => bs.map((b) => (b.id === id ? { ...b, frame_params } : b)))
+    const { error } = await supabase.from('branches').update({ frame_params }).eq('id', id)
+    if (error) throw error
+  }
+
+  return { branches, loading, refresh, create, fork, saveFrameParams }
 }

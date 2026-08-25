@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 import { useBranches } from '../hooks/useBranches'
 import { useBrandAssets } from '../hooks/useBrandAssets'
 import { BrandAssets } from './BrandAssets'
@@ -12,6 +13,7 @@ type View = 'studio' | 'frames' | 'assets'
 
 export function Dashboard() {
   const { session } = useAuth()
+  const { role } = useProfile()
   const branchesApi = useBranches()
   const assetsApi = useBrandAssets()
 
@@ -66,6 +68,15 @@ export function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            {role && (
+              <span
+                className={`hidden rounded-full px-2 py-0.5 text-[11px] font-medium sm:inline ${
+                  role === 'designer' ? 'bg-brand/20 text-brand' : 'bg-zinc-800 text-zinc-400'
+                }`}
+              >
+                {role}
+              </span>
+            )}
             <span className="hidden text-sm text-zinc-500 lg:inline">{session?.user.email}</span>
             <button
               onClick={() => supabase.auth.signOut()}
@@ -79,7 +90,7 @@ export function Dashboard() {
 
       <main className={view === 'studio' ? 'px-4 py-4' : 'mx-auto max-w-7xl px-4 py-6'}>
         {view === 'studio' ? (
-          <ThumbnailStudio />
+          <ThumbnailStudio role={role ?? 'client'} branch={branch} saveFrameParams={branchesApi.saveFrameParams} />
         ) : view === 'assets' ? (
           <BrandAssets api={assetsApi} />
         ) : branch ? (

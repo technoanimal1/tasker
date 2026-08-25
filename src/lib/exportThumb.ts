@@ -1,5 +1,6 @@
 import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
+import { fitFontSize, loadFontFace } from './fonts'
 import { CORNER_MODES, CORNER_REF, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -47,6 +48,7 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   canvas.height = H
   const ctx = canvas.getContext('2d')!
   const color = resolveColor(params.palette, params.colorKey)
+  if (params.textLogo) await loadFontFace(params.fontFamily)
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
 
   roundRectPath(ctx, 0, 0, W, H, radius)
@@ -59,7 +61,9 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   const proxy = (node: string | null) => (fk && node ? figmaProxyUrl(fk, node, 3) : null)
   const bgU = proxy(thumb.figma_bg_node)
   const kvU = proxy(thumb.figma_kv_node)
-  const logoU = proxy(params.logoVariant === 'white' ? thumb.figma_logo_white_node : thumb.figma_logo_color_node)
+  const logoU = params.textLogo
+    ? null
+    : proxy(params.logoVariant === 'white' ? thumb.figma_logo_white_node : thumb.figma_logo_color_node)
   const [bg, kv, logo] = await Promise.all([
     bgU ? loadImage(bgU).catch(() => null) : null,
     kvU ? loadImage(kvU).catch(() => null) : null,
@@ -112,7 +116,28 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   // bright overlay bloom (mix-blend-overlay)
   ellipse(H * 0.985, W * 0.4055, H * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay')
 
-  if (logo) {
+  if (params.textLogo && thumb.name) {
+    const boxW = params.logo.wPct * W
+    const boxH = params.logo.hPct * H
+    const fs = fitFontSize(thumb.name, params.fontFamily, boxW, boxH)
+    ctx.font = `900 ${fs}px "${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const cx = params.logo.xPct * W + boxW / 2
+    const cy = params.logo.yPct * H + boxH / 2
+    if (params.logoVariant === 'white') {
+      ctx.save()
+      ctx.shadowColor = 'rgba(0,0,0,0.45)'
+      ctx.shadowBlur = H * 0.02
+      ctx.shadowOffsetY = H * 0.006
+      ctx.fillStyle = '#ffffff'
+      ctx.fillText(thumb.name, cx, cy)
+      ctx.restore()
+    } else {
+      ctx.fillStyle = color.stroke
+      ctx.fillText(thumb.name, cx, cy)
+    }
+  } else if (logo) {
     drawFit(ctx, logo, params.logo.xPct * W, params.logo.yPct * H, params.logo.wPct * W, params.logo.hPct * H, 'contain')
   }
 

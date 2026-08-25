@@ -27,6 +27,8 @@ export interface Branch {
   parent_branch_id: string | null
   is_default: boolean
   created_at: string
+  /** Client frame-design overrides layered on top of the main template. */
+  frame_params?: Record<string, unknown>
 }
 
 export type LayerType = 'asset' | 'image' | 'text' | 'rect'

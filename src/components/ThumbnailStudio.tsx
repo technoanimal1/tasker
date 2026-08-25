@@ -4,6 +4,8 @@ import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
   FRAME_SIZES,
+  FRAME_DESIGN_KEYS,
+  branchParams,
   effectiveParams,
   frameSize,
   withDefaults,
@@ -11,22 +13,35 @@ import {
   type TemplateParams,
 } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
+import { FONT_OPTIONS, ensureFont } from '../lib/fonts'
+import type { Branch } from '../lib/types'
+import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng } from '../lib/exportThumb'
 
 type Scope = 'global' | 'selected'
 
-export function ThumbnailStudio() {
+interface Props {
+  role: Role
+  branch: Branch | null
+  saveFrameParams: (id: string, frame_params: Record<string, unknown>) => Promise<void>
+}
+
+export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
   const { thumbnails, loading: thLoading, saveOverrides } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [overrides, setOverrides] = useState<Record<string, ParamOverride>>({})
+  const [frameParams, setFrameParams] = useState<ParamOverride>({})
   const [scope, setScope] = useState<Scope>('global')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+
+  const isDesigner = role === 'designer'
+  const editingBranch = !!branch && !branch.is_default // a client branch = frame-design mode
 
   useEffect(() => {
     if (template && !params) setParams(withDefaults(template.params))
@@ -37,10 +52,36 @@ export function ThumbnailStudio() {
     )
     if (!selectedId && thumbnails.length) setSelectedId(thumbnails[0].id)
   }, [thumbnails, selectedId])
+  // Reset the frame-design draft whenever the active branch changes.
+  useEffect(() => {
+    setFrameParams((branch?.frame_params as ParamOverride) ?? {})
+  }, [branch?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selected = thumbnails.find((t) => t.id === selectedId) ?? null
   const selOv = selectedId ? overrides[selectedId] ?? {} : {}
-  const activeParams = params ? (scope === 'global' ? params : effectiveParams(params, selOv)) : null
+
+  // The composited params used to render a given thumbnail (list, preview, export).
+  const paramsForThumb = useMemo(() => {
+    return (t: (typeof thumbnails)[number]): TemplateParams | null => {
+      if (!params) return null
+      const base = effectiveParams(params, overrides[t.id])
+      return editingBranch ? branchParams(base, frameParams) : base
+    }
+  }, [params, overrides, editingBranch, frameParams])
+
+  // Values shown in the control panel (reflect what's being edited).
+  const activeParams = params
+    ? editingBranch
+      ? branchParams(params, frameParams)
+      : scope === 'global'
+        ? params
+        : effectiveParams(params, selOv)
+    : null
+
+  // keep the selected text-logo font warm in the preview
+  useEffect(() => {
+    if (activeParams?.textLogo) ensureFont(activeParams.fontFamily)
+  }, [activeParams?.textLogo, activeParams?.fontFamily])
 
   const globalDirty = useMemo(
     () => (template && params ? JSON.stringify(params) !== JSON.stringify(template.params) : false),
@@ -50,17 +91,31 @@ export function ThumbnailStudio() {
     () => (selected ? JSON.stringify(selOv) !== JSON.stringify(selected.overrides ?? {}) : false),
     [selOv, selected],
   )
-  const dirty = scope === 'global' ? globalDirty : selDirty
+  const branchDirty = useMemo(
+    () => (editingBranch ? JSON.stringify(frameParams) !== JSON.stringify(branch?.frame_params ?? {}) : false),
+    [editingBranch, frameParams, branch],
+  )
+  const dirty = editingBranch ? branchDirty : scope === 'global' ? globalDirty : selDirty
 
   if (tLoading || thLoading || !params || !activeParams) {
     return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
   }
 
+  // Section visibility by role + mode.
+  const showDesignerSections = !editingBranch && isDesigner // brand-defining controls
+  const showFrameSections = editingBranch || isDesigner // frame design (client branch, or designer on main)
+  const showScope = isDesigner && !editingBranch
+  const lockedForClient = !isDesigner && !editingBranch // client viewing the main template
+
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
-    if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
+    if (editingBranch) {
+      if (!FRAME_DESIGN_KEYS.includes(key)) return
+      setFrameParams((fp) => ({ ...fp, [key]: value }))
+    } else if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
   }
   function setLogo(patch: Partial<TemplateParams['logo']>) {
+    if (editingBranch) return // logo geometry is designer-only
     if (scope === 'global') setParams((prev) => (prev ? { ...prev, logo: { ...prev.logo, ...patch } } : prev))
     else if (selectedId)
       setOverrides((o) => {
@@ -73,22 +128,24 @@ export function ThumbnailStudio() {
     if (!params) return
     setSaving(true)
     try {
-      if (scope === 'global') await save(params)
+      if (editingBranch && branch) await saveFrameParams(branch.id, frameParams)
+      else if (scope === 'global') await save(params)
       else if (selectedId) await saveOverrides(selectedId, selOv)
     } finally {
       setSaving(false)
     }
   }
   function handleReset() {
-    if (scope === 'global') template && setParams(withDefaults(template.params))
+    if (editingBranch) setFrameParams((branch?.frame_params as ParamOverride) ?? {})
+    else if (scope === 'global') template && setParams(withDefaults(template.params))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: {} }))
   }
   async function exportAll() {
-    if (!params) return
     setExporting(true)
     try {
       for (const t of thumbnails) {
-        await exportThumbPng(t, effectiveParams(params, overrides[t.id]))
+        const pp = paramsForThumb(t)
+        if (pp) await exportThumbPng(t, pp)
         await new Promise((r) => setTimeout(r, 250))
       }
     } finally {
@@ -99,6 +156,7 @@ export function ThumbnailStudio() {
   const p = activeParams
   const size = frameSize(p.sizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
+  const selectedParams = selected ? paramsForThumb(selected) : null
 
   return (
     <div className="flex h-[calc(100vh-7.5rem)] gap-3">
@@ -111,6 +169,7 @@ export function ThumbnailStudio() {
         <div className="flex-1 space-y-1 overflow-y-auto p-2">
           {thumbnails.map((t) => {
             const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
+            const pp = paramsForThumb(t)
             return (
               <button
                 key={t.id}
@@ -120,7 +179,7 @@ export function ThumbnailStudio() {
                 }`}
               >
                 <div className="overflow-hidden rounded">
-                  <ThumbnailCard thumb={t} params={effectiveParams(params, overrides[t.id])} assets={assetsFor(t)} displayW={52} />
+                  {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
@@ -147,9 +206,9 @@ export function ThumbnailStudio() {
           <span className="text-sm font-medium">{selected?.name}</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-500">{size.label}</span>
-            {selected && (
+            {selected && selectedParams && (
               <button
-                onClick={() => exportThumbPng(selected, effectiveParams(params, overrides[selected.id]))}
+                onClick={() => exportThumbPng(selected, selectedParams)}
                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
               >
                 Export PNG
@@ -164,9 +223,9 @@ export function ThumbnailStudio() {
             backgroundSize: '22px 22px',
           }}
         >
-          {selected && (
+          {selected && selectedParams && (
             <div className="shadow-2xl">
-              <ThumbnailCard thumb={selected} params={effectiveParams(params, overrides[selected.id])} assets={assetsFor(selected)} displayW={previewW} />
+              <ThumbnailCard thumb={selected} params={selectedParams} assets={assetsFor(selected)} displayW={previewW} />
             </div>
           )}
         </div>
@@ -175,21 +234,43 @@ export function ThumbnailStudio() {
       {/* RIGHT — controls */}
       <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
         <div className="border-b border-zinc-800 p-3">
-          <Seg
-            options={[
-              { value: 'global', label: 'All thumbnails' },
-              { value: 'selected', label: 'This one', disabled: !selected },
-            ]}
-            value={scope}
-            onChange={(v) => setScope(v as Scope)}
-          />
-          <p className="mt-2 text-[11px] text-zinc-500">
-            {scope === 'global' ? 'Editing the template — applies to all.' : `Overriding “${selected?.name}” only.`}
-          </p>
+          {editingBranch ? (
+            <>
+              <div className="rounded-lg bg-zinc-800/70 px-3 py-2 text-xs">
+                <span className="font-medium text-zinc-100">Frame design</span>
+                <span className="text-zinc-500"> · {branch?.name}</span>
+              </div>
+              <p className="mt-2 text-[11px] text-zinc-500">
+                Customising this client branch. Background, logo size and game colours are inherited from the main template.
+              </p>
+            </>
+          ) : showScope ? (
+            <>
+              <Seg
+                options={[
+                  { value: 'global', label: 'All thumbnails' },
+                  { value: 'selected', label: 'This one', disabled: !selected },
+                ]}
+                value={scope}
+                onChange={(v) => setScope(v as Scope)}
+              />
+              <p className="mt-2 text-[11px] text-zinc-500">
+                {scope === 'global' ? 'Editing the main template — applies to all.' : `Overriding “${selected?.name}” only.`}
+              </p>
+            </>
+          ) : (
+            <p className="text-[11px] text-zinc-500">Main template (read-only). Select your branch above to customise the frame design.</p>
+          )}
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-3">
-          {scope === 'global' && (
+          {lockedForClient && (
+            <div className="rounded-lg border border-zinc-800 bg-zinc-800/30 p-3 text-xs text-zinc-400">
+              You have client access. Pick your branch from the top bar to change the frame design and choose colour or white logotypes.
+            </div>
+          )}
+
+          {showFrameSections && (
             <Section title="Frame">
               <Row label="Aspect">
                 <select
@@ -208,46 +289,79 @@ export function ThumbnailStudio() {
             </Section>
           )}
 
-          <Section title="Colour">
-            <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {PALETTES[p.palette].map((c) => (
-                <button
-                  key={c.key}
-                  title={c.label}
-                  onClick={() => set('colorKey', c.key)}
-                  className={`h-6 w-6 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
-                  style={{ background: c.stroke }}
-                />
-              ))}
-            </div>
-          </Section>
+          {showDesignerSections && (
+            <Section title="Colour">
+              <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {PALETTES[p.palette].map((c) => (
+                  <button
+                    key={c.key}
+                    title={c.label}
+                    onClick={() => set('colorKey', c.key)}
+                    className={`h-6 w-6 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
+                    style={{ background: c.stroke }}
+                  />
+                ))}
+              </div>
+            </Section>
+          )}
 
-          <Section title="Background">
-            <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} fmt={(v) => `${v.toFixed(2)}×`} />
-            <p className="text-[11px] text-zinc-500">Centered · fills the frame.</p>
-          </Section>
+          {showDesignerSections && (
+            <Section title="Background">
+              <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} fmt={(v) => `${v.toFixed(2)}×`} />
+              <p className="text-[11px] text-zinc-500">Centered · fills the frame.</p>
+            </Section>
+          )}
 
-          <Section title="Light gradient">
-            <Slider label="Stop 1" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Stop 2" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-          </Section>
+          {showFrameSections && (
+            <Section title="Light gradient">
+              <Slider label="Stop 1" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Stop 2" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+            </Section>
+          )}
 
-          <Section title="Key visual">
-            <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-          </Section>
+          {showDesignerSections && (
+            <Section title="Key visual">
+              <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+            </Section>
+          )}
 
-          <Section title="Logo">
-            <Seg options={['color', 'white'].map((o) => ({ value: o, label: o }))} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
-            <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
-            <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
-            <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
-            <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
-          </Section>
+          {showFrameSections && (
+            <Section title="Logo style">
+              <Seg options={['color', 'white'].map((o) => ({ value: o, label: o }))} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
+              <Row label="Text logo">
+                <input type="checkbox" checked={p.textLogo} onChange={(e) => set('textLogo', e.target.checked)} />
+              </Row>
+              {p.textLogo && (
+                <Row label="Font">
+                  <select
+                    value={p.fontFamily}
+                    onChange={(e) => set('fontFamily', e.target.value)}
+                    className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                  >
+                    {FONT_OPTIONS.map((f) => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                </Row>
+              )}
+            </Section>
+          )}
 
-          {scope === 'global' && (
+          {showDesignerSections && (
+            <Section title="Logo placement">
+              <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
+              <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
+              <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
+              <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
+            </Section>
+          )}
+
+          {showFrameSections && (
             <Section title="Provider label">
               <Row label="Show">
                 <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
@@ -265,18 +379,20 @@ export function ThumbnailStudio() {
           )}
         </div>
 
-        <div className="flex gap-2 border-t border-zinc-800 p-3">
-          <button
-            onClick={handleSave}
-            disabled={saving || !dirty}
-            className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
-          </button>
-          <button onClick={handleReset} disabled={!dirty} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 disabled:opacity-40">
-            {scope === 'global' ? 'Reset' : 'Clear'}
-          </button>
-        </div>
+        {!lockedForClient && (
+          <div className="flex gap-2 border-t border-zinc-800 p-3">
+            <button
+              onClick={handleSave}
+              disabled={saving || !dirty}
+              className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
+            </button>
+            <button onClick={handleReset} disabled={!dirty} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 disabled:opacity-40">
+              {editingBranch || scope === 'global' ? 'Reset' : 'Clear'}
+            </button>
+          </div>
+        )}
       </aside>
     </div>
   )

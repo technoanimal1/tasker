@@ -33,6 +33,8 @@ export interface TemplateParams {
   kvBottomPct: number // extra offset from the bottom, % of frame height
   logo: { xPct: number; yPct: number; wPct: number; hPct: number }
   logoVariant: LogoVariant
+  textLogo: boolean // render the game name as text instead of the image logo
+  fontFamily: string // Google Font family for the text logo
   showProvider: boolean
   providerPos: 'top' | 'bottom'
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
@@ -54,6 +56,8 @@ export const DEFAULT_PARAMS: TemplateParams = {
   kvBottomPct: 0,
   logo: { xPct: 0.1, yPct: 0.55, wPct: 0.8, hPct: 0.3 },
   logoVariant: 'color',
+  textLogo: false,
+  fontFamily: 'Poppins',
   showProvider: true,
   providerPos: 'bottom',
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
@@ -109,6 +113,39 @@ export const OVERRIDABLE: (keyof TemplateParams)[] = [
   'logo', 'logoVariant',
   'palette', 'colorKey',
 ]
+
+// ── Role-scoped editing ─────────────────────────────────────────────────────
+// Designer-only: brand-defining choices set on the main template.
+export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
+  'bgScale',
+  'kvSizePct', 'kvBottomPct',
+  'logo',
+  'palette', 'colorKey',
+]
+// Frame design: what a client may customise on their own branch.
+export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
+  'sizeKey', 'cornerMode',
+  'showProvider', 'providerPos', 'providerRadius', 'providerPadX', 'providerPadY',
+  'gradStop1', 'gradStop2', 'gradBandPct',
+  'logoVariant', 'textLogo', 'fontFamily',
+]
+
+/** Keep only the frame-design keys from an arbitrary params bag (never `logo`). */
+export function pickFrameParams(
+  fp: Partial<TemplateParams> | ParamOverride | null | undefined,
+): Partial<TemplateParams> {
+  const out: Record<string, unknown> = {}
+  for (const k of FRAME_DESIGN_KEYS) if (fp && k in fp) out[k] = (fp as Record<string, unknown>)[k]
+  return out as Partial<TemplateParams>
+}
+
+/** Composite the main template with a branch's frame-design overrides. */
+export function branchParams(
+  main: TemplateParams,
+  fp: Partial<TemplateParams> | ParamOverride | null | undefined,
+): TemplateParams {
+  return { ...main, ...pickFrameParams(fp) }
+}
 
 /** Resolved image URLs for a thumbnail's four layers. */
 export interface AssetUrls {

@@ -1,4 +1,5 @@
 import { resolveColor } from '../lib/palettes'
+import { ensureFont, fitFontSize } from '../lib/fonts'
 import {
   CORNER_MODES,
   CORNER_REF,
@@ -128,21 +129,23 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           }}
         />
 
-        {/* logo */}
-        {logo && (
-          <img
-            src={logo}
-            draggable={false}
-            style={{
-              position: 'absolute',
-              left: params.logo.xPct * W,
-              top: params.logo.yPct * H,
-              width: params.logo.wPct * W,
-              height: params.logo.hPct * H,
-              objectFit: 'contain',
-            }}
-          />
-        )}
+        {/* logo — image or text variant */}
+        {params.textLogo
+          ? renderTextLogo(thumb.name, params, W, H, color)
+          : logo && (
+              <img
+                src={logo}
+                draggable={false}
+                style={{
+                  position: 'absolute',
+                  left: params.logo.xPct * W,
+                  top: params.logo.yPct * H,
+                  width: params.logo.wPct * W,
+                  height: params.logo.hPct * H,
+                  objectFit: 'contain',
+                }}
+              />
+            )}
 
         {/* provider label */}
         {params.showProvider && thumb.provider && (
@@ -167,6 +170,46 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function renderTextLogo(
+  name: string,
+  params: TemplateParams,
+  W: number,
+  H: number,
+  color: { stroke: string; blur: string },
+) {
+  ensureFont(params.fontFamily)
+  const boxW = params.logo.wPct * W
+  const boxH = params.logo.hPct * H
+  const fs = fitFontSize(name, params.fontFamily, boxW, boxH)
+  const fill = params.logoVariant === 'white' ? '#ffffff' : color.stroke
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: params.logo.xPct * W,
+        top: params.logo.yPct * H,
+        width: boxW,
+        height: boxH,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        fontFamily: `"${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`,
+        fontWeight: 900,
+        fontSize: fs,
+        lineHeight: 1,
+        color: fill,
+        letterSpacing: fs * 0.01,
+        textShadow: params.logoVariant === 'white' ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'visible',
+      }}
+    >
+      {name}
     </div>
   )
 }
