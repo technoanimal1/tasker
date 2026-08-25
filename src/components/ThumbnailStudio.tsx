@@ -200,6 +200,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   const exportAll = () => runExport(thumbnails)
 
+  // Quick per-thumbnail recolour (designer): set + persist the colour override.
+  function recolorThumb(id: string, colorKey: string) {
+    setOverrides((o) => {
+      const next = { ...(o[id] ?? {}), colorKey }
+      saveOverrides(id, next)
+      return { ...o, [id]: next }
+    })
+  }
+
   const p = activeParams
   const size = frameSize(p.sizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
@@ -316,22 +325,38 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 if (!pp) return null
                 const active = t.id === selectedId
                 return (
-                  <button
+                  <div
                     key={t.id}
                     onClick={() => {
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
                     }}
-                    className={`group flex flex-col items-center gap-2 rounded-xl p-2 transition ${
+                    className={`group flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       active ? 'bg-zinc-800/60 ring-1 ring-zinc-600' : 'hover:bg-zinc-800/30'
                     }`}
                     title={showScope ? 'Open in canvas' : t.name}
                   >
-                    <div className="overflow-hidden rounded-lg shadow-lg">
+                    <div className="relative overflow-hidden rounded-lg shadow-lg">
                       <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} />
+                      {isDesigner && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100"
+                        >
+                          {PALETTES[pp.palette].map((c) => (
+                            <button
+                              key={c.key}
+                              title={c.label}
+                              onClick={() => recolorThumb(t.id, c.key)}
+                              className={`h-5 w-5 rounded-full ring-2 transition ${pp.colorKey === c.key ? 'ring-white' : 'ring-transparent hover:ring-white/50'}`}
+                              style={{ background: c.stroke }}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
-                  </button>
+                  </div>
                 )
               })}
             </div>
