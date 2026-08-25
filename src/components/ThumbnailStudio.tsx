@@ -201,9 +201,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const exportAll = () => runExport(thumbnails)
 
   // Quick per-thumbnail recolour (designer): set + persist the colour override.
-  function recolorThumb(id: string, colorKey: string) {
+  function recolorThumb(id: string, palette: PaletteMode, colorKey: string) {
     setOverrides((o) => {
-      const next = { ...(o[id] ?? {}), colorKey }
+      const next = { ...(o[id] ?? {}), palette, colorKey }
       saveOverrides(id, next)
       return { ...o, [id]: next }
     })
@@ -331,30 +331,23 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
                     }}
-                    className={`group flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
+                    className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       active ? 'bg-zinc-800/60 ring-1 ring-zinc-600' : 'hover:bg-zinc-800/30'
                     }`}
                     title={showScope ? 'Open in canvas' : t.name}
                   >
-                    <div className="relative overflow-hidden rounded-lg shadow-lg">
+                    <div className="w-full overflow-hidden rounded-lg shadow-lg">
                       <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} />
-                      {isDesigner && (
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100"
-                        >
-                          {PALETTES[pp.palette].map((c) => (
-                            <button
-                              key={c.key}
-                              title={c.label}
-                              onClick={() => recolorThumb(t.id, c.key)}
-                              className={`h-5 w-5 rounded-full ring-2 transition ${pp.colorKey === c.key ? 'ring-white' : 'ring-transparent hover:ring-white/50'}`}
-                              style={{ background: c.stroke }}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
+                    {isDesigner && (
+                      <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">
+                        <ThumbColorPicker
+                          palette={pp.palette}
+                          colorKey={pp.colorKey}
+                          onPick={(mode, key) => recolorThumb(t.id, mode, key)}
+                        />
+                      </div>
+                    )}
                     <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
                   </div>
                 )
@@ -732,6 +725,60 @@ function Slider({
       <div className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
       <span className="relative z-10 text-xs text-zinc-300">{label}</span>
       <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
+    </div>
+  )
+}
+
+function ThumbColorPicker({
+  palette,
+  colorKey,
+  onPick,
+}: {
+  palette: PaletteMode
+  colorKey: string
+  onPick: (mode: PaletteMode, key: string) => void
+}) {
+  const [tab, setTab] = useState<PaletteMode>(palette)
+  const current = PALETTES[palette].find((c) => c.key === colorKey)?.stroke ?? '#ffffff'
+  return (
+    <div className="group/col relative">
+      <button
+        title="Colour"
+        className="grid h-7 w-7 place-items-center rounded-full border-2 border-white/80 shadow-md ring-1 ring-black/30"
+        style={{ background: current }}
+      >
+        <span className="text-[11px] leading-none text-white mix-blend-difference">◑</span>
+      </button>
+      {/* popover — pt-1.5 acts as an invisible bridge so hover survives the gap */}
+      <div className="invisible absolute right-0 top-full z-30 pt-1.5 opacity-0 transition group-hover/col:visible group-hover/col:opacity-100">
+        <div className="w-44 rounded-xl border border-zinc-700 bg-[#15161a] p-2 shadow-2xl">
+          <div className="mb-2 flex rounded-lg bg-zinc-800 p-0.5 text-[11px]">
+            {(['dark', 'light'] as PaletteMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setTab(m)}
+                className={`flex-1 rounded-md py-1 capitalize transition ${tab === m ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {PALETTES[tab].map((c) => {
+              const activeSw = palette === tab && colorKey === c.key
+              return (
+                <button
+                  key={c.key}
+                  title={c.label}
+                  onClick={() => onPick(tab, c.key)}
+                  className={`h-6 w-6 rounded-full ring-2 transition ${activeSw ? 'ring-white' : 'ring-transparent hover:ring-white/50'}`}
+                  style={{ background: c.stroke }}
+                />
+              )
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
