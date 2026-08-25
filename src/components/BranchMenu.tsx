@@ -105,7 +105,7 @@ export function BranchMenu({ api, activeBranch, onSelect }: Props) {
                     <button
                       onClick={submit}
                       disabled={busy || !name.trim()}
-                      className="flex-1 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+                      className="flex-1 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-60"
                     >
                       {busy ? '…' : mode === 'fork' ? 'Fork' : 'Create'}
                     </button>

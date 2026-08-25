@@ -423,17 +423,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
           {showFrameSections && (
             <Section title="Light gradient">
-              <Slider label="Stop 1" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Slider label="Stop 2" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Top fade" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Colour stop" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Bottom fade" min={0} max={100} value={p.gradBottom} onChange={(v) => set('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Opacity" min={0} max={1} step={0.02} value={p.gradOpacity} onChange={(v) => set('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
               <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Row label="Fade">
-                <span className="text-[11px] text-zinc-500">0-opacity end</span>
-              </Row>
-              <Seg
-                options={['both', 'top', 'bottom', 'none'].map((o) => ({ value: o, label: o }))}
-                value={p.gradFade}
-                onChange={(v) => set('gradFade', v as TemplateParams['gradFade'])}
-              />
             </Section>
           )}
 
@@ -514,8 +508,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   <Slider label="Max lines" min={1} max={4} value={p.textMaxLines} onChange={(v) => set('textMaxLines', v)} fmt={intFmt} />
                   <Slider label="Line gap" min={0.8} max={1.6} step={0.02} value={p.textLineHeight} onChange={(v) => set('textLineHeight', v)} fmt={(v) => v.toFixed(2)} />
                   <Slider label="Letter" min={-5} max={30} value={p.textLetterPct} onChange={(v) => set('textLetterPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-                  <Row label="All caps">
+                  <Row label="Capital letters">
                     <input type="checkbox" checked={p.textAllCaps} onChange={(e) => set('textAllCaps', e.target.checked)} />
+                  </Row>
+                  <Row label="Shadow">
+                    <input type="checkbox" checked={p.textShadow} onChange={(e) => set('textShadow', e.target.checked)} />
                   </Row>
                   <Row label="Vary line widths">
                     <input type="checkbox" checked={p.textFillLines} onChange={(e) => set('textFillLines', e.target.checked)} />
@@ -590,7 +587,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || !dirty}
-              className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+              className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-50"
             >
               {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
             </button>

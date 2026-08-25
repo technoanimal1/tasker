@@ -75,7 +75,7 @@ export function FramesView({ branch, assets }: Props) {
         </div>
         <button
           onClick={() => setCreating((v) => !v)}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark"
         >
           ＋ New frame
         </button>
@@ -112,7 +112,7 @@ export function FramesView({ branch, assets }: Props) {
             <button
               onClick={createFrame}
               disabled={busy || !name.trim()}
-              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-60"
             >
               {busy ? '…' : 'Create & edit'}
             </button>

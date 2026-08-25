@@ -229,7 +229,6 @@ function renderTextLogo(
   const fill =
     params.textColorMode === 'white' ? '#ffffff' : params.textColorMode === 'custom' ? params.textColor : color.stroke
   const alignItems = params.textAlign === 'left' ? 'flex-start' : params.textAlign === 'right' ? 'flex-end' : 'center'
-  const light = fill.toLowerCase() === '#ffffff' || fill.toLowerCase() === '#fff'
   return (
     <div
       style={{
@@ -247,7 +246,7 @@ function renderTextLogo(
         fontWeight: weight,
         lineHeight: lineHeight,
         color: fill,
-        textShadow: light ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
+        textShadow: params.textShadow ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
         whiteSpace: 'nowrap',
         overflow: 'visible',
         transform: `scale(${scale})`,

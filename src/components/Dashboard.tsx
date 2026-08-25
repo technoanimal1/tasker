@@ -37,9 +37,14 @@ export function Dashboard() {
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#0a0b0d]/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 font-semibold">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">◧</span>
-              <span className="hidden sm:inline">Design Studio</span>
+            <div className="flex items-center gap-2.5 font-semibold">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-zinc-900 shadow-[0_0_20px_rgba(255,240,80,0.35)]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="5" width="14" height="14" rx="3" fill="currentColor" opacity="0.35" />
+                  <rect x="7" y="3" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="2.2" />
+                </svg>
+              </span>
+              <span className="hidden text-[15px] tracking-tight sm:inline">Thumbnail Studio</span>
             </div>
 
             <BranchMenu

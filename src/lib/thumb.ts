@@ -41,6 +41,7 @@ export interface TemplateParams {
   textColorMode: 'game' | 'white' | 'custom'
   textColor: string // used when textColorMode = 'custom'
   textAllCaps: boolean
+  textShadow: boolean // drop shadow behind the text logo (off by default)
   textLetterPct: number // letter spacing, % of font size
   textLineHeight: number // line-height multiplier
   textMaxLines: number // 1..4
@@ -52,10 +53,11 @@ export interface TemplateParams {
   providerPadX: number // px @244 ref
   providerPadY: number
   // light band gradient (bg-semantic → bg-blur), stop positions in %
-  gradStop1: number
-  gradStop2: number
+  gradStop1: number // top fade: transparent at 0 → full colour here
+  gradStop2: number // colour crossover: semantic → blur
+  gradBottom: number // bottom fade: colour holds until here → transparent at 100
+  gradOpacity: number // overall band opacity 0..1
   gradBandPct: number // band height as % of frame height
-  gradFade: 'both' | 'top' | 'bottom' | 'none' // which end(s) fade to 0 opacity
   // animation
   animEnabled: boolean
   animPreset: AnimPreset
@@ -83,6 +85,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   textColorMode: 'game',
   textColor: '#ffffff',
   textAllCaps: false,
+  textShadow: false,
   textLetterPct: 1,
   textLineHeight: 1.04,
   textMaxLines: 3,
@@ -95,8 +98,9 @@ export const DEFAULT_PARAMS: TemplateParams = {
   providerPadY: 0,
   gradStop1: 29.327,
   gradStop2: 74.038,
+  gradBottom: 88,
+  gradOpacity: 1,
   gradBandPct: 44.2,
-  gradFade: 'both',
   animEnabled: false,
   animPreset: 'float',
   animSpeed: 3,
@@ -161,9 +165,9 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
   'showProvider', 'providerPos', 'providerRadius', 'providerPadX', 'providerPadY',
-  'gradStop1', 'gradStop2', 'gradBandPct', 'gradFade',
+  'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct',
   'logoVariant', 'textLogo', 'fontFamily',
-  'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps',
+  'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
   'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
   'animEnabled', 'animPreset', 'animSpeed', 'animIntensity',
 ]
@@ -207,22 +211,29 @@ export function withDefaults(p: Partial<TemplateParams> | null | undefined): Tem
   }
 }
 
-/** Colour stops for the light band, honouring which end(s) fade to 0 opacity. */
+/**
+ * Colour stops for the light band. Fades in from transparent at the top (to full
+ * colour at gradStop1), crosses semantic→blur at gradStop2, holds until gradBottom,
+ * then fades back to transparent at the bottom. Overall alpha = gradOpacity.
+ */
 export function bandStops(
   semantic: string,
   blur: string,
-  p: Pick<TemplateParams, 'gradStop1' | 'gradStop2' | 'gradFade'>,
+  p: Pick<TemplateParams, 'gradStop1' | 'gradStop2' | 'gradBottom' | 'gradOpacity'>,
 ): { offset: number; color: string }[] {
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+  const a = clamp01(p.gradOpacity)
   const s1 = clamp01(p.gradStop1 / 100)
   const s2 = clamp01(p.gradStop2 / 100)
-  const fadeTop = p.gradFade === 'both' || p.gradFade === 'top'
-  const fadeBottom = p.gradFade === 'both' || p.gradFade === 'bottom'
+  const sb = clamp01(p.gradBottom / 100)
+  const lo = Math.min(s1, s2)
+  const hi = Math.max(s1, s2)
   return [
-    { offset: 0, color: fadeTop ? hexA(semantic, 0) : semantic },
-    { offset: Math.min(s1, s2), color: semantic },
-    { offset: Math.max(s1, s2), color: blur },
-    { offset: 1, color: fadeBottom ? hexA(blur, 0) : blur },
+    { offset: 0, color: hexA(semantic, 0) },
+    { offset: lo, color: hexA(semantic, a) },
+    { offset: hi, color: hexA(blur, a) },
+    { offset: Math.max(hi, sb), color: hexA(blur, a) },
+    { offset: 1, color: hexA(blur, 0) },
   ]
 }
 

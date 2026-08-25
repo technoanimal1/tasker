@@ -155,13 +155,12 @@ function drawFrame(
     })
     const fill =
       params.textColorMode === 'white' ? '#ffffff' : params.textColorMode === 'custom' ? params.textColor : color.stroke
-    const light = fill.toLowerCase() === '#ffffff' || fill.toLowerCase() === '#fff'
     ctx.textAlign = params.textAlign
     ctx.textBaseline = 'middle'
     const tx = params.textAlign === 'left' ? boxX : params.textAlign === 'right' ? boxX + boxW : boxX + boxW / 2
     const totalH = lineSizes.reduce((sum, s) => sum + s * lineHeight, 0)
     let y = boxY + boxH / 2 - totalH / 2
-    if (light) {
+    if (params.textShadow) {
       ctx.shadowColor = 'rgba(0,0,0,0.45)'
       ctx.shadowBlur = H * 0.02
       ctx.shadowOffsetY = H * 0.006
