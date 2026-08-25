@@ -61,21 +61,21 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           boxShadow: `inset 0 0 0 ${strokeW}px ${color.stroke}, 0 6px 30px ${hexA(color.blur, 0.4)}`,
         }}
       >
-        {/* background — always centered, always cover-fills; zoom scales from centre */}
+        {/* background — cover-fills the whole frame, centered; zoom scales from centre.
+            Uses background-image (not <img>) so it can never leave an uncovered edge. */}
         {bg && (
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            <img
-              src={bg}
-              draggable={false}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                transform: `scale(${params.bgScale * m.bgScaleMul})`,
-                transformOrigin: 'center center',
-              }}
-            />
-          </div>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url("${bg}")`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat',
+              transform: `scale(${params.bgScale * m.bgScaleMul})`,
+              transformOrigin: 'center center',
+            }}
+          />
         )}
 
         {/* subtle top darken */}
