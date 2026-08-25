@@ -113,6 +113,7 @@ function drawFrame(
   band.addColorStop(0, hexA(color.semantic, 0))
   band.addColorStop(clamp01(params.gradStop1 / 100), color.semantic)
   band.addColorStop(clamp01(params.gradStop2 / 100), color.blur)
+  band.addColorStop(1, hexA(color.blur, 0))
   ctx.fillStyle = band
   ctx.fillRect(0, H - bandH, W, bandH)
 

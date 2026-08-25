@@ -112,7 +112,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             right: 0,
             bottom: 0,
             height: bandH,
-            background: `linear-gradient(to bottom, ${hexA(color.semantic, 0)} 0%, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%)`,
+            background: `linear-gradient(to bottom, ${hexA(color.semantic, 0)} 0%, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%, ${hexA(color.blur, 0)} 100%)`,
           }}
         />
         <div
