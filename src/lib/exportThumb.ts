@@ -69,34 +69,49 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   if (bg) {
     const bgW = W * params.bgScale
     const bgH = H * params.bgScale
-    drawFit(ctx, bg, (W - bgW) / 2 + params.bgOffsetXPct * W, (H - bgH) / 2 + params.bgOffsetYPct * H, bgW, bgH, 'cover')
+    const hBase = params.bgAnchorX === 'left' ? 0 : params.bgAnchorX === 'right' ? W - bgW : (W - bgW) / 2
+    const vBase = params.bgAnchorY === 'top' ? 0 : params.bgAnchorY === 'bottom' ? H - bgH : (H - bgH) / 2
+    drawFit(ctx, bg, hBase + params.bgOffsetXPct * W, vBase + params.bgOffsetYPct * H, bgW, bgH, 'cover')
   }
 
-  // colour glow (elliptical radial from bottom)
-  ctx.save()
-  ctx.translate(W / 2, H * 1.18)
-  ctx.scale((W * 1.4) / 2, H * 0.62)
-  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
-  grad.addColorStop(0, color.blur)
-  grad.addColorStop(0.3, color.semantic)
-  grad.addColorStop(0.6, hexA(color.blur, 0))
-  ctx.fillStyle = grad
-  ctx.fillRect(-1, -1, 2, 2)
-  ctx.restore()
-
-  const dg = ctx.createLinearGradient(0, 0, 0, H)
-  dg.addColorStop(0, 'rgba(3,7,5,0.42)')
-  dg.addColorStop(0.26, 'rgba(3,7,5,0)')
-  dg.addColorStop(0.6, 'rgba(3,7,5,0)')
-  dg.addColorStop(1, 'rgba(3,7,5,0.15)')
+  // subtle top darken
+  const dg = ctx.createLinearGradient(0, 0, 0, H * 0.3)
+  dg.addColorStop(0, 'rgba(3,7,5,0.38)')
+  dg.addColorStop(1, 'rgba(3,7,5,0)')
   ctx.fillStyle = dg
-  ctx.fillRect(0, 0, W, H)
+  ctx.fillRect(0, 0, W, H * 0.3)
 
   if (kv) {
     const kvBoxH = H * (params.kvSizePct / 100)
     const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
     drawFit(ctx, kv, 0, kvTop, W, kvBoxH, 'contain')
   }
+
+  // ── light effect (Figma control-area) ──
+  // bottom gradient band: bg-semantic 29.3% → bg-blur 74%
+  const bandH = H * 0.442
+  const band = ctx.createLinearGradient(0, H - bandH, 0, H)
+  band.addColorStop(0.29327, color.semantic)
+  band.addColorStop(0.74038, color.blur)
+  ctx.fillStyle = band
+  ctx.fillRect(0, H - bandH, W, bandH)
+
+  const ellipse = (cy: number, rw: number, rh: number, inner: string, outer: string, blend?: GlobalCompositeOperation) => {
+    ctx.save()
+    if (blend) ctx.globalCompositeOperation = blend
+    ctx.translate(W / 2, cy)
+    ctx.scale(rw, rh)
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+    g.addColorStop(0, inner)
+    g.addColorStop(0.72, outer)
+    ctx.fillStyle = g
+    ctx.fillRect(-1, -1, 2, 2)
+    ctx.restore()
+  }
+  // base bloom
+  ellipse(H * 0.88, W * 0.45, H * 0.17, hexA(color.blur, 0.85), hexA(color.blur, 0))
+  // bright overlay bloom (mix-blend-overlay)
+  ellipse(H * 0.985, W * 0.4055, H * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay')
 
   if (logo) {
     drawFit(ctx, logo, params.logo.xPct * W, params.logo.yPct * H, params.logo.wPct * W, params.logo.hPct * H, 'contain')

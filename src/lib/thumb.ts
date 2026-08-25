@@ -29,6 +29,8 @@ export interface TemplateParams {
   palette: PaletteMode
   colorKey: string
   bgScale: number // ≥1 zoom on top of cover-fill
+  bgAnchorX: 'left' | 'center' | 'right' // zoom/crop focal point
+  bgAnchorY: 'top' | 'center' | 'bottom'
   bgOffsetXPct: number
   bgOffsetYPct: number
   kvSizePct: number // key visual height as % of frame height (bottom-anchored, centered)
@@ -44,6 +46,8 @@ export const DEFAULT_PARAMS: TemplateParams = {
   palette: 'dark',
   colorKey: 'green',
   bgScale: 1.0,
+  bgAnchorX: 'center',
+  bgAnchorY: 'center',
   bgOffsetXPct: 0,
   bgOffsetYPct: 0,
   kvSizePct: 70,

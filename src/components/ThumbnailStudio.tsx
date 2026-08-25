@@ -160,8 +160,17 @@ export function ThumbnailStudio() {
 
         <Section title="Background (fills frame)">
           <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} suffix="×" />
-          <Slider label="Offset X" min={-0.3} max={0.3} step={0.005} value={p.bgOffsetXPct} onChange={(v) => set('bgOffsetXPct', v)} pct />
-          <Slider label="Offset Y" min={-0.3} max={0.3} step={0.005} value={p.bgOffsetYPct} onChange={(v) => set('bgOffsetYPct', v)} pct />
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-slate-400">Zoom anchor</span>
+            <AnchorGrid
+              x={p.bgAnchorX}
+              y={p.bgAnchorY}
+              onChange={(x, y) => {
+                set('bgAnchorX', x as TemplateParams['bgAnchorX'])
+                set('bgAnchorY', y as TemplateParams['bgAnchorY'])
+              }}
+            />
+          </div>
         </Section>
 
         <Section title="Key visual (bottom, centered)">
@@ -239,6 +248,28 @@ export function ThumbnailStudio() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function AnchorGrid({ x, y, onChange }: { x: string; y: string; onChange: (x: string, y: string) => void }) {
+  const xs = ['left', 'center', 'right']
+  const ys = ['top', 'center', 'bottom']
+  return (
+    <div className="grid grid-cols-3 gap-1">
+      {ys.map((vy) =>
+        xs.map((vx) => {
+          const active = vx === x && vy === y
+          return (
+            <button
+              key={vy + vx}
+              onClick={() => onChange(vx, vy)}
+              title={`${vy} ${vx}`}
+              className={`h-6 w-6 rounded ${active ? 'bg-brand' : 'bg-slate-800 hover:bg-slate-700'}`}
+            />
+          )
+        }),
+      )}
     </div>
   )
 }

@@ -32,9 +32,14 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = Math.max(2, W * 0.006)
 
-  // background — always cover-fill, bgScale zooms further
+  // background — cover-fill, zoom (bgScale) anchored to a focal point
   const bgW = W * params.bgScale
   const bgH = H * params.bgScale
+  const hBase = params.bgAnchorX === 'left' ? 0 : params.bgAnchorX === 'right' ? W - bgW : (W - bgW) / 2
+  const vBase = params.bgAnchorY === 'top' ? 0 : params.bgAnchorY === 'bottom' ? H - bgH : (H - bgH) / 2
+  const bgLeft = hBase + params.bgOffsetXPct * W
+  const bgTop = vBase + params.bgOffsetYPct * H
+
   // key visual — height = kvSizePct% of frame, bottom-anchored, centered
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
@@ -58,49 +63,70 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           <img
             src={bg}
             draggable={false}
-            style={{
-              position: 'absolute',
-              width: bgW,
-              height: bgH,
-              left: (W - bgW) / 2 + params.bgOffsetXPct * W,
-              top: (H - bgH) / 2 + params.bgOffsetYPct * H,
-              objectFit: 'cover',
-            }}
+            style={{ position: 'absolute', width: bgW, height: bgH, left: bgLeft, top: bgTop, objectFit: 'cover' }}
           />
         )}
 
-        {/* colour glow from bottom + top darken */}
+        {/* subtle top darken for legibility */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: `radial-gradient(140% 62% at 50% 118%, ${color.blur} 0%, ${color.semantic} 30%, ${hexA(color.blur, 0)} 60%)`,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(3,7,5,0.42) 0%, rgba(3,7,5,0) 26%, rgba(3,7,5,0) 60%, rgba(3,7,5,0.15) 100%)',
+            background: 'linear-gradient(180deg, rgba(3,7,5,0.38) 0%, rgba(3,7,5,0) 30%)',
           }}
         />
 
+        {/* key visual — centered, bottom-anchored */}
         {kv && (
           <img
             src={kv}
             draggable={false}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: kvTop,
-              width: W,
-              height: kvBoxH,
-              objectFit: 'contain',
-            }}
+            style={{ position: 'absolute', left: 0, top: kvTop, width: W, height: kvBoxH, objectFit: 'contain' }}
           />
         )}
 
+        {/* ── light effect (Figma control-area) ─────────────────────────── */}
+        {/* shadow-color: bottom gradient band (bg-semantic 29.3% → bg-blur 74%) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: H * 0.442,
+            background: `linear-gradient(to bottom, ${color.semantic} 29.327%, ${color.blur} 74.038%)`,
+          }}
+        />
+        {/* base bloom */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: -H * 0.05,
+            transform: 'translateX(-50%)',
+            width: W * 0.9,
+            height: H * 0.34,
+            borderRadius: '50%',
+            background: `radial-gradient(closest-side, ${hexA(color.blur, 0.85)}, ${hexA(color.blur, 0)} 72%)`,
+            filter: 'blur(2px)',
+          }}
+        />
+        {/* bright overlay bloom (mix-blend-overlay) — the Ellipse */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: -H * 0.123,
+            transform: 'translateX(-50%)',
+            width: W * 0.811,
+            height: H * 0.275,
+            borderRadius: '50%',
+            mixBlendMode: 'overlay',
+            background: 'radial-gradient(closest-side, #ffffff, rgba(255,255,255,0) 70%)',
+          }}
+        />
+
+        {/* logo — position + size, color/white variant */}
         {logo && (
           <img
             src={logo}
