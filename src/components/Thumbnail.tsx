@@ -1,5 +1,5 @@
 import { resolveColor } from '../lib/palettes'
-import { ensureFont, fitFontSize } from '../lib/fonts'
+import { ensureFont, layoutTextLogo } from '../lib/fonts'
 import { motionAt } from '../lib/animate'
 import {
   CORNER_MODES,
@@ -214,7 +214,7 @@ function renderTextLogo(
   ensureFont(params.fontFamily)
   const boxW = params.logo.wPct * W
   const boxH = params.logo.hPct * H
-  const fs = fitFontSize(name, params.fontFamily, boxW, boxH)
+  const { fontSize: fs, lines, lineHeight } = layoutTextLogo(name, params.fontFamily, boxW, boxH)
   const fill = params.logoVariant === 'white' ? '#ffffff' : color.stroke
   return (
     <div
@@ -225,13 +225,14 @@ function renderTextLogo(
         width: boxW,
         height: boxH,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
         fontFamily: `"${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`,
         fontWeight: 900,
         fontSize: fs,
-        lineHeight: 1,
+        lineHeight: lineHeight,
         color: fill,
         letterSpacing: fs * 0.01,
         textShadow: params.logoVariant === 'white' ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
@@ -241,7 +242,11 @@ function renderTextLogo(
         transformOrigin: 'center center',
       }}
     >
-      {name}
+      {lines.map((l, i) => (
+        <span key={i} style={{ display: 'block' }}>
+          {l}
+        </span>
+      ))}
     </div>
   )
 }

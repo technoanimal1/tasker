@@ -1,6 +1,6 @@
 import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
-import { fitFontSize, loadFontFace } from './fonts'
+import { layoutTextLogo, loadFontFace } from './fonts'
 import { motionAt } from './animate'
 import { CORNER_MODES, CORNER_REF, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
 
@@ -145,7 +145,7 @@ function drawFrame(
     ctx.translate(-cx, -cy)
   }
   if (params.textLogo && thumb.name) {
-    const fs = fitFontSize(thumb.name, params.fontFamily, boxW, boxH)
+    const { fontSize: fs, lines, lineHeight } = layoutTextLogo(thumb.name, params.fontFamily, boxW, boxH)
     ctx.font = `900 ${fs}px "${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -159,7 +159,9 @@ function drawFrame(
     } else {
       ctx.fillStyle = color.stroke
     }
-    ctx.fillText(thumb.name, cx, cy)
+    const step = fs * lineHeight
+    const startY = cy - (step * (lines.length - 1)) / 2
+    lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * step))
   } else if (logo) {
     drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
   }
