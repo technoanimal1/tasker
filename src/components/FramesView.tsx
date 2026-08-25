@@ -67,9 +67,9 @@ export function FramesView({ branch, assets }: Props) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">
-            Frames <span className="text-slate-500">· {branch.name}</span>
+            Frames <span className="text-zinc-500">· {branch.name}</span>
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400">
             Designs on this branch. Brand assets are shared; layouts are per branch.
           </p>
         </div>
@@ -82,25 +82,25 @@ export function FramesView({ branch, assets }: Props) {
       </div>
 
       {creating && (
-        <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1">
-              <label className="mb-1 block text-xs text-slate-400">Name</label>
+              <label className="mb-1 block text-xs text-zinc-400">Name</label>
               <input
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createFrame()}
                 placeholder="e.g. Acme — hero"
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-brand"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-brand"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-400">Size</label>
+              <label className="mb-1 block text-xs text-zinc-400">Size</label>
               <select
                 value={preset}
                 onChange={(e) => setPreset(Number(e.target.value))}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-brand"
+                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-brand"
               >
                 {SIZE_PRESETS.map((p, i) => (
                   <option key={p.label} value={i}>
@@ -121,9 +121,9 @@ export function FramesView({ branch, assets }: Props) {
       )}
 
       {framesApi.loading ? (
-        <div className="py-20 text-center text-slate-500">Loading frames…</div>
+        <div className="py-20 text-center text-zinc-500">Loading frames…</div>
       ) : framesApi.frames.length === 0 ? (
-        <div className="grid place-items-center rounded-xl border border-dashed border-slate-800 py-20 text-slate-500">
+        <div className="grid place-items-center rounded-xl border border-dashed border-zinc-800 py-20 text-zinc-500">
           No frames yet on this branch. Create one to start designing.
         </div>
       ) : (
@@ -133,7 +133,7 @@ export function FramesView({ branch, assets }: Props) {
             return (
               <div
                 key={f.id}
-                className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60"
+                className="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60"
               >
                 <button
                   onClick={() => setEditingId(f.id)}
@@ -147,14 +147,14 @@ export function FramesView({ branch, assets }: Props) {
                     <p className="truncate text-sm font-medium" title={f.name}>
                       {f.name}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-zinc-500">
                       {f.width}×{f.height}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1">
                     <button
                       onClick={() => setEditingId(f.id)}
-                      className="rounded-md bg-slate-800 px-2 py-1 text-xs hover:bg-slate-700"
+                      className="rounded-md bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-700"
                     >
                       Edit
                     </button>
@@ -162,7 +162,7 @@ export function FramesView({ branch, assets }: Props) {
                       onClick={() => {
                         if (confirm(`Delete frame "${f.name}"?`)) framesApi.remove(f.id)
                       }}
-                      className="rounded-md bg-slate-800 px-2 py-1 text-xs text-red-300 hover:bg-slate-700"
+                      className="rounded-md bg-zinc-800 px-2 py-1 text-xs text-red-300 hover:bg-zinc-700"
                     >
                       ✕
                     </button>
