@@ -1,8 +1,8 @@
 import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
-import { layoutTextLogo, loadFontFace } from './fonts'
+import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
-import { CORNER_MODES, CORNER_REF, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -110,10 +110,7 @@ function drawFrame(
   // light band
   const bandH = H * (params.gradBandPct / 100)
   const band = ctx.createLinearGradient(0, H - bandH, 0, H)
-  band.addColorStop(0, hexA(color.semantic, 0))
-  band.addColorStop(clamp01(params.gradStop1 / 100), color.semantic)
-  band.addColorStop(clamp01(params.gradStop2 / 100), color.blur)
-  band.addColorStop(1, hexA(color.blur, 0))
+  for (const s of bandStops(color.semantic, color.blur, params)) band.addColorStop(s.offset, s.color)
   ctx.fillStyle = band
   ctx.fillRect(0, H - bandH, W, bandH)
 
@@ -147,23 +144,46 @@ function drawFrame(
     ctx.translate(-cx, -cy)
   }
   if (params.textLogo && thumb.name) {
-    const { fontSize: fs, lines, lineHeight } = layoutTextLogo(thumb.name, params.fontFamily, boxW, boxH)
-    ctx.font = `900 ${fs}px "${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`
-    ctx.textAlign = 'center'
+    const weight = snapWeight(params.fontFamily, params.textWeight)
+    const { lines, lineSizes, lineHeight } = layoutTextLogo(thumb.name, params.fontFamily, boxW, boxH, {
+      weight,
+      maxLines: params.textMaxLines,
+      lineHeight: params.textLineHeight,
+      scale: params.textScale,
+      fillLines: params.textFillLines,
+      allCaps: params.textAllCaps,
+    })
+    const fill =
+      params.textColorMode === 'white' ? '#ffffff' : params.textColorMode === 'custom' ? params.textColor : color.stroke
+    const light = fill.toLowerCase() === '#ffffff' || fill.toLowerCase() === '#fff'
+    ctx.textAlign = params.textAlign
     ctx.textBaseline = 'middle'
-    const cx = boxX + boxW / 2
-    const cy = boxY + boxH / 2
-    if (params.logoVariant === 'white') {
+    const tx = params.textAlign === 'left' ? boxX : params.textAlign === 'right' ? boxX + boxW : boxX + boxW / 2
+    const totalH = lineSizes.reduce((sum, s) => sum + s * lineHeight, 0)
+    let y = boxY + boxH / 2 - totalH / 2
+    if (light) {
       ctx.shadowColor = 'rgba(0,0,0,0.45)'
       ctx.shadowBlur = H * 0.02
       ctx.shadowOffsetY = H * 0.006
-      ctx.fillStyle = '#ffffff'
-    } else {
-      ctx.fillStyle = color.stroke
     }
-    const step = fs * lineHeight
-    const startY = cy - (step * (lines.length - 1)) / 2
-    lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * step))
+    ctx.fillStyle = fill
+    const lc = ctx as CanvasRenderingContext2D & { letterSpacing: string }
+    lines.forEach((l, i) => {
+      const s = lineSizes[i]
+      ctx.font = `${weight} ${s}px "${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`
+      try {
+        lc.letterSpacing = `${s * (params.textLetterPct / 100)}px`
+      } catch {
+        /* letterSpacing unsupported */
+      }
+      ctx.fillText(l, tx, y + (s * lineHeight) / 2)
+      y += s * lineHeight
+    })
+    try {
+      lc.letterSpacing = '0px'
+    } catch {
+      /* noop */
+    }
   } else if (logo) {
     drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
   }

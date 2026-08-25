@@ -14,7 +14,7 @@ import {
   type TemplateParams,
 } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
-import { FONT_OPTIONS, ensureFont } from '../lib/fonts'
+import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
@@ -405,6 +405,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <Slider label="Stop 1" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
               <Slider label="Stop 2" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
               <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Row label="Fade">
+                <span className="text-[11px] text-zinc-500">0-opacity end</span>
+              </Row>
+              <Seg
+                options={['both', 'top', 'bottom', 'none'].map((o) => ({ value: o, label: o }))}
+                value={p.gradFade}
+                onChange={(v) => set('gradFade', v as TemplateParams['gradFade'])}
+              />
             </Section>
           )}
 
@@ -422,19 +430,76 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <input type="checkbox" checked={p.textLogo} onChange={(e) => set('textLogo', e.target.checked)} />
               </Row>
               {p.textLogo && (
-                <Row label="Font">
-                  <select
-                    value={p.fontFamily}
-                    onChange={(e) => set('fontFamily', e.target.value)}
-                    className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
-                  >
-                    {FONT_OPTIONS.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                </Row>
+                <>
+                  <Row label="Font">
+                    <select
+                      value={p.fontFamily}
+                      onChange={(e) => set('fontFamily', e.target.value)}
+                      className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                    >
+                      {FONT_OPTIONS.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </select>
+                  </Row>
+                  <Row label="Weight">
+                    <select
+                      value={p.textWeight}
+                      onChange={(e) => set('textWeight', Number(e.target.value))}
+                      className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                    >
+                      {WEIGHT_OPTIONS.map((w) => (
+                        <option key={w} value={w}>
+                          {w}
+                        </option>
+                      ))}
+                    </select>
+                  </Row>
+                  <Row label="Align">
+                    <div className="w-40">
+                      <Seg
+                        options={['left', 'center', 'right'].map((o) => ({ value: o, label: o }))}
+                        value={p.textAlign}
+                        onChange={(v) => set('textAlign', v as TemplateParams['textAlign'])}
+                      />
+                    </div>
+                  </Row>
+                  <Row label="Colour">
+                    <div className="flex items-center gap-2">
+                      <div className="w-28">
+                        <Seg
+                          options={[
+                            { value: 'game', label: 'game' },
+                            { value: 'white', label: 'white' },
+                            { value: 'custom', label: '◆' },
+                          ]}
+                          value={p.textColorMode}
+                          onChange={(v) => set('textColorMode', v as TemplateParams['textColorMode'])}
+                        />
+                      </div>
+                      {p.textColorMode === 'custom' && (
+                        <input
+                          type="color"
+                          value={p.textColor}
+                          onChange={(e) => set('textColor', e.target.value)}
+                          className="h-6 w-8 cursor-pointer rounded border border-zinc-700 bg-transparent"
+                        />
+                      )}
+                    </div>
+                  </Row>
+                  <Slider label="Size" min={0.6} max={1.4} step={0.02} value={p.textScale} onChange={(v) => set('textScale', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
+                  <Slider label="Max lines" min={1} max={4} value={p.textMaxLines} onChange={(v) => set('textMaxLines', v)} fmt={intFmt} />
+                  <Slider label="Line gap" min={0.8} max={1.6} step={0.02} value={p.textLineHeight} onChange={(v) => set('textLineHeight', v)} fmt={(v) => v.toFixed(2)} />
+                  <Slider label="Letter" min={-5} max={30} value={p.textLetterPct} onChange={(v) => set('textLetterPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+                  <Row label="All caps">
+                    <input type="checkbox" checked={p.textAllCaps} onChange={(e) => set('textAllCaps', e.target.checked)} />
+                  </Row>
+                  <Row label="Vary line widths">
+                    <input type="checkbox" checked={p.textFillLines} onChange={(e) => set('textFillLines', e.target.checked)} />
+                  </Row>
+                </>
               )}
             </Section>
           )}

@@ -1,9 +1,10 @@
 import { resolveColor } from '../lib/palettes'
-import { ensureFont, layoutTextLogo } from '../lib/fonts'
+import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
 import { motionAt } from '../lib/animate'
 import {
   CORNER_MODES,
   CORNER_REF,
+  bandStops,
   frameSize,
   hexA,
   type AssetUrls,
@@ -112,7 +113,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             right: 0,
             bottom: 0,
             height: bandH,
-            background: `linear-gradient(to bottom, ${hexA(color.semantic, 0)} 0%, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%, ${hexA(color.blur, 0)} 100%)`,
+            background: `linear-gradient(to bottom, ${bandStops(color.semantic, color.blur, params)
+              .map((s) => `${s.color} ${s.offset * 100}%`)
+              .join(', ')})`,
           }}
         />
         <div
@@ -214,8 +217,19 @@ function renderTextLogo(
   ensureFont(params.fontFamily)
   const boxW = params.logo.wPct * W
   const boxH = params.logo.hPct * H
-  const { fontSize: fs, lines, lineHeight } = layoutTextLogo(name, params.fontFamily, boxW, boxH)
-  const fill = params.logoVariant === 'white' ? '#ffffff' : color.stroke
+  const weight = snapWeight(params.fontFamily, params.textWeight)
+  const { lines, lineSizes, lineHeight } = layoutTextLogo(name, params.fontFamily, boxW, boxH, {
+    weight,
+    maxLines: params.textMaxLines,
+    lineHeight: params.textLineHeight,
+    scale: params.textScale,
+    fillLines: params.textFillLines,
+    allCaps: params.textAllCaps,
+  })
+  const fill =
+    params.textColorMode === 'white' ? '#ffffff' : params.textColorMode === 'custom' ? params.textColor : color.stroke
+  const alignItems = params.textAlign === 'left' ? 'flex-start' : params.textAlign === 'right' ? 'flex-end' : 'center'
+  const light = fill.toLowerCase() === '#ffffff' || fill.toLowerCase() === '#fff'
   return (
     <div
       style={{
@@ -226,16 +240,14 @@ function renderTextLogo(
         height: boxH,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
+        alignItems,
         justifyContent: 'center',
-        textAlign: 'center',
+        textAlign: params.textAlign,
         fontFamily: `"${params.fontFamily}", "Helvetica Neue", Arial, sans-serif`,
-        fontWeight: 900,
-        fontSize: fs,
+        fontWeight: weight,
         lineHeight: lineHeight,
         color: fill,
-        letterSpacing: fs * 0.01,
-        textShadow: params.logoVariant === 'white' ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
+        textShadow: light ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
         whiteSpace: 'nowrap',
         overflow: 'visible',
         transform: `scale(${scale})`,
@@ -243,7 +255,7 @@ function renderTextLogo(
       }}
     >
       {lines.map((l, i) => (
-        <span key={i} style={{ display: 'block' }}>
+        <span key={i} style={{ display: 'block', fontSize: lineSizes[i], letterSpacing: lineSizes[i] * (params.textLetterPct / 100) }}>
           {l}
         </span>
       ))}

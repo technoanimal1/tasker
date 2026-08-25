@@ -35,6 +35,17 @@ export interface TemplateParams {
   logoVariant: LogoVariant
   textLogo: boolean // render the game name as text instead of the image logo
   fontFamily: string // Google Font family for the text logo
+  // text-logo typography
+  textWeight: number // font weight (snapped to what the family offers)
+  textAlign: 'left' | 'center' | 'right'
+  textColorMode: 'game' | 'white' | 'custom'
+  textColor: string // used when textColorMode = 'custom'
+  textAllCaps: boolean
+  textLetterPct: number // letter spacing, % of font size
+  textLineHeight: number // line-height multiplier
+  textMaxLines: number // 1..4
+  textScale: number // overall size nudge on top of the auto fit
+  textFillLines: boolean // scale each line to fill the box width (vary line widths)
   showProvider: boolean
   providerPos: 'top' | 'bottom'
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
@@ -44,6 +55,7 @@ export interface TemplateParams {
   gradStop1: number
   gradStop2: number
   gradBandPct: number // band height as % of frame height
+  gradFade: 'both' | 'top' | 'bottom' | 'none' // which end(s) fade to 0 opacity
   // animation
   animEnabled: boolean
   animPreset: AnimPreset
@@ -66,6 +78,16 @@ export const DEFAULT_PARAMS: TemplateParams = {
   logoVariant: 'color',
   textLogo: false,
   fontFamily: 'Poppins',
+  textWeight: 900,
+  textAlign: 'center',
+  textColorMode: 'game',
+  textColor: '#ffffff',
+  textAllCaps: false,
+  textLetterPct: 1,
+  textLineHeight: 1.04,
+  textMaxLines: 3,
+  textScale: 1,
+  textFillLines: false,
   showProvider: true,
   providerPos: 'bottom',
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
@@ -74,6 +96,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   gradStop1: 29.327,
   gradStop2: 74.038,
   gradBandPct: 44.2,
+  gradFade: 'both',
   animEnabled: false,
   animPreset: 'float',
   animSpeed: 3,
@@ -138,8 +161,10 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
   'showProvider', 'providerPos', 'providerRadius', 'providerPadX', 'providerPadY',
-  'gradStop1', 'gradStop2', 'gradBandPct',
+  'gradStop1', 'gradStop2', 'gradBandPct', 'gradFade',
   'logoVariant', 'textLogo', 'fontFamily',
+  'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps',
+  'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
   'animEnabled', 'animPreset', 'animSpeed', 'animIntensity',
 ]
 
@@ -180,6 +205,25 @@ export function withDefaults(p: Partial<TemplateParams> | null | undefined): Tem
     logo: { ...DEFAULT_PARAMS.logo, ...(p?.logo ?? {}) },
     providerRadius,
   }
+}
+
+/** Colour stops for the light band, honouring which end(s) fade to 0 opacity. */
+export function bandStops(
+  semantic: string,
+  blur: string,
+  p: Pick<TemplateParams, 'gradStop1' | 'gradStop2' | 'gradFade'>,
+): { offset: number; color: string }[] {
+  const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+  const s1 = clamp01(p.gradStop1 / 100)
+  const s2 = clamp01(p.gradStop2 / 100)
+  const fadeTop = p.gradFade === 'both' || p.gradFade === 'top'
+  const fadeBottom = p.gradFade === 'both' || p.gradFade === 'bottom'
+  return [
+    { offset: 0, color: fadeTop ? hexA(semantic, 0) : semantic },
+    { offset: Math.min(s1, s2), color: semantic },
+    { offset: Math.max(s1, s2), color: blur },
+    { offset: 1, color: fadeBottom ? hexA(blur, 0) : blur },
+  ]
 }
 
 export function hexA(hex: string, alpha: number): string {
