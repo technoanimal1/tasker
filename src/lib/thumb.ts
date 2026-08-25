@@ -35,7 +35,13 @@ export interface TemplateParams {
   logoVariant: LogoVariant
   showProvider: boolean
   providerPos: 'top' | 'bottom'
-  providerRadius: number // corner radius in px at the 244 reference (scales with frame)
+  providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
+  providerPadX: number // px @244 ref
+  providerPadY: number
+  // light band gradient (bg-semantic → bg-blur), stop positions in %
+  gradStop1: number
+  gradStop2: number
+  gradBandPct: number // band height as % of frame height
 }
 
 export const DEFAULT_PARAMS: TemplateParams = {
@@ -50,7 +56,12 @@ export const DEFAULT_PARAMS: TemplateParams = {
   logoVariant: 'color',
   showProvider: true,
   providerPos: 'bottom',
-  providerRadius: 30,
+  providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
+  providerPadX: 0,
+  providerPadY: 0,
+  gradStop1: 29.327,
+  gradStop2: 74.038,
+  gradBandPct: 44.2,
 }
 
 export interface Template {
@@ -108,10 +119,16 @@ export interface AssetUrls {
 }
 
 export function withDefaults(p: Partial<TemplateParams> | null | undefined): TemplateParams {
+  const pr = p?.providerRadius as unknown
+  const providerRadius =
+    typeof pr === 'number'
+      ? { tl: pr, tr: pr, br: pr, bl: pr }
+      : { ...DEFAULT_PARAMS.providerRadius, ...((pr as object) ?? {}) }
   return {
     ...DEFAULT_PARAMS,
     ...(p ?? {}),
     logo: { ...DEFAULT_PARAMS.logo, ...(p?.logo ?? {}) },
+    providerRadius,
   }
 }
 

@@ -86,11 +86,12 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   }
 
   // ── light effect (Figma control-area) ──
-  // bottom gradient band: bg-semantic 29.3% → bg-blur 74%
-  const bandH = H * 0.442
+  // bottom gradient band: bg-semantic → bg-blur (stops configurable)
+  const bandH = H * (params.gradBandPct / 100)
   const band = ctx.createLinearGradient(0, H - bandH, 0, H)
-  band.addColorStop(0.29327, color.semantic)
-  band.addColorStop(0.74038, color.blur)
+  const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+  band.addColorStop(clamp01(params.gradStop1 / 100), color.semantic)
+  band.addColorStop(clamp01(params.gradStop2 / 100), color.blur)
   ctx.fillStyle = band
   ctx.fillRect(0, H - bandH, W, bandH)
 
@@ -116,21 +117,27 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   }
 
   if (params.showProvider && thumb.provider) {
-    ctx.font = `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`
+    const fs = W * 0.05
+    const kk = W / CORNER_REF
+    ctx.font = `700 ${fs}px "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     const tw = ctx.measureText(thumb.provider).width
-    const padX = W * 0.06
-    const pillW = tw + padX * 2
-    const pillH = W * 0.082
+    const pillW = tw + params.providerPadX * kk * 2
+    const pillH = fs * 1.15 + params.providerPadY * kk * 2
     const pillX = W / 2 - pillW / 2
     const pillY = params.providerPos === 'top' ? H * 0.035 : H - H * 0.035 - pillH
-    const rad = Math.min((params.providerRadius / CORNER_REF) * W, pillH / 2)
+    const cap = pillH / 2
+    const rr = params.providerRadius
     ctx.fillStyle = color.blur
-    roundRectPath(ctx, pillX, pillY, pillW, pillH, rad)
+    ctx.beginPath()
+    ;(ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number[]) => void }).roundRect(
+      pillX, pillY, pillW, pillH,
+      [Math.min(rr.tl * kk, cap), Math.min(rr.tr * kk, cap), Math.min(rr.br * kk, cap), Math.min(rr.bl * kk, cap)],
+    )
     ctx.fill()
     ctx.fillStyle = '#ffffff'
-    ctx.fillText(thumb.provider, W / 2, pillY + pillH / 2 + W * 0.004)
+    ctx.fillText(thumb.provider, W / 2, pillY + pillH / 2 + fs * 0.02)
   }
 
   ctx.restore()

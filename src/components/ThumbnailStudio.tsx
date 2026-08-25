@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
@@ -228,6 +228,12 @@ export function ThumbnailStudio() {
             <p className="text-[11px] text-zinc-500">Centered · fills the frame.</p>
           </Section>
 
+          <Section title="Light gradient">
+            <Slider label="Stop 1" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
+            <Slider label="Stop 2" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+            <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+          </Section>
+
           <Section title="Key visual">
             <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
             <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
@@ -247,7 +253,14 @@ export function ThumbnailStudio() {
                 <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
               </Row>
               <Seg options={['bottom', 'top'].map((o) => ({ value: o, label: o }))} value={p.providerPos} onChange={(v) => set('providerPos', v as TemplateParams['providerPos'])} />
-              <Slider label="Radius" min={0} max={30} value={p.providerRadius} onChange={(v) => set('providerRadius', v)} fmt={(v) => `${Math.round(v)}`} />
+              <div className="grid grid-cols-2 gap-2">
+                <Slider label="Pad X" min={0} max={40} value={p.providerPadX} onChange={(v) => set('providerPadX', v)} fmt={intFmt} />
+                <Slider label="Pad Y" min={0} max={40} value={p.providerPadY} onChange={(v) => set('providerPadY', v)} fmt={intFmt} />
+                <Slider label="R ◜" min={0} max={40} value={p.providerRadius.tl} onChange={(v) => set('providerRadius', { ...p.providerRadius, tl: v })} fmt={intFmt} />
+                <Slider label="R ◝" min={0} max={40} value={p.providerRadius.tr} onChange={(v) => set('providerRadius', { ...p.providerRadius, tr: v })} fmt={intFmt} />
+                <Slider label="R ◟" min={0} max={40} value={p.providerRadius.bl} onChange={(v) => set('providerRadius', { ...p.providerRadius, bl: v })} fmt={intFmt} />
+                <Slider label="R ◞" min={0} max={40} value={p.providerRadius.br} onChange={(v) => set('providerRadius', { ...p.providerRadius, br: v })} fmt={intFmt} />
+              </div>
             </Section>
           )}
         </div>
@@ -270,6 +283,7 @@ export function ThumbnailStudio() {
 }
 
 const pctFmt = (v: number) => `${Math.round(v * 100)}%`
+const intFmt = (v: number) => `${Math.round(v)}`
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -333,13 +347,38 @@ function Slider({
   onChange: (v: number) => void
   fmt: (v: number) => string
 }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [drag, setDrag] = useState(false)
+  const frac = Math.max(0, Math.min(1, (value - min) / (max - min)))
+  const valAt = (clientX: number) => {
+    const r = ref.current!.getBoundingClientRect()
+    const f = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
+    return Math.round((min + f * (max - min)) / step) * step
+  }
+  useEffect(() => {
+    if (!drag) return
+    const mv = (e: PointerEvent) => onChange(valAt(e.clientX))
+    const up = () => setDrag(false)
+    window.addEventListener('pointermove', mv)
+    window.addEventListener('pointerup', up)
+    return () => {
+      window.removeEventListener('pointermove', mv)
+      window.removeEventListener('pointerup', up)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag])
   return (
-    <div>
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs text-zinc-400">{label}</span>
-        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] tabular-nums text-zinc-200">{fmt(value)}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-brand" />
+    <div
+      ref={ref}
+      onPointerDown={(e) => {
+        setDrag(true)
+        onChange(valAt(e.clientX))
+      }}
+      className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3"
+    >
+      <div className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
+      <span className="relative z-10 text-xs text-zinc-300">{label}</span>
+      <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
     </div>
   )
 }

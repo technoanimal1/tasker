@@ -23,6 +23,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
   const W = size.w
   const H = size.h
   const scale = displayW / W
+  const k = W / CORNER_REF // px-at-244 → frame px
 
   const color = resolveColor(params.palette, params.colorKey)
   const bg = assets.bg
@@ -32,16 +33,12 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = Math.max(2, W * 0.006)
 
-  // background — cover-fill, zoom (bgScale) grows the image from the centre
-  const bgW = W * params.bgScale
-  const bgH = H * params.bgScale
-  const bgLeft = (W - bgW) / 2
-  const bgTop = (H - bgH) / 2
-  const pillRadius = (params.providerRadius / CORNER_REF) * W
-
-  // key visual — height = kvSizePct% of frame, bottom-anchored, centered
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
+
+  const pr = params.providerRadius
+  const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
+  const bandH = H * (params.gradBandPct / 100)
 
   return (
     <div className={className} style={{ width: W * scale, height: H * scale }}>
@@ -58,15 +55,24 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           boxShadow: `inset 0 0 0 ${strokeW}px ${color.stroke}, 0 6px 30px ${hexA(color.blur, 0.4)}`,
         }}
       >
+        {/* background — always centered, always cover-fills; zoom scales from centre */}
         {bg && (
-          <img
-            src={bg}
-            draggable={false}
-            style={{ position: 'absolute', width: bgW, height: bgH, left: bgLeft, top: bgTop, objectFit: 'cover' }}
-          />
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            <img
+              src={bg}
+              draggable={false}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: `scale(${params.bgScale})`,
+                transformOrigin: 'center center',
+              }}
+            />
+          </div>
         )}
 
-        {/* subtle top darken for legibility */}
+        {/* subtle top darken */}
         <div
           style={{
             position: 'absolute',
@@ -84,19 +90,17 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           />
         )}
 
-        {/* ── light effect (Figma control-area) ─────────────────────────── */}
-        {/* shadow-color: bottom gradient band (bg-semantic 29.3% → bg-blur 74%) */}
+        {/* light effect (Figma control-area) */}
         <div
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             bottom: 0,
-            height: H * 0.442,
-            background: `linear-gradient(to bottom, ${color.semantic} 29.327%, ${color.blur} 74.038%)`,
+            height: bandH,
+            background: `linear-gradient(to bottom, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%)`,
           }}
         />
-        {/* base bloom */}
         <div
           style={{
             position: 'absolute',
@@ -110,7 +114,6 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
             filter: 'blur(2px)',
           }}
         />
-        {/* bright overlay bloom (mix-blend-overlay) — the Ellipse */}
         <div
           style={{
             position: 'absolute',
@@ -125,7 +128,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           }}
         />
 
-        {/* logo — position + size, color/white variant */}
+        {/* logo */}
         {logo && (
           <img
             src={logo}
@@ -141,6 +144,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
           />
         )}
 
+        {/* provider label */}
         {params.showProvider && thumb.provider && (
           <div
             style={{
@@ -152,9 +156,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
               color: '#ffffff',
               font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
-              padding: `${W * 0.016}px ${W * 0.06}px`,
-              borderRadius: pillRadius,
+              padding: `${params.providerPadY * k}px ${params.providerPadX * k}px`,
+              borderRadius: provRadius,
               whiteSpace: 'nowrap',
+              lineHeight: 1.15,
               boxShadow: `0 0 ${W * 0.06}px ${hexA(color.blur, 0.75)}`,
             }}
           >

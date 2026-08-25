@@ -47,32 +47,29 @@ export function Dashboard() {
             />
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg bg-slate-900 p-1 text-sm">
-            <button
-              onClick={() => setView('studio')}
-              className={`rounded-md px-3 py-1.5 ${view === 'studio' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
-            >
-              Thumbnails
-            </button>
-            <button
-              onClick={() => setView('frames')}
-              className={`rounded-md px-3 py-1.5 ${view === 'frames' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
-            >
-              Frames
-            </button>
-            <button
-              onClick={() => setView('assets')}
-              className={`rounded-md px-3 py-1.5 ${view === 'assets' ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
-            >
-              Brand assets
-            </button>
+          <div className="flex items-center gap-1 rounded-lg bg-zinc-900/70 p-1 text-sm">
+            {([
+              ['studio', 'Thumbnails'],
+              ['frames', 'Frames'],
+              ['assets', 'Brand assets'],
+            ] as [View, string][]).map(([v, label]) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`rounded-md px-3 py-1.5 transition ${
+                  view === v ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-slate-400 lg:inline">{session?.user.email}</span>
+            <span className="hidden text-sm text-zinc-500 lg:inline">{session?.user.email}</span>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
+              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
             >
               Sign out
             </button>
