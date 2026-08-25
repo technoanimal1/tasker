@@ -70,6 +70,20 @@ export interface Thumbnail {
   kv_path: string | null
   logo_color_path: string | null
   logo_white_path: string | null
+  // Figma-hosted source (assets resolved on demand, never copied)
+  figma_file_key: string | null
+  figma_bg_node: string | null
+  figma_kv_node: string | null
+  figma_logo_color_node: string | null
+  figma_logo_white_node: string | null
+}
+
+/** Resolved image URLs for a thumbnail's four layers. */
+export interface AssetUrls {
+  bg?: string
+  kv?: string
+  logoColor?: string
+  logoWhite?: string
 }
 
 export function withDefaults(p: Partial<TemplateParams> | null | undefined): TemplateParams {

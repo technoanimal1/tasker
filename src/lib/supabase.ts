@@ -18,7 +18,17 @@ export const supabase = createClient(url, anonKey, {
 })
 
 export const SUPABASE_URL = url
+export const SUPABASE_ANON_KEY = anonKey
 export const BRAND_BUCKET = 'brand-assets'
+
+/**
+ * CORS-safe proxy URL that streams a Figma node's PNG through our edge function
+ * (used for canvas export, since Figma's own image URLs don't send CORS headers).
+ */
+export function figmaProxyUrl(fileKey: string, node: string, scale = 3): string {
+  const p = new URLSearchParams({ action: 'proxy', file: fileKey, node, scale: String(scale), apikey: anonKey })
+  return `${url}/functions/v1/figma-catalog?${p.toString()}`
+}
 
 /** Public URL for a path inside the brand-assets bucket. */
 export function storageUrl(path: string | null | undefined): string | null {

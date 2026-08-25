@@ -1,10 +1,10 @@
-import { storageUrl } from '../lib/supabase'
 import { resolveColor } from '../lib/palettes'
 import {
   CORNER_MODES,
   CORNER_REF,
   frameSize,
   hexA,
+  type AssetUrls,
   type TemplateParams,
   type Thumbnail,
 } from '../lib/thumb'
@@ -12,23 +12,22 @@ import {
 interface Props {
   thumb: Thumbnail
   params: TemplateParams
+  assets: AssetUrls
   /** Display width in px; the frame scales to fit it (keeps ratio). */
   displayW?: number
   className?: string
 }
 
-export function ThumbnailCard({ thumb, params, displayW = 244, className }: Props) {
+export function ThumbnailCard({ thumb, params, assets, displayW = 244, className }: Props) {
   const size = frameSize(params.sizeKey)
   const W = size.w
   const H = size.h
   const scale = displayW / W
 
   const color = resolveColor(params.palette, params.colorKey)
-  const bg = storageUrl(thumb.bg_path)
-  const kv = storageUrl(thumb.kv_path)
-  const logo = storageUrl(
-    params.logoVariant === 'white' ? thumb.logo_white_path : thumb.logo_color_path,
-  )
+  const bg = assets.bg
+  const kv = assets.kv
+  const logo = params.logoVariant === 'white' ? assets.logoWhite : assets.logoColor
 
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = Math.max(2, W * 0.006)
@@ -58,7 +57,6 @@ export function ThumbnailCard({ thumb, params, displayW = 244, className }: Prop
         {bg && (
           <img
             src={bg}
-            crossOrigin="anonymous"
             draggable={false}
             style={{
               position: 'absolute',
@@ -91,7 +89,6 @@ export function ThumbnailCard({ thumb, params, displayW = 244, className }: Prop
         {kv && (
           <img
             src={kv}
-            crossOrigin="anonymous"
             draggable={false}
             style={{
               position: 'absolute',
@@ -107,7 +104,6 @@ export function ThumbnailCard({ thumb, params, displayW = 244, className }: Prop
         {logo && (
           <img
             src={logo}
-            crossOrigin="anonymous"
             draggable={false}
             style={{
               position: 'absolute',

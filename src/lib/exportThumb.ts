@@ -1,4 +1,4 @@
-import { storageUrl } from './supabase'
+import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { CORNER_MODES, CORNER_REF, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
 
@@ -55,13 +55,15 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   ctx.fillStyle = '#0a0f0c'
   ctx.fillRect(0, 0, W, H)
 
+  const fk = thumb.figma_file_key
+  const proxy = (node: string | null) => (fk && node ? figmaProxyUrl(fk, node, 3) : null)
+  const bgU = proxy(thumb.figma_bg_node)
+  const kvU = proxy(thumb.figma_kv_node)
+  const logoU = proxy(params.logoVariant === 'white' ? thumb.figma_logo_white_node : thumb.figma_logo_color_node)
   const [bg, kv, logo] = await Promise.all([
-    thumb.bg_path ? loadImage(storageUrl(thumb.bg_path)!).catch(() => null) : null,
-    thumb.kv_path ? loadImage(storageUrl(thumb.kv_path)!).catch(() => null) : null,
-    (() => {
-      const p = params.logoVariant === 'white' ? thumb.logo_white_path : thumb.logo_color_path
-      return p ? loadImage(storageUrl(p)!).catch(() => null) : null
-    })(),
+    bgU ? loadImage(bgU).catch(() => null) : null,
+    kvU ? loadImage(kvU).catch(() => null) : null,
+    logoU ? loadImage(logoU).catch(() => null) : null,
   ])
 
   if (bg) {

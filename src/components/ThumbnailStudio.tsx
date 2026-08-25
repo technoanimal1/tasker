@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
+import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import { FRAME_SIZES, withDefaults, type TemplateParams } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
 import { ThumbnailCard } from './Thumbnail'
@@ -9,6 +10,7 @@ import { exportThumbPng } from '../lib/exportThumb'
 export function ThumbnailStudio() {
   const { template, loading: tLoading, save } = useTemplate()
   const { thumbnails, loading: thLoading } = useThumbnailsData()
+  const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -162,7 +164,7 @@ export function ThumbnailStudio() {
       <div className="flex flex-wrap items-start gap-6">
         {selected && (
           <div className="shrink-0">
-            <ThumbnailCard thumb={selected} params={params} displayW={300} />
+            <ThumbnailCard thumb={selected} params={params} assets={assetsFor(selected)} displayW={300} />
             <div className="mt-3 flex items-center gap-2">
               <span className="text-sm text-slate-300">{selected.name}</span>
               <button
@@ -194,7 +196,7 @@ export function ThumbnailStudio() {
                 className={`rounded-xl p-1 ${t.id === selectedId ? 'ring-2 ring-brand' : 'ring-1 ring-slate-800'}`}
                 title={t.name}
               >
-                <ThumbnailCard thumb={t} params={params} displayW={170} />
+                <ThumbnailCard thumb={t} params={params} assets={assetsFor(t)} displayW={170} />
               </button>
             ))}
           </div>
