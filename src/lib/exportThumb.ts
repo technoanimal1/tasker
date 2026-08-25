@@ -279,10 +279,11 @@ function baseName(thumb: Thumbnail, params: TemplateParams) {
   return `${thumb.slug}_${params.sizeKey.replace(':', 'x')}`
 }
 
-export async function exportThumbPng(thumb: Thumbnail, params: TemplateParams, mult = 1, format: StillFormat = 'png') {
+export async function exportThumbPng(thumb: Thumbnail, params: TemplateParams, mult = 1, format: StillFormat = 'png'): Promise<number> {
   const blob = await renderThumbBlob(thumb, params, mult, format)
   const ext = blob.type === 'image/png' ? 'png' : format
   download(blob, `${baseName(thumb, params)}.${ext}`)
+  return blob.size
 }
 
 // ── animated export (WebM) ───────────────────────────────────────────────────
@@ -340,7 +341,8 @@ export async function renderThumbAnimBlob(thumb: Thumbnail, params: TemplatePara
   })
 }
 
-export async function exportThumbAnim(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30) {
+export async function exportThumbAnim(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30): Promise<number> {
   const blob = await renderThumbAnimBlob(thumb, params, mult, fps)
   download(blob, `${baseName(thumb, params)}.webm`)
+  return blob.size
 }

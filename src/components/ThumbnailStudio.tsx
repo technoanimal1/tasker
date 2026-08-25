@@ -19,6 +19,7 @@ import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
+import { ExportProgress, type ExportJob } from './ExportProgress'
 
 type ExportFormat = StillFormat | 'anim'
 
@@ -45,6 +46,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [format, setFormat] = useState<ExportFormat>('png')
   const [playing, setPlaying] = useState(false)
   const [phase, setPhase] = useState(0)
+  const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
+  const [exportOpen, setExportOpen] = useState(false)
+  const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
   const editingBranch = !!branch && !branch.is_default // a client branch = frame-design mode
@@ -163,22 +167,38 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     else if (scope === 'global') template && setParams(withDefaults(template.params))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: {} }))
   }
-  async function exportOne(t: (typeof thumbnails)[number], pp: TemplateParams) {
-    if (format === 'anim') await exportThumbAnim(t, pp)
-    else await exportThumbPng(t, pp, 1, format)
+  async function exportOne(t: (typeof thumbnails)[number], pp: TemplateParams): Promise<number> {
+    if (format === 'anim') return exportThumbAnim(t, pp)
+    return exportThumbPng(t, pp, 1, format)
   }
-  async function exportAll() {
+  async function runExport(list: (typeof thumbnails)) {
+    if (!list.length || exporting) return
+    cancelRef.current = false
+    const fmtLabel = format === 'anim' ? 'WEBM' : format.toUpperCase()
+    setExportJobs(list.map((t) => ({ id: t.id, name: t.name, format: fmtLabel, status: 'pending' })))
+    setExportOpen(true)
     setExporting(true)
     try {
-      for (const t of thumbnails) {
-        const pp = paramsForThumb(t)
-        if (pp) await exportOne(t, pp)
-        await new Promise((r) => setTimeout(r, 250))
+      for (const t of list) {
+        if (cancelRef.current) {
+          setExportJobs((js) => js.map((j) => (j.status === 'pending' ? { ...j, status: 'error', error: 'Cancelled' } : j)))
+          break
+        }
+        setExportJobs((js) => js.map((j) => (j.id === t.id ? { ...j, status: 'active' } : j)))
+        try {
+          const pp = paramsForThumb(t)
+          const size = pp ? await exportOne(t, pp) : 0
+          setExportJobs((js) => js.map((j) => (j.id === t.id ? { ...j, status: 'done', size } : j)))
+        } catch (e) {
+          setExportJobs((js) => js.map((j) => (j.id === t.id ? { ...j, status: 'error', error: (e as Error).message } : j)))
+        }
+        await new Promise((r) => setTimeout(r, 120))
       }
     } finally {
       setExporting(false)
     }
   }
+  const exportAll = () => runExport(thumbnails)
 
   const p = activeParams
   const size = frameSize(p.sizeKey)
@@ -261,8 +281,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </select>
             {singleView && selected && selectedParams && (
               <button
-                onClick={() => exportOne(selected, selectedParams)}
-                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
+                onClick={() => runExport([selected])}
+                disabled={exporting}
+                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
               >
                 Export
               </button>
@@ -579,6 +600,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         )}
       </aside>
+
+      <ExportProgress
+        open={exportOpen}
+        jobs={exportJobs}
+        onClose={() => setExportOpen(false)}
+        onCancel={() => {
+          cancelRef.current = true
+        }}
+      />
     </div>
   )
 }
