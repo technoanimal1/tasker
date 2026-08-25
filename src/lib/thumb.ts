@@ -223,6 +223,8 @@ export function bandStops(
 ): { offset: number; color: string }[] {
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
   const a = clamp01(p.gradOpacity)
+  const semA = colorAlpha(semantic) * a // preserve the tint's own translucency
+  const blurA = colorAlpha(blur) * a
   const s1 = clamp01(p.gradStop1 / 100)
   const s2 = clamp01(p.gradStop2 / 100)
   const sb = clamp01(p.gradBottom / 100)
@@ -234,24 +236,37 @@ export function bandStops(
   const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10)
   const N = 12
   const stops: { offset: number; color: string }[] = []
-  // top fade: transparent → full semantic, eased over 0..lo
+  // top fade: fully transparent → the tint's own alpha, eased over 0..lo
   for (let i = 0; i <= N; i++) {
     const t = i / N
-    stops.push({ offset: lo * t, color: hexA(semantic, a * smooth(t)) })
+    stops.push({ offset: lo * t, color: hexA(semantic, semA * smooth(t)) })
   }
-  // colour crossover semantic → blur (both full alpha), lo..hi
-  stops.push({ offset: hi, color: hexA(blur, a) })
-  // hold, then bottom fade: full → transparent, eased over bot..1
-  stops.push({ offset: bot, color: hexA(blur, a) })
+  // colour crossover semantic → blur, lo..hi
+  stops.push({ offset: hi, color: hexA(blur, blurA) })
+  // hold, then bottom fade: → fully transparent, eased over bot..1
+  stops.push({ offset: bot, color: hexA(blur, blurA) })
   for (let i = 1; i <= N; i++) {
     const t = i / N
-    stops.push({ offset: bot + (1 - bot) * t, color: hexA(blur, a * smooth(1 - t)) })
+    stops.push({ offset: bot + (1 - bot) * t, color: hexA(blur, blurA * smooth(1 - t)) })
   }
   return stops
 }
 
-export function hexA(hex: string, alpha: number): string {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim())
-  if (!m) return hex
-  return `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},${alpha})`
+/** Return `color` with its alpha replaced by `alpha`. Handles #RGB, #RRGGBB,
+ *  rgb(), and rgba() — so translucent palette colours fade correctly. */
+export function hexA(color: string, alpha: number): string {
+  const c = color.trim()
+  const rgb = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*[\d.]+\s*)?\)$/i.exec(c)
+  if (rgb) return `rgba(${+rgb[1]},${+rgb[2]},${+rgb[3]},${alpha})`
+  const six = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(c)
+  if (six) return `rgba(${parseInt(six[1], 16)},${parseInt(six[2], 16)},${parseInt(six[3], 16)},${alpha})`
+  const three = /^#?([a-f\d])([a-f\d])([a-f\d])$/i.exec(c)
+  if (three) return `rgba(${parseInt(three[1] + three[1], 16)},${parseInt(three[2] + three[2], 16)},${parseInt(three[3] + three[3], 16)},${alpha})`
+  return c
+}
+
+/** The alpha channel already baked into a colour string (1 for opaque hex). */
+export function colorAlpha(color: string): number {
+  const m = /^rgba?\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)$/i.exec(color.trim())
+  return m ? Math.max(0, Math.min(1, parseFloat(m[1]))) : 1
 }
