@@ -24,5 +24,13 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ accent_color }).eq('id', id)
   }, [])
 
-  return { thumbnails, loading, refresh, setAccent }
+  const saveOverrides = useCallback(
+    async (id: string, overrides: Record<string, unknown>) => {
+      setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, overrides } : t)))
+      await supabase.from('thumbnails').update({ overrides }).eq('id', id)
+    },
+    [],
+  )
+
+  return { thumbnails, loading, refresh, setAccent, saveOverrides }
 }

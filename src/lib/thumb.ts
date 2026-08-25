@@ -76,7 +76,28 @@ export interface Thumbnail {
   figma_kv_node: string | null
   figma_logo_color_node: string | null
   figma_logo_white_node: string | null
+  /** Partial params applied on top of the global template for this thumbnail. */
+  overrides: ParamOverride | null
 }
+
+/** A partial set of template params (logo sub-keys are also optional). */
+export type ParamOverride = Partial<Omit<TemplateParams, 'logo'>> & {
+  logo?: Partial<TemplateParams['logo']>
+}
+
+/** Merge a thumbnail's overrides on top of the global template params. */
+export function effectiveParams(base: TemplateParams, ov?: ParamOverride | null): TemplateParams {
+  if (!ov || Object.keys(ov).length === 0) return base
+  return { ...base, ...ov, logo: { ...base.logo, ...(ov.logo ?? {}) } }
+}
+
+/** Keys that can be overridden per-thumbnail (subset of the editor controls). */
+export const OVERRIDABLE: (keyof TemplateParams)[] = [
+  'bgScale', 'bgOffsetXPct', 'bgOffsetYPct',
+  'kvSizePct', 'kvBottomPct',
+  'logo', 'logoVariant',
+  'palette', 'colorKey',
+]
 
 /** Resolved image URLs for a thumbnail's four layers. */
 export interface AssetUrls {
