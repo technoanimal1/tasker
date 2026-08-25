@@ -14,8 +14,6 @@ import {
   type TemplateParams,
 } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
-import { autoColorKey } from '../lib/autocolor'
-import { figmaProxyUrl } from '../lib/supabase'
 import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
@@ -202,45 +200,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   const exportAll = () => runExport(thumbnails)
 
-  // Quick per-thumbnail recolour (designer): set + persist the colour override.
-  function recolorThumb(id: string, colorKey: string) {
-    setOverrides((o) => {
-      const next = { ...(o[id] ?? {}), colorKey }
-      saveOverrides(id, next)
-      return { ...o, [id]: next }
-    })
-  }
-  const [autoId, setAutoId] = useState<string | null>(null)
-  // CORS-clean bg URL (proxy) so the canvas can be sampled for colour.
-  function bgSampleUrl(t: (typeof thumbnails)[number]): string | null {
-    return t.figma_file_key && t.figma_bg_node ? figmaProxyUrl(t.figma_file_key, t.figma_bg_node, 1) : assetsFor(t).bg ?? null
-  }
-  async function autoRecolor(t: (typeof thumbnails)[number]) {
-    const url = bgSampleUrl(t)
-    if (!url) return
-    setAutoId(t.id)
-    try {
-      const key = await autoColorKey(url, (overrides[t.id]?.palette as PaletteMode) ?? params!.palette)
-      if (key) recolorThumb(t.id, key)
-    } finally {
-      setAutoId(null)
-    }
-  }
-  // Auto-colour the current control target (selected thumb) from its background.
-  async function autoColourActive() {
-    const t = selected
-    if (!t) return
-    const url = bgSampleUrl(t)
-    if (!url) return
-    setAutoId(t.id)
-    try {
-      const key = await autoColorKey(url, p.palette)
-      if (key) set('colorKey', key)
-    } finally {
-      setAutoId(null)
-    }
-  }
-
   const p = activeParams
   const size = frameSize(p.sizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
@@ -357,46 +316,22 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 if (!pp) return null
                 const active = t.id === selectedId
                 return (
-                  <div
+                  <button
                     key={t.id}
                     onClick={() => {
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
                     }}
-                    className={`group flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
+                    className={`group flex flex-col items-center gap-2 rounded-xl p-2 transition ${
                       active ? 'bg-zinc-800/60 ring-1 ring-zinc-600' : 'hover:bg-zinc-800/30'
                     }`}
                     title={showScope ? 'Open in canvas' : t.name}
                   >
-                    <div className="relative overflow-hidden rounded-lg shadow-lg">
+                    <div className="overflow-hidden rounded-lg shadow-lg">
                       <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} />
-                      {isDesigner && (
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100"
-                        >
-                          <button
-                            onClick={() => autoRecolor(t)}
-                            disabled={autoId === t.id}
-                            title="Auto colour from background"
-                            className="grid h-5 w-5 place-items-center rounded-full bg-brand text-[10px] text-zinc-900 hover:brightness-110 disabled:opacity-50"
-                          >
-                            {autoId === t.id ? '·' : '✨'}
-                          </button>
-                          {PALETTES[pp.palette].map((c) => (
-                            <button
-                              key={c.key}
-                              title={c.label}
-                              onClick={() => recolorThumb(t.id, c.key)}
-                              className={`h-5 w-5 rounded-full ring-2 transition ${pp.colorKey === c.key ? 'ring-white' : 'ring-transparent hover:ring-white/50'}`}
-                              style={{ background: c.stroke }}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -465,7 +400,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           {showDesignerSections && (
             <Section title="Colour">
               <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {PALETTES[p.palette].map((c) => (
                   <button
                     key={c.key}
@@ -475,16 +410,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     style={{ background: c.stroke }}
                   />
                 ))}
-                <button
-                  onClick={autoColourActive}
-                  disabled={!selected || autoId === selected?.id}
-                  title="Match the selected thumbnail's background"
-                  className="ml-1 rounded-full border border-zinc-600 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
-                >
-                  {autoId && autoId === selected?.id ? '…' : '✨ Auto'}
-                </button>
               </div>
-              <p className="text-[11px] text-zinc-500">Auto picks the closest palette colour to the background art.</p>
             </Section>
           )}
 

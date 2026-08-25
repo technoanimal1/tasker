@@ -101,7 +101,7 @@ export function Dashboard() {
         ) : branch ? (
           <FramesView branch={branch} assets={assetsApi} />
         ) : (
-          <div className="py-20 text-center text-zinc-500">Loading branch…</div>
+          <div className="py-20 text-center text-slate-500">Loading branch…</div>
         )}
       </main>
     </div>
