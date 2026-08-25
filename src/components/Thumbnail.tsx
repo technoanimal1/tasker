@@ -32,13 +32,12 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = Math.max(2, W * 0.006)
 
-  // background — cover-fill, zoom (bgScale) anchored to a focal point
+  // background — cover-fill, zoom (bgScale) grows the image from the centre
   const bgW = W * params.bgScale
   const bgH = H * params.bgScale
-  const hBase = params.bgAnchorX === 'left' ? 0 : params.bgAnchorX === 'right' ? W - bgW : (W - bgW) / 2
-  const vBase = params.bgAnchorY === 'top' ? 0 : params.bgAnchorY === 'bottom' ? H - bgH : (H - bgH) / 2
-  const bgLeft = hBase + params.bgOffsetXPct * W
-  const bgTop = vBase + params.bgOffsetYPct * H
+  const bgLeft = (W - bgW) / 2
+  const bgTop = (H - bgH) / 2
+  const pillRadius = (params.providerRadius / CORNER_REF) * W
 
   // key visual — height = kvSizePct% of frame, bottom-anchored, centered
   const kvBoxH = H * (params.kvSizePct / 100)
@@ -147,14 +146,14 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, className
             style={{
               position: 'absolute',
               left: '50%',
-              bottom: H * 0.035,
+              ...(params.providerPos === 'top' ? { top: H * 0.035 } : { bottom: H * 0.035 }),
               transform: 'translateX(-50%)',
               background: color.blur,
               color: '#ffffff',
               font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
               padding: `${W * 0.016}px ${W * 0.06}px`,
-              borderRadius: 999,
+              borderRadius: pillRadius,
               whiteSpace: 'nowrap',
               boxShadow: `0 0 ${W * 0.06}px ${hexA(color.blur, 0.75)}`,
             }}

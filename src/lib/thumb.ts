@@ -28,16 +28,14 @@ export interface TemplateParams {
   cornerMode: 'sharp' | 'friendly' | 'playful'
   palette: PaletteMode
   colorKey: string
-  bgScale: number // ≥1 zoom on top of cover-fill
-  bgAnchorX: 'left' | 'center' | 'right' // zoom/crop focal point
-  bgAnchorY: 'top' | 'center' | 'bottom'
-  bgOffsetXPct: number
-  bgOffsetYPct: number
+  bgScale: number // zoom on top of cover-fill (always centered)
   kvSizePct: number // key visual height as % of frame height (bottom-anchored, centered)
   kvBottomPct: number // extra offset from the bottom, % of frame height
   logo: { xPct: number; yPct: number; wPct: number; hPct: number }
   logoVariant: LogoVariant
   showProvider: boolean
+  providerPos: 'top' | 'bottom'
+  providerRadius: number // corner radius in px at the 244 reference (scales with frame)
 }
 
 export const DEFAULT_PARAMS: TemplateParams = {
@@ -46,15 +44,13 @@ export const DEFAULT_PARAMS: TemplateParams = {
   palette: 'dark',
   colorKey: 'green',
   bgScale: 1.0,
-  bgAnchorX: 'center',
-  bgAnchorY: 'center',
-  bgOffsetXPct: 0,
-  bgOffsetYPct: 0,
   kvSizePct: 70,
   kvBottomPct: 0,
   logo: { xPct: 0.1, yPct: 0.55, wPct: 0.8, hPct: 0.3 },
   logoVariant: 'color',
   showProvider: true,
+  providerPos: 'bottom',
+  providerRadius: 30,
 }
 
 export interface Template {
@@ -97,7 +93,7 @@ export function effectiveParams(base: TemplateParams, ov?: ParamOverride | null)
 
 /** Keys that can be overridden per-thumbnail (subset of the editor controls). */
 export const OVERRIDABLE: (keyof TemplateParams)[] = [
-  'bgScale', 'bgOffsetXPct', 'bgOffsetYPct',
+  'bgScale',
   'kvSizePct', 'kvBottomPct',
   'logo', 'logoVariant',
   'palette', 'colorKey',

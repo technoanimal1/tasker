@@ -96,7 +96,7 @@ export function ThumbnailStudio() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <aside className="space-y-4">
+      <aside className="space-y-4 lg:sticky lg:top-[76px] lg:max-h-[calc(100vh-92px)] lg:overflow-y-auto lg:pr-2">
         <div>
           <h1 className="text-lg font-semibold">Thumbnail Studio</h1>
           <p className="text-sm text-slate-400">{thumbnails.length} thumbnails · Figma-linked</p>
@@ -160,17 +160,7 @@ export function ThumbnailStudio() {
 
         <Section title="Background (fills frame)">
           <Slider label="Zoom" min={1} max={3} step={0.01} value={p.bgScale} onChange={(v) => set('bgScale', v)} suffix="×" />
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-400">Zoom anchor</span>
-            <AnchorGrid
-              x={p.bgAnchorX}
-              y={p.bgAnchorY}
-              onChange={(x, y) => {
-                set('bgAnchorX', x as TemplateParams['bgAnchorX'])
-                set('bgAnchorY', y as TemplateParams['bgAnchorY'])
-              }}
-            />
-          </div>
+          <p className="text-[11px] text-slate-500">Always centered &amp; fills the frame.</p>
         </Section>
 
         <Section title="Key visual (bottom, centered)">
@@ -184,13 +174,18 @@ export function ThumbnailStudio() {
           <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} pct />
           <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} pct />
           <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} pct />
-          {scope === 'global' && (
-            <label className="flex items-center justify-between pt-1 text-xs text-slate-400">
-              Show provider label
+        </Section>
+
+        {scope === 'global' && (
+          <Section title="Provider label">
+            <label className="flex items-center justify-between text-xs text-slate-400">
+              Show
               <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
             </label>
-          )}
-        </Section>
+            <Toggle label="Placement" options={['bottom', 'top']} value={p.providerPos} onChange={(v) => set('providerPos', v as TemplateParams['providerPos'])} />
+            <Slider label="Corner radius" min={0} max={30} value={p.providerRadius} onChange={(v) => set('providerRadius', v)} />
+          </Section>
+        )}
 
         <div className="flex gap-2">
           <button
@@ -208,7 +203,7 @@ export function ThumbnailStudio() {
 
       <div className="flex flex-wrap items-start gap-6">
         {selected && (
-          <div className="shrink-0">
+          <div className="shrink-0 self-start lg:sticky lg:top-[76px]">
             <ThumbnailCard thumb={selected} params={effectiveParams(params, overrides[selected.id])} assets={assetsFor(selected)} displayW={300} />
             <div className="mt-3 flex items-center gap-2">
               <span className="text-sm text-slate-300">{selected.name}</span>
@@ -248,28 +243,6 @@ export function ThumbnailStudio() {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function AnchorGrid({ x, y, onChange }: { x: string; y: string; onChange: (x: string, y: string) => void }) {
-  const xs = ['left', 'center', 'right']
-  const ys = ['top', 'center', 'bottom']
-  return (
-    <div className="grid grid-cols-3 gap-1">
-      {ys.map((vy) =>
-        xs.map((vx) => {
-          const active = vx === x && vy === y
-          return (
-            <button
-              key={vy + vx}
-              onClick={() => onChange(vx, vy)}
-              title={`${vy} ${vx}`}
-              className={`h-6 w-6 rounded ${active ? 'bg-brand' : 'bg-slate-800 hover:bg-slate-700'}`}
-            />
-          )
-        }),
-      )}
     </div>
   )
 }

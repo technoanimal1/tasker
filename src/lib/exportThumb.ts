@@ -69,9 +69,7 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
   if (bg) {
     const bgW = W * params.bgScale
     const bgH = H * params.bgScale
-    const hBase = params.bgAnchorX === 'left' ? 0 : params.bgAnchorX === 'right' ? W - bgW : (W - bgW) / 2
-    const vBase = params.bgAnchorY === 'top' ? 0 : params.bgAnchorY === 'bottom' ? H - bgH : (H - bgH) / 2
-    drawFit(ctx, bg, hBase + params.bgOffsetXPct * W, vBase + params.bgOffsetYPct * H, bgW, bgH, 'cover')
+    drawFit(ctx, bg, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH, 'cover')
   }
 
   // subtle top darken
@@ -126,9 +124,10 @@ export async function renderThumbBlob(thumb: Thumbnail, params: TemplateParams, 
     const pillW = tw + padX * 2
     const pillH = W * 0.082
     const pillX = W / 2 - pillW / 2
-    const pillY = H - H * 0.035 - pillH
+    const pillY = params.providerPos === 'top' ? H * 0.035 : H - H * 0.035 - pillH
+    const rad = Math.min((params.providerRadius / CORNER_REF) * W, pillH / 2)
     ctx.fillStyle = color.blur
-    roundRectPath(ctx, pillX, pillY, pillW, pillH, pillH / 2)
+    roundRectPath(ctx, pillX, pillY, pillW, pillH, rad)
     ctx.fill()
     ctx.fillStyle = '#ffffff'
     ctx.fillText(thumb.provider, W / 2, pillY + pillH / 2 + W * 0.004)
