@@ -110,6 +110,7 @@ function drawFrame(
   // light band
   const bandH = H * (params.gradBandPct / 100)
   const band = ctx.createLinearGradient(0, H - bandH, 0, H)
+  band.addColorStop(0, hexA(color.semantic, 0))
   band.addColorStop(clamp01(params.gradStop1 / 100), color.semantic)
   band.addColorStop(clamp01(params.gradStop2 / 100), color.blur)
   ctx.fillStyle = band
@@ -188,8 +189,9 @@ function drawFrame(
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     const tw = ctx.measureText(thumb.provider).width
+    const topPad = params.providerPadY * kk
     const pillW = tw + params.providerPadX * kk * 2
-    const pillH = fs * 1.15 + params.providerPadY * kk * 2
+    const pillH = fs * 1.15 + topPad // top padding only — no bottom padding
     const pillX = W / 2 - pillW / 2
     const pillY = params.providerPos === 'top' ? H * 0.035 : H - H * 0.035 - pillH
     const cap = pillH / 2
@@ -202,7 +204,7 @@ function drawFrame(
     )
     ctx.fill()
     ctx.fillStyle = '#ffffff'
-    ctx.fillText(thumb.provider, W / 2, pillY + pillH / 2 + fs * 0.02)
+    ctx.fillText(thumb.provider, W / 2, pillY + topPad + (fs * 1.15) / 2 + fs * 0.02)
   }
 
   ctx.restore()

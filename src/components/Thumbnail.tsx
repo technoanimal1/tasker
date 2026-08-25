@@ -112,7 +112,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             right: 0,
             bottom: 0,
             height: bandH,
-            background: `linear-gradient(to bottom, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%)`,
+            background: `linear-gradient(to bottom, ${hexA(color.semantic, 0)} 0%, ${color.semantic} ${params.gradStop1}%, ${color.blur} ${params.gradStop2}%)`,
           }}
         />
         <div
@@ -188,7 +188,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               color: '#ffffff',
               font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
-              padding: `${params.providerPadY * k}px ${params.providerPadX * k}px`,
+              padding: `${params.providerPadY * k}px ${params.providerPadX * k}px 0`,
               borderRadius: provRadius,
               whiteSpace: 'nowrap',
               lineHeight: 1.15,
