@@ -48,6 +48,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [phase, setPhase] = useState(0)
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
   const [exportOpen, setExportOpen] = useState(false)
+  const [showFrame, setShowFrame] = useState(true)
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -240,7 +241,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 }`}
               >
                 <div className="overflow-hidden rounded">
-                  {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} />}
+                  {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
@@ -267,6 +268,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
           <div className="flex items-center gap-2">
             <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
+            <button
+              onClick={() => setShowFrame((v) => !v)}
+              className={`rounded-lg border px-3 py-1.5 text-xs transition ${
+                showFrame ? 'border-zinc-700 text-zinc-200 hover:bg-zinc-800' : 'border-zinc-800 bg-zinc-800/40 text-zinc-500'
+              }`}
+              title="Show or hide the frame stroke + provider badge in previews"
+            >
+              {showFrame ? '▣ Frames' : '▢ Frames'}
+            </button>
             {p.animEnabled && (
               <button
                 onClick={() => setPlaying((v) => !v)}
@@ -308,7 +318,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             }}
           >
             <div className="shadow-2xl">
-              <ThumbnailCard thumb={selected} params={selectedParams} assets={assetsFor(selected)} displayW={previewW} phase={previewPhase} />
+              <ThumbnailCard thumb={selected} params={selectedParams} assets={assetsFor(selected)} displayW={previewW} phase={previewPhase} showFrame={showFrame} />
             </div>
           </div>
         ) : (
@@ -337,7 +347,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     title={showScope ? 'Open in canvas' : t.name}
                   >
                     <div className="w-full overflow-hidden rounded-lg shadow-lg">
-                      <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} />
+                      <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} showFrame={showFrame} />
                     </div>
                     {isDesigner && (
                       <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">

@@ -99,7 +99,7 @@ export function Dashboard() {
         ) : view === 'assets' ? (
           <BrandAssets api={assetsApi} />
         ) : branch ? (
-          <FramesView branch={branch} assets={assetsApi} />
+          <FramesView branch={branch} saveFrameParams={branchesApi.saveFrameParams} />
         ) : (
           <div className="py-20 text-center text-slate-500">Loading branch…</div>
         )}

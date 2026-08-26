@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
 import { motionAt } from '../lib/animate'
@@ -20,10 +21,12 @@ interface Props {
   displayW?: number
   /** Animation loop phase 0..1 (drives motion when params.animEnabled). */
   phase?: number
+  /** Show the frame stroke + provider badge (the "frame" chrome). */
+  showFrame?: boolean
   className?: string
 }
 
-export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0, className }: Props) {
+export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0, showFrame = true, className }: Props) {
   const size = frameSize(params.sizeKey)
   const W = size.w
   const H = size.h
@@ -36,7 +39,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const logo = params.logoVariant === 'white' ? assets.logoWhite : assets.logoColor
 
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
-  const strokeW = Math.max(2, W * 0.006)
+  const strokeW = params.strokeWidth * k
+  const frameOn = showFrame && strokeW > 0
+  const outside = frameOn && params.strokePos === 'outside'
+  const inside = frameOn && params.strokePos === 'inside'
 
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
@@ -59,7 +65,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           borderRadius: radius,
           overflow: 'hidden',
           background: '#0a0f0c',
-          boxShadow: `inset 0 0 0 ${strokeW}px ${color.stroke}, 0 6px 30px ${hexA(color.blur, 0.4)}`,
+          border: outside ? `${strokeW}px solid ${color.stroke}` : undefined,
+          boxShadow: `${inside ? `inset 0 0 0 ${strokeW}px ${color.stroke}, ` : ''}0 6px 30px ${hexA(color.blur, 0.4)}`,
         }}
       >
         {/* background — cover-fills the whole frame, centered; zoom scales from centre.
@@ -180,13 +187,11 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
         )}
 
         {/* provider label */}
-        {params.showProvider && thumb.provider && (
+        {params.showProvider && showFrame && (params.providerName.trim() || thumb.provider) && (
           <div
             style={{
               position: 'absolute',
-              left: '50%',
-              ...(params.providerPos === 'top' ? { top: H * 0.035 } : { bottom: H * 0.035 }),
-              transform: 'translateX(-50%)',
+              ...providerPlacement(params.providerPos, W, H),
               background: color.blur,
               color: '#ffffff',
               font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
@@ -198,12 +203,21 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               boxShadow: `0 0 ${W * 0.06}px ${hexA(color.blur, 0.75)}`,
             }}
           >
-            {thumb.provider}
+            {params.providerName.trim() || thumb.provider}
           </div>
         )}
       </div>
     </div>
   )
+}
+
+function providerPlacement(pos: TemplateParams['providerPos'], W: number, H: number): CSSProperties {
+  const my = H * 0.035
+  const mx = W * 0.04
+  const top = pos.startsWith('top')
+  const v = top ? { top: my } : { bottom: my }
+  if (pos === 'top' || pos === 'bottom') return { ...v, left: '50%', transform: 'translateX(-50%)' }
+  return pos.endsWith('left') ? { ...v, left: mx } : { ...v, right: mx }
 }
 
 function renderTextLogo(

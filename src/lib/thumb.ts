@@ -22,6 +22,8 @@ export const CORNER_MODES: Record<string, number> = { sharp: 8, friendly: 16, pl
 export const CORNER_REF = 244
 
 export type LogoVariant = 'color' | 'white'
+export type ProviderPos = 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+export const PROVIDER_POSITIONS: ProviderPos[] = ['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
 
 export interface TemplateParams {
   sizeKey: string
@@ -47,8 +49,12 @@ export interface TemplateParams {
   textMaxLines: number // 1..4
   textScale: number // overall size nudge on top of the auto fit
   textFillLines: boolean // scale each line to fill the box width (vary line widths)
+  // frame stroke
+  strokeWidth: number // px @244 ref
+  strokePos: 'inside' | 'outside' // inside = ring over art; outside = matted frame around art
   showProvider: boolean
-  providerPos: 'top' | 'bottom'
+  providerPos: ProviderPos
+  providerName: string // overrides each thumbnail's provider text when non-empty
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
   providerPadX: number // px @244 ref
   providerPadY: number
@@ -91,8 +97,11 @@ export const DEFAULT_PARAMS: TemplateParams = {
   textMaxLines: 3,
   textScale: 1,
   textFillLines: false,
+  strokeWidth: 1.5,
+  strokePos: 'inside',
   showProvider: true,
   providerPos: 'bottom',
+  providerName: '',
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
   providerPadX: 0,
   providerPadY: 0,
@@ -164,7 +173,8 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 // Frame design: what a client may customise on their own branch.
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
-  'showProvider', 'providerPos', 'providerRadius', 'providerPadX', 'providerPadY',
+  'strokeWidth', 'strokePos',
+  'showProvider', 'providerPos', 'providerName', 'providerRadius', 'providerPadX', 'providerPadY',
   'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct',
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
