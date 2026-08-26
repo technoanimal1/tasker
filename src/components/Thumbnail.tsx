@@ -40,9 +40,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
 
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = params.strokeWidth * k
+  const strokePad = params.strokePad * k
   const frameOn = showFrame && strokeW > 0
-  const outside = frameOn && params.strokePos === 'outside'
-  const inside = frameOn && params.strokePos === 'inside'
+  // outside = matted: art insets so the stroke frames it (+ optional pad gap)
+  const contentInset = frameOn && params.strokePos === 'outside' ? strokeW + strokePad : 0
 
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
@@ -65,10 +66,17 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           borderRadius: radius,
           overflow: 'hidden',
           background: '#0a0f0c',
-          border: outside ? `${strokeW}px solid ${color.stroke}` : undefined,
-          boxShadow: `${inside ? `inset 0 0 0 ${strokeW}px ${color.stroke}, ` : ''}0 6px 30px ${hexA(color.blur, 0.4)}`,
+          boxShadow: `0 6px 30px ${hexA(color.blur, 0.4)}`,
         }}
       >
+        {/* content — clipped to the inner (matted) rect for outside strokes */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            clipPath: `inset(${contentInset}px round ${Math.max(0, radius - contentInset)}px)`,
+          }}
+        >
         {/* background — cover-fills the whole frame, centered; zoom scales from centre.
             Uses background-image (not <img>) so it can never leave an uncovered edge. */}
         {bg && (
@@ -205,6 +213,20 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           >
             {params.providerName.trim() || thumb.provider}
           </div>
+        )}
+        </div>
+        {/* frame stroke — inset from the edge by strokePad */}
+        {frameOn && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: strokePad,
+              border: `${strokeW}px solid ${color.stroke}`,
+              borderRadius: Math.max(0, radius - strokePad),
+              boxSizing: 'border-box',
+              pointerEvents: 'none',
+            }}
+          />
         )}
       </div>
     </div>

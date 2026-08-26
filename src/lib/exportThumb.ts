@@ -78,20 +78,20 @@ function drawFrame(
   const m = motionAt(params, phase)
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
-  const sw = params.strokeWidth * (W / CORNER_REF)
-  const outside = sw > 0 && params.strokePos === 'outside'
-  const inset = outside ? sw : 0
-  const innerR = Math.max(0, radius - inset)
+  const kk = W / CORNER_REF
+  const sw = params.strokeWidth * kk
+  const pad = params.strokePad * kk
+  // outside = matted: art insets by stroke + pad so the frame sits around it
+  const contentInset = sw > 0 && params.strokePos === 'outside' ? sw + pad : 0
+  const innerR = Math.max(0, radius - contentInset)
 
   ctx.clearRect(0, 0, W, H)
-  if (outside) {
-    // matted frame: fill the outer rounded rect with the stroke colour, then clip
-    // content to the inset inner rect so the frame sits around the art.
-    roundRectPath(ctx, 0, 0, W, H, radius)
-    ctx.fillStyle = color.stroke
-    ctx.fill()
-  }
-  roundRectPath(ctx, inset, inset, W - 2 * inset, H - 2 * inset, innerR)
+  // base fill (shows through the mat margin for outside/padded strokes)
+  roundRectPath(ctx, 0, 0, W, H, radius)
+  ctx.fillStyle = '#0a0f0c'
+  ctx.fill()
+  // clip content to the inner (matted) rect
+  roundRectPath(ctx, contentInset, contentInset, W - 2 * contentInset, H - 2 * contentInset, innerR)
   ctx.save()
   ctx.clip()
   ctx.fillStyle = '#0a0f0c'
@@ -216,7 +216,6 @@ function drawFrame(
   const ptext = params.providerName.trim() || thumb.provider
   if (params.showProvider && ptext) {
     const fs = W * 0.05
-    const kk = W / CORNER_REF
     ctx.font = `700 ${fs}px "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -247,9 +246,10 @@ function drawFrame(
 
   ctx.restore()
 
-  // inside stroke (outside was drawn as a matted frame before the content)
-  if (sw > 0 && params.strokePos === 'inside') {
-    roundRectPath(ctx, sw / 2, sw / 2, W - sw, H - sw, radius)
+  // frame stroke — inset from the edge by pad (outside also insets the content)
+  if (sw > 0) {
+    const off = pad + sw / 2
+    roundRectPath(ctx, off, off, W - 2 * off, H - 2 * off, Math.max(0, radius - off))
     ctx.lineWidth = sw
     ctx.strokeStyle = color.stroke
     ctx.stroke()

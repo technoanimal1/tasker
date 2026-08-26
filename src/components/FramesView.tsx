@@ -134,6 +134,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
               onChange={(v) => set('cornerMode', v as TemplateParams['cornerMode'])}
             />
             <Slider label="Stroke weight" min={0} max={12} step={0.5} value={p.strokeWidth} onChange={(v) => set('strokeWidth', v)} fmt={(v) => `${v}`} />
+            <Slider label="Padding" min={0} max={24} step={0.5} value={p.strokePad} onChange={(v) => set('strokePad', v)} fmt={(v) => `${v}`} />
             <Seg
               options={[
                 { value: 'inside', label: 'inside' },

@@ -51,6 +51,7 @@ export interface TemplateParams {
   textFillLines: boolean // scale each line to fill the box width (vary line widths)
   // frame stroke
   strokeWidth: number // px @244 ref
+  strokePad: number // px @244 ref — gap between the stroke and the frame edge
   strokePos: 'inside' | 'outside' // inside = ring over art; outside = matted frame around art
   showProvider: boolean
   providerPos: ProviderPos
@@ -98,6 +99,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   textScale: 1,
   textFillLines: false,
   strokeWidth: 1.5,
+  strokePad: 0,
   strokePos: 'inside',
   showProvider: true,
   providerPos: 'bottom',
@@ -173,7 +175,7 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 // Frame design: what a client may customise on their own branch.
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
-  'strokeWidth', 'strokePos',
+  'strokeWidth', 'strokePad', 'strokePos',
   'showProvider', 'providerPos', 'providerName', 'providerRadius', 'providerPadX', 'providerPadY',
   'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct',
   'logoVariant', 'textLogo', 'fontFamily',
