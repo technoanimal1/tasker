@@ -112,10 +112,15 @@ function drawFrame(
   ctx.fillStyle = dg
   ctx.fillRect(0, 0, W, H * 0.3)
 
+  const landscape = W / H > 1.2
   if (kv) {
-    const kvBoxH = H * (params.kvSizePct / 100)
-    const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
-    drawFit(ctx, kv, m.kvDXFrac * W, kvTop + m.kvDYFrac * H, W, kvBoxH, 'contain')
+    if (landscape) {
+      drawFit(ctx, kv, m.kvDXFrac * W, H * 0.06 + m.kvDYFrac * H, W * 0.52, H * 0.88, 'contain')
+    } else {
+      const kvBoxH = H * (params.kvSizePct / 100)
+      const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
+      drawFit(ctx, kv, m.kvDXFrac * W, kvTop + m.kvDYFrac * H, W, kvBoxH, 'contain')
+    }
   }
 
   // light band
@@ -141,11 +146,11 @@ function drawFrame(
   ellipse(H * 0.88, W * 0.45, H * 0.17, hexA(color.blur, 0.85), hexA(color.blur, 0))
   ellipse(H * 0.985, W * 0.4055 * m.bloomScale, H * 0.1375 * m.bloomScale, '#ffffff', 'rgba(255,255,255,0)', 'overlay', m.bloomOpacity)
 
-  // logo — image or text, with optional motion scale
-  const boxX = params.logo.xPct * W
-  const boxY = params.logo.yPct * H
-  const boxW = params.logo.wPct * W
-  const boxH = params.logo.hPct * H
+  // logo — image or text, with optional motion scale (right half in landscape)
+  const boxX = landscape ? W * 0.5 : params.logo.xPct * W
+  const boxY = landscape ? H * 0.28 : params.logo.yPct * H
+  const boxW = landscape ? W * 0.46 : params.logo.wPct * W
+  const boxH = landscape ? H * 0.44 : params.logo.hPct * H
   ctx.save()
   if (m.logoScale !== 1) {
     const cx = boxX + boxW / 2
@@ -215,7 +220,7 @@ function drawFrame(
 
   const ptext = params.providerName.trim() || thumb.provider
   if (params.showProvider && ptext) {
-    const fs = W * 0.05
+    const fs = W * 0.025
     ctx.font = `700 ${fs}px "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'

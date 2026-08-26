@@ -48,6 +48,15 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
 
+  // Landscape frames (3:2, 16:9): key visual on the left, logo on the right.
+  const landscape = W / H > 1.2
+  const kvBox = landscape
+    ? { x: 0, y: H * 0.06, w: W * 0.52, h: H * 0.88 }
+    : { x: 0, y: kvTop, w: W, h: kvBoxH }
+  const logoBox = landscape
+    ? { x: W * 0.5, y: H * 0.28, w: W * 0.46, h: H * 0.44 }
+    : { x: params.logo.xPct * W, y: params.logo.yPct * H, w: params.logo.wPct * W, h: params.logo.hPct * H }
+
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
   const bandH = H * (params.gradBandPct / 100)
@@ -110,10 +119,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             draggable={false}
             style={{
               position: 'absolute',
-              left: 0,
-              top: kvTop,
-              width: W,
-              height: kvBoxH,
+              left: kvBox.x,
+              top: kvBox.y,
+              width: kvBox.w,
+              height: kvBox.h,
               objectFit: 'contain',
               transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
             }}
@@ -163,17 +172,17 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
 
         {/* logo — image or text variant */}
         {params.textLogo
-          ? renderTextLogo(thumb.name, params, W, H, color, m.logoScale)
+          ? renderTextLogo(thumb.name, params, logoBox, color, m.logoScale)
           : logo && (
               <img
                 src={logo}
                 draggable={false}
                 style={{
                   position: 'absolute',
-                  left: params.logo.xPct * W,
-                  top: params.logo.yPct * H,
-                  width: params.logo.wPct * W,
-                  height: params.logo.hPct * H,
+                  left: logoBox.x,
+                  top: logoBox.y,
+                  width: logoBox.w,
+                  height: logoBox.h,
                   objectFit: 'contain',
                   transform: `scale(${m.logoScale})`,
                   transformOrigin: 'center center',
@@ -202,7 +211,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               ...providerPlacement(params.providerPos, W, H),
               background: color.blur,
               color: '#ffffff',
-              font: `700 ${W * 0.05}px "Helvetica Neue", Arial, sans-serif`,
+              font: `700 ${W * 0.025}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
               padding: `${params.providerPadY * k}px ${params.providerPadX * k}px 0`,
               borderRadius: provRadius,
@@ -245,14 +254,13 @@ function providerPlacement(pos: TemplateParams['providerPos'], W: number, H: num
 function renderTextLogo(
   name: string,
   params: TemplateParams,
-  W: number,
-  H: number,
+  box: { x: number; y: number; w: number; h: number },
   color: { stroke: string; blur: string },
   scale = 1,
 ) {
   ensureFont(params.fontFamily)
-  const boxW = params.logo.wPct * W
-  const boxH = params.logo.hPct * H
+  const boxW = box.w
+  const boxH = box.h
   const weight = snapWeight(params.fontFamily, params.textWeight)
   const { lines, lineSizes, lineHeight } = layoutTextLogo(name, params.fontFamily, boxW, boxH, {
     weight,
@@ -269,8 +277,8 @@ function renderTextLogo(
     <div
       style={{
         position: 'absolute',
-        left: params.logo.xPct * W,
-        top: params.logo.yPct * H,
+        left: box.x,
+        top: box.y,
         width: boxW,
         height: boxH,
         display: 'flex',
@@ -282,7 +290,7 @@ function renderTextLogo(
         fontWeight: weight,
         lineHeight: lineHeight,
         color: fill,
-        textShadow: params.textShadow ? `0 ${H * 0.006}px ${H * 0.02}px rgba(0,0,0,0.45)` : 'none',
+        textShadow: params.textShadow ? `0 ${boxH * 0.02}px ${boxH * 0.06}px rgba(0,0,0,0.45)` : 'none',
         whiteSpace: 'nowrap',
         overflow: 'visible',
         transform: `scale(${scale})`,

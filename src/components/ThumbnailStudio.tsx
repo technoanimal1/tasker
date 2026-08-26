@@ -72,13 +72,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const selOv = selectedId ? overrides[selectedId] ?? {} : {}
 
   // The composited params used to render a given thumbnail (list, preview, export).
+  // The active branch's frame design (frame_params) is layered on for every branch;
+  // while editing a client branch we use the live draft so changes preview instantly.
+  const activeFrameParams = editingBranch ? frameParams : ((branch?.frame_params as ParamOverride) ?? {})
   const paramsForThumb = useMemo(() => {
     return (t: (typeof thumbnails)[number]): TemplateParams | null => {
       if (!params) return null
-      const base = effectiveParams(params, overrides[t.id])
-      return editingBranch ? branchParams(base, frameParams) : base
+      return branchParams(effectiveParams(params, overrides[t.id]), activeFrameParams)
     }
-  }, [params, overrides, editingBranch, frameParams])
+  }, [params, overrides, activeFrameParams])
 
   // Values shown in the control panel (reflect what's being edited).
   const activeParams = params
