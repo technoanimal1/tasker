@@ -104,6 +104,7 @@ export function useFigmaAssets(thumbnails: Thumbnail[], scale = 2) {
       kv: u(t.figma_kv_node),
       logoColor: u(t.figma_logo_color_node),
       logoWhite: u(t.figma_logo_white_node) ?? whiteMap[t.id],
+      animVideo: t.anim_video_url ?? undefined,
     }
   }
 

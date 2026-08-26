@@ -29,6 +29,24 @@ function drawFit(
   ctx.drawImage(img, bx + (bw - dw) / 2, by + (bh - dh) / 2, dw, dh)
 }
 
+/** Contain-fit any drawable source (image or video) of known intrinsic size. */
+function drawFitSource(
+  ctx: CanvasRenderingContext2D,
+  src: CanvasImageSource,
+  iw: number,
+  ih: number,
+  bx: number,
+  by: number,
+  bw: number,
+  bh: number,
+) {
+  if (!iw || !ih) return
+  const r = Math.min(bw / iw, bh / ih)
+  const dw = iw * r
+  const dh = ih * r
+  ctx.drawImage(src, bx + (bw - dw) / 2, by + (bh - dh) / 2, dw, dh)
+}
+
 function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   const rr = Math.max(0, Math.min(r, w / 2, h / 2))
   ctx.beginPath()
@@ -40,10 +58,25 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   ctx.closePath()
 }
 
+function loadVideo(url: string): Promise<HTMLVideoElement> {
+  return new Promise((resolve, reject) => {
+    const v = document.createElement('video')
+    v.crossOrigin = 'anonymous'
+    v.muted = true
+    v.loop = true
+    v.playsInline = true
+    v.onloadeddata = () => resolve(v)
+    v.onerror = () => reject(new Error(`video load failed: ${url}`))
+    v.src = url
+  })
+}
+
 interface Assets {
   bg: HTMLImageElement | null
   kv: HTMLImageElement | null
   logo: HTMLImageElement | null
+  /** Matted (transparent) motion clip that replaces the still key visual. */
+  kvVideo: HTMLVideoElement | null
 }
 
 async function loadAssets(thumb: Thumbnail, params: TemplateParams): Promise<Assets> {
@@ -54,12 +87,13 @@ async function loadAssets(thumb: Thumbnail, params: TemplateParams): Promise<Ass
   const logoU = params.textLogo
     ? null
     : proxy(params.logoVariant === 'white' ? thumb.figma_logo_white_node : thumb.figma_logo_color_node)
-  const [bg, kv, logo] = await Promise.all([
+  const [bg, kv, logo, kvVideo] = await Promise.all([
     bgU ? loadImage(bgU).catch(() => null) : null,
     kvU ? loadImage(kvU).catch(() => null) : null,
     logoU ? loadImage(logoU).catch(() => null) : null,
+    thumb.anim_video_url ? loadVideo(thumb.anim_video_url).catch(() => null) : null,
   ])
-  return { bg, kv, logo }
+  return { bg, kv, logo, kvVideo }
 }
 
 type Color = ReturnType<typeof resolveColor>
@@ -115,16 +149,30 @@ function drawFrame(
   const layout = params.layouts?.[params.sizeKey]
   const landscape = W / H > 1.2
   const boxes = layout ? layoutBoxes(layout, W, H) : null
-  if (kv) {
-    if (boxes) {
-      drawFit(ctx, kv, boxes.kv.x + m.kvDXFrac * W, boxes.kv.y + m.kvDYFrac * H, boxes.kv.w, boxes.kv.h, 'contain')
-    } else if (landscape) {
-      drawFit(ctx, kv, m.kvDXFrac * W, H * 0.06 + m.kvDYFrac * H, W * 0.52, H * 0.88, 'contain')
-    } else {
-      const kvBoxH = H * (params.kvSizePct / 100)
-      const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
-      drawFit(ctx, kv, m.kvDXFrac * W, kvTop + m.kvDYFrac * H, W, kvBoxH, 'contain')
-    }
+  // key-visual box (matches Thumbnail.tsx): saved layout → landscape split → stack
+  let kvX: number, kvY: number, kvW: number, kvH: number
+  if (boxes) {
+    kvX = boxes.kv.x
+    kvY = boxes.kv.y
+    kvW = boxes.kv.w
+    kvH = boxes.kv.h
+  } else if (landscape) {
+    kvX = 0
+    kvY = H * 0.06
+    kvW = W * 0.52
+    kvH = H * 0.88
+  } else {
+    kvH = H * (params.kvSizePct / 100)
+    kvX = 0
+    kvY = H - kvH - H * (params.kvBottomPct / 100)
+    kvW = W
+  }
+  const kvDX = m.kvDXFrac * W
+  const kvDY = m.kvDYFrac * H
+  if (assets.kvVideo) {
+    drawFitSource(ctx, assets.kvVideo, assets.kvVideo.videoWidth, assets.kvVideo.videoHeight, kvX + kvDX, kvY + kvDY, kvW, kvH)
+  } else if (kv) {
+    drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
   }
 
   // light band
@@ -369,8 +417,61 @@ export async function renderThumbAnimBlob(thumb: Thumbnail, params: TemplatePara
   })
 }
 
+/** Record the inserted matted motion clip composited into the full thumbnail. */
+export async function renderThumbVideoBlob(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30): Promise<Blob> {
+  const mime = pickAnimMime()
+  if (!mime) throw new Error('Animated export is not supported in this browser.')
+  const size = frameSize(params.sizeKey)
+  const W = size.w * mult
+  const H = size.h * mult
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  const color = resolveColor(params.palette, params.colorKey)
+  const assets = await loadAssets(thumb, params)
+  if (params.textLogo) await loadFontFace(params.fontFamily)
+  const vid = assets.kvVideo
+  // No usable clip (load/CORS failure) → fall back to procedural motion.
+  if (!vid) return renderThumbAnimBlob(thumb, params, mult, fps)
+
+  const stream = canvas.captureStream(fps)
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 })
+  const chunks: Blob[] = []
+  rec.ondataavailable = (e) => {
+    if (e.data.size) chunks.push(e.data)
+  }
+  const dur = Number.isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 4
+  const durationMs = dur * 1000
+
+  vid.loop = false
+  vid.currentTime = 0
+  await vid.play().catch(() => {})
+
+  return new Promise<Blob>((resolve) => {
+    rec.onstop = () => resolve(new Blob(chunks, { type: mime }))
+    drawFrame(ctx, thumb, params, W, H, assets, color, 0)
+    rec.start()
+    const t0 = performance.now()
+    const loop = () => {
+      const el = performance.now() - t0
+      const phase = Math.min(1, el / durationMs)
+      drawFrame(ctx, thumb, params, W, H, assets, color, phase)
+      if (el >= durationMs || vid.ended) {
+        vid.pause()
+        rec.stop()
+      } else {
+        requestAnimationFrame(loop)
+      }
+    }
+    requestAnimationFrame(loop)
+  })
+}
+
 export async function exportThumbAnim(thumb: Thumbnail, params: TemplateParams, mult = 1, fps = 30): Promise<number> {
-  const blob = await renderThumbAnimBlob(thumb, params, mult, fps)
+  const blob = thumb.anim_video_url
+    ? await renderThumbVideoBlob(thumb, params, mult, fps)
+    : await renderThumbAnimBlob(thumb, params, mult, fps)
   download(blob, `${baseName(thumb, params)}.webm`)
   return blob.size
 }

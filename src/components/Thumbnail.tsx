@@ -119,11 +119,14 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           }}
         />
 
-        {/* key visual — centered, bottom-anchored */}
-        {kv && (
-          <img
-            src={kv}
-            draggable={false}
+        {/* key visual — an AI motion clip (transparent) when present, else the still */}
+        {assets.animVideo ? (
+          <video
+            src={assets.animVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
             style={{
               position: 'absolute',
               left: kvBox.x,
@@ -134,6 +137,22 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
             }}
           />
+        ) : (
+          kv && (
+            <img
+              src={kv}
+              draggable={false}
+              style={{
+                position: 'absolute',
+                left: kvBox.x,
+                top: kvBox.y,
+                width: kvBox.w,
+                height: kvBox.h,
+                objectFit: 'contain',
+                transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
+              }}
+            />
+          )
         )}
 
         {/* light effect (Figma control-area) */}

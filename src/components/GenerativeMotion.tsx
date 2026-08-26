@@ -9,21 +9,31 @@ const MODELS = [
   { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best (slow)' },
 ]
 
-export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
+type Stage = 'idle' | 'generating' | 'matting' | 'done'
+
+export function GenerativeMotion({
+  thumb,
+  saveAnim,
+}: {
+  thumb: Thumbnail
+  saveAnim: (id: string, url: string | null, prompt: string | null) => Promise<void>
+}) {
   const [prompt, setPrompt] = useState('')
   const [model, setModel] = useState(MODELS[0].id)
-  const [busy, setBusy] = useState(false)
-  const [video, setVideo] = useState<string | null>(null)
+  const [stage, setStage] = useState<Stage>('idle')
+  // last matted (transparent) clip produced this session, for download
+  const [matted, setMatted] = useState<string | null>(thumb.anim_video_url ?? null)
   const [error, setError] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const startRef = useRef(0)
+  const busy = stage === 'generating' || stage === 'matting'
 
   useEffect(() => {
-    setPrompt('')
-    setVideo(null)
+    setPrompt(thumb.anim_prompt ?? '')
+    setMatted(thumb.anim_video_url ?? null)
     setError(null)
-    setBusy(false)
-  }, [thumb.id])
+    setStage('idle')
+  }, [thumb.id, thumb.anim_video_url, thumb.anim_prompt])
 
   useEffect(() => {
     if (!busy) return
@@ -31,7 +41,7 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
     return () => clearInterval(id)
   }, [busy])
 
-  async function generate() {
+  async function animate() {
     const fk = thumb.figma_file_key
     const kv = thumb.figma_kv_node
     if (!fk || !kv) {
@@ -39,56 +49,86 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
       return
     }
     setError(null)
-    setVideo(null)
+    setMatted(null)
     setElapsed(0)
     startRef.current = Date.now()
-    setBusy(true)
     const imageUrl = figmaProxyUrl(fk, kv, 2)
     const fullPrompt = `${prompt.trim() || 'subtle idle animation'}. Camera locked, preserve the artwork, seamless loop.`
     try {
-      const { data, error: e } = await supabase.functions.invoke('fal-animate', {
+      // 1 — generate the motion clip from the still key visual
+      setStage('generating')
+      const gen = await supabase.functions.invoke('fal-animate', {
         body: { action: 'generate', imageUrl, prompt: fullPrompt, model },
       })
-      if (e || !data || data.error || !data.video) {
-        setError(
-          data?.error ||
-            e?.message ||
-            `No video returned.${data?.raw ? ' ' + JSON.stringify(data.raw).slice(0, 240) : ''}`,
+      if (gen.error || !gen.data?.video) {
+        throw new Error(
+          gen.data?.error ||
+            gen.error?.message ||
+            `No video returned.${gen.data?.raw ? ' ' + JSON.stringify(gen.data.raw).slice(0, 200) : ''}`,
         )
-      } else {
-        setVideo(data.video)
       }
+      const rawVideo: string = gen.data.video
+
+      // 2 — matte to a transparent clip so it drops onto the background cleanly
+      setStage('matting')
+      const mat = await supabase.functions.invoke('fal-animate', {
+        body: { action: 'matte', videoUrl: rawVideo },
+      })
+      // if matting fails we still fall back to the un-matted clip
+      const finalVideo: string = mat.data?.video || rawVideo
+
+      // 3 — insert into the thumbnail (persist) so it composites everywhere
+      await saveAnim(thumb.id, finalVideo, prompt.trim() || null)
+      setMatted(finalVideo)
+      setStage('done')
     } catch (err) {
-      setError(String(err))
-    } finally {
-      setBusy(false)
+      setError(err instanceof Error ? err.message : String(err))
+      setStage('idle')
     }
   }
 
+  async function remove() {
+    await saveAnim(thumb.id, null, null)
+    setMatted(null)
+    setStage('idle')
+  }
+
   async function download() {
-    if (!video) return
+    if (!matted) return
     try {
-      const r = await fetch(video)
+      const r = await fetch(matted)
       const b = await r.blob()
       const u = URL.createObjectURL(b)
       const a = document.createElement('a')
       a.href = u
-      a.download = `${thumb.slug}_motion.mp4`
+      a.download = `${thumb.slug}_motion.webm`
       document.body.appendChild(a)
       a.click()
       a.remove()
       URL.revokeObjectURL(u)
     } catch {
-      window.open(video, '_blank')
+      window.open(matted, '_blank')
     }
   }
 
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Generative motion · AI</p>
+  const inserted = !!thumb.anim_video_url
 
-      {video && (
-        <video src={video} autoPlay loop muted playsInline className="w-full rounded-lg border border-zinc-800" />
+  return (
+    <div className="space-y-2 border-t border-zinc-800 pt-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Generative motion · AI</p>
+        {inserted && <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-semibold text-brand">● inserted</span>}
+      </div>
+
+      {matted && (
+        <video
+          src={matted}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full rounded-lg border border-zinc-800 bg-[conic-gradient(#1a1a1a_90deg,#111_0_180deg,#1a1a1a_0_270deg,#111_0)] [background-size:16px_16px]"
+        />
       )}
 
       <textarea
@@ -113,15 +153,26 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
 
       <div className="flex items-center gap-2">
         <button
-          onClick={generate}
+          onClick={animate}
           disabled={busy}
           className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-60"
         >
-          {busy ? `Generating… ${elapsed}s` : video ? 'Regenerate' : '✨ Animate'}
+          {stage === 'generating'
+            ? `Animating… ${elapsed}s`
+            : stage === 'matting'
+              ? `Cutting out… ${elapsed}s`
+              : inserted
+                ? 'Regenerate'
+                : '✨ Animate & insert'}
         </button>
-        {video && !busy && (
+        {matted && !busy && (
           <button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800">
-            ⭳ Download
+            ⭳ webm
+          </button>
+        )}
+        {inserted && !busy && (
+          <button onClick={remove} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-red-300 hover:bg-zinc-800">
+            Remove
           </button>
         )}
       </div>
@@ -131,12 +182,14 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
             <div className="h-full w-2/5 animate-pulse rounded-full bg-brand" />
           </div>
-          <p className="text-[11px] text-zinc-500">Rendering the clip · {elapsed}s</p>
+          <p className="text-[11px] text-zinc-500">
+            {stage === 'generating' ? 'Rendering the clip' : 'Removing background (alpha matte)'} · {elapsed}s
+          </p>
         </div>
       )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
-      {!video && !busy && !error && (
-        <p className="text-[11px] text-zinc-500">Animates the key visual · fal.ai · not stored — download to keep.</p>
+      {!busy && !error && !inserted && (
+        <p className="text-[11px] text-zinc-500">Animates the key visual, cuts out the background, and drops it into the thumbnail.</p>
       )}
     </div>
   )

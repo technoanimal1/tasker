@@ -254,6 +254,8 @@ export interface AssetUrls {
   kv?: string
   logoColor?: string
   logoWhite?: string
+  /** Matted (transparent) AI motion clip that replaces the static key visual. */
+  animVideo?: string
 }
 
 export function withDefaults(p: Partial<TemplateParams> | null | undefined): TemplateParams {
