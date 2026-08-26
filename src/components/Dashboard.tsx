@@ -35,7 +35,7 @@ export function Dashboard() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#0a0b0d]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5 font-semibold">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-zinc-900 shadow-[0_0_20px_rgba(255,240,80,0.35)]">
