@@ -3,46 +3,31 @@ import { supabase, figmaProxyUrl } from '../lib/supabase'
 import type { Thumbnail } from '../lib/thumb'
 
 const MODELS = [
-  { id: 'fal-ai/ltx-video/image-to-video', label: 'LTX · fast & cheap' },
+  { id: 'fal-ai/ltx-video-13b-distilled/image-to-video', label: 'LTX distilled · ⚡ ~20s' },
+  { id: 'fal-ai/ltx-2.3/image-to-video/fast', label: 'LTX-2.3 Fast' },
   { id: 'fal-ai/wan-i2v', label: 'Wan 2.1 · balanced' },
-  { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best' },
+  { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best (slow)' },
 ]
-
-type Phase = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
 
 export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
   const [prompt, setPrompt] = useState('')
-  const [model, setModel] = useState(MODELS[1].id)
-  const [phase, setPhase] = useState<Phase>('idle')
+  const [model, setModel] = useState(MODELS[0].id)
+  const [busy, setBusy] = useState(false)
   const [video, setVideo] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [status, setStatus] = useState('')
-  const [progress, setProgress] = useState<number | null>(null)
   const [elapsed, setElapsed] = useState(0)
-  const alive = useRef(true)
   const startRef = useRef(0)
 
   useEffect(() => {
     setPrompt('')
     setVideo(null)
-    setPhase('idle')
     setError(null)
-    setProgress(null)
-    setStatus('')
+    setBusy(false)
   }, [thumb.id])
 
   useEffect(() => {
-    alive.current = true
-    return () => {
-      alive.current = false
-    }
-  }, [])
-
-  // elapsed timer while busy
-  const busy = phase === 'submitting' || phase === 'polling'
-  useEffect(() => {
     if (!busy) return
-    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startRef.current) / 1000)), 250)
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startRef.current) / 1000)), 200)
     return () => clearInterval(id)
   }, [busy])
 
@@ -51,72 +36,32 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
     const kv = thumb.figma_kv_node
     if (!fk || !kv) {
       setError('This game has no key-visual node to animate.')
-      setPhase('error')
       return
     }
     setError(null)
     setVideo(null)
-    setProgress(null)
-    setStatus('Submitting…')
-    setPhase('submitting')
-    startRef.current = Date.now()
     setElapsed(0)
-    const imageUrl = figmaProxyUrl(fk, kv, 3)
+    startRef.current = Date.now()
+    setBusy(true)
+    const imageUrl = figmaProxyUrl(fk, kv, 2)
     const fullPrompt = `${prompt.trim() || 'subtle idle animation'}. Camera locked, preserve the artwork, seamless loop.`
     try {
       const { data, error: e } = await supabase.functions.invoke('fal-animate', {
-        body: { action: 'submit', imageUrl, prompt: fullPrompt, model },
+        body: { action: 'generate', imageUrl, prompt: fullPrompt, model },
       })
-      if (e || data?.error || !data?.statusUrl) {
-        setError(data?.error || e?.message || 'Could not start generation.')
-        setPhase('error')
-        return
+      if (e || !data || data.error || !data.video) {
+        setError(
+          data?.error ||
+            e?.message ||
+            `No video returned.${data?.raw ? ' ' + JSON.stringify(data.raw).slice(0, 240) : ''}`,
+        )
+      } else {
+        setVideo(data.video)
       }
-      setPhase('polling')
-      setStatus('In queue…')
-      pollLoop(data.statusUrl, data.responseUrl)
     } catch (err) {
       setError(String(err))
-      setPhase('error')
-    }
-  }
-
-  async function pollLoop(statusUrl: string, responseUrl: string) {
-    for (let i = 0; i < 120 && alive.current; i++) {
-      await new Promise((r) => setTimeout(r, 2000))
-      if (!alive.current) return
-      const { data } = await supabase.functions.invoke('fal-animate', {
-        body: { action: 'poll', statusUrl, responseUrl },
-      })
-      if (!data) continue
-      if (data.status === 'COMPLETED') {
-        if (data.video) {
-          setVideo(data.video)
-          setPhase('done')
-          setStatus('')
-        } else {
-          setError('Finished but no video URL found. Raw: ' + JSON.stringify(data.raw).slice(0, 300))
-          setPhase('error')
-        }
-        return
-      }
-      if (data.status === 'ERROR') {
-        setError(data.error || 'Generation failed.')
-        setPhase('error')
-        return
-      }
-      setProgress(typeof data.progress === 'number' ? data.progress : null)
-      setStatus(
-        data.status === 'IN_QUEUE'
-          ? `In queue${data.queue != null ? ` · #${data.queue}` : ''}…`
-          : data.log
-            ? data.log.slice(0, 60)
-            : 'Rendering…',
-      )
-    }
-    if (alive.current) {
-      setError('Timed out waiting for the clip.')
-      setPhase('error')
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -184,19 +129,14 @@ export function GenerativeMotion({ thumb }: { thumb: Thumbnail }) {
       {busy && (
         <div className="space-y-1">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-            <div
-              className={`h-full rounded-full bg-brand ${progress == null ? 'animate-pulse' : ''}`}
-              style={{ width: progress != null ? `${progress}%` : '40%' }}
-            />
+            <div className="h-full w-2/5 animate-pulse rounded-full bg-brand" />
           </div>
-          <p className="text-[11px] text-zinc-500">
-            {status || 'Working…'} · {elapsed}s{progress != null ? ` · ${progress}%` : ''}
-          </p>
+          <p className="text-[11px] text-zinc-500">Rendering the clip · {elapsed}s</p>
         </div>
       )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
-      {!video && phase === 'idle' && (
-        <p className="text-[11px] text-zinc-500">Animates the key visual with fal.ai · ~$0.05–0.30/clip · not stored — download to keep.</p>
+      {!video && !busy && !error && (
+        <p className="text-[11px] text-zinc-500">Animates the key visual · fal.ai · not stored — download to keep.</p>
       )}
     </div>
   )
