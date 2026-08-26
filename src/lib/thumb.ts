@@ -187,6 +187,9 @@ export interface Thumbnail {
   figma_logo_white_node: string | null
   /** Partial params applied on top of the global template for this thumbnail. */
   overrides: ParamOverride | null
+  /** AI-generated key-visual animation (fal.ai), if any. */
+  anim_video_url?: string | null
+  anim_prompt?: string | null
 }
 
 /** A partial set of template params (logo sub-keys are also optional). */

@@ -32,5 +32,10 @@ export function useThumbnailsData() {
     [],
   )
 
-  return { thumbnails, loading, refresh, setAccent, saveOverrides }
+  const saveAnim = useCallback(async (id: string, anim_video_url: string | null, anim_prompt: string | null) => {
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, anim_video_url, anim_prompt } : t)))
+    await supabase.from('thumbnails').update({ anim_video_url, anim_prompt }).eq('id', id)
+  }, [])
+
+  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim }
 }

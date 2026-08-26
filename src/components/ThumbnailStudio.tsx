@@ -24,6 +24,7 @@ import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
+import { GenerativeMotion } from './GenerativeMotion'
 
 type ExportFormat = StillFormat | 'anim'
 
@@ -37,7 +38,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides } = useThumbnailsData()
+  const { thumbnails, loading: thLoading, saveOverrides, saveAnim } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -638,6 +639,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               )}
             </Section>
           )}
+
+          {isDesigner && selected && <GenerativeMotion thumb={selected} onSaved={saveAnim} />}
 
           {showFrameSections && (
             <Section title="Provider label">
