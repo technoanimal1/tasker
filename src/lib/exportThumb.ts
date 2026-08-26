@@ -2,7 +2,7 @@ import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
-import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, layoutBoxes, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -112,9 +112,13 @@ function drawFrame(
   ctx.fillStyle = dg
   ctx.fillRect(0, 0, W, H * 0.3)
 
+  const layout = params.layouts?.[params.sizeKey]
   const landscape = W / H > 1.2
+  const boxes = layout ? layoutBoxes(layout, W, H) : null
   if (kv) {
-    if (landscape) {
+    if (boxes) {
+      drawFit(ctx, kv, boxes.kv.x + m.kvDXFrac * W, boxes.kv.y + m.kvDYFrac * H, boxes.kv.w, boxes.kv.h, 'contain')
+    } else if (landscape) {
       drawFit(ctx, kv, m.kvDXFrac * W, H * 0.06 + m.kvDYFrac * H, W * 0.52, H * 0.88, 'contain')
     } else {
       const kvBoxH = H * (params.kvSizePct / 100)
@@ -146,11 +150,11 @@ function drawFrame(
   ellipse(H * 0.88, W * 0.45, H * 0.17, hexA(color.blur, 0.85), hexA(color.blur, 0))
   ellipse(H * 0.985, W * 0.4055 * m.bloomScale, H * 0.1375 * m.bloomScale, '#ffffff', 'rgba(255,255,255,0)', 'overlay', m.bloomOpacity)
 
-  // logo — image or text, with optional motion scale (right half in landscape)
-  const boxX = landscape ? W * 0.5 : params.logo.xPct * W
-  const boxY = landscape ? H * 0.28 : params.logo.yPct * H
-  const boxW = landscape ? W * 0.46 : params.logo.wPct * W
-  const boxH = landscape ? H * 0.44 : params.logo.hPct * H
+  // logo — image or text, with optional motion scale
+  const boxX = boxes ? boxes.logo.x : landscape ? W * 0.5 : params.logo.xPct * W
+  const boxY = boxes ? boxes.logo.y : landscape ? H * 0.28 : params.logo.yPct * H
+  const boxW = boxes ? boxes.logo.w : landscape ? W * 0.46 : params.logo.wPct * W
+  const boxH = boxes ? boxes.logo.h : landscape ? H * 0.44 : params.logo.hPct * H
   ctx.save()
   if (m.logoScale !== 1) {
     const cx = boxX + boxW / 2

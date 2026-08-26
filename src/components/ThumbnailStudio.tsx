@@ -6,11 +6,15 @@ import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
   ANIM_PRESETS,
+  ALIGN9,
   branchParams,
+  defaultLayout,
   effectiveParams,
   frameSize,
   withDefaults,
+  type Align9,
   type ParamOverride,
+  type SizeLayout,
   type TemplateParams,
 } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
@@ -143,6 +147,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       setFrameParams((fp) => ({ ...fp, [key]: value }))
     } else if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
+  }
+  // Per-size alignment layout (designer, template-level).
+  function setLayout(patch: Partial<SizeLayout>) {
+    setParams((prev) => {
+      if (!prev) return prev
+      const key = prev.sizeKey
+      const cur = prev.layouts?.[key] ?? defaultLayout(key)
+      return { ...prev, layouts: { ...(prev.layouts ?? {}), [key]: { ...cur, ...patch } } }
+    })
   }
   function setLogo(patch: Partial<TemplateParams['logo']>) {
     if (editingBranch) return // logo geometry is designer-only
@@ -468,6 +481,38 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
+          {showDesignerSections && scope === 'global' && (() => {
+            const lay = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
+            return (
+              <Section title={`Layout · ${p.sizeKey}`}>
+                <Row label="Key visual">
+                  <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
+                </Row>
+                <Slider label="KV size" min={0.3} max={1.2} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Row label="Logo">
+                  <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
+                </Row>
+                <Slider label="Logo size" min={0.1} max={0.7} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] text-zinc-500">Saved per size · applies to all thumbnails.</p>
+                  {p.layouts?.[p.sizeKey] && (
+                    <button
+                      onClick={() => setParams((prev) => {
+                        if (!prev?.layouts) return prev
+                        const next = { ...prev.layouts }
+                        delete next[prev.sizeKey]
+                        return { ...prev, layouts: next }
+                      })}
+                      className="text-[11px] text-zinc-400 underline hover:text-zinc-200"
+                    >
+                      Auto
+                    </button>
+                  )}
+                </div>
+              </Section>
+            )
+          })()}
+
           {showFrameSections && (
             <Section title="Logo style">
               <Seg options={['color', 'white'].map((o) => ({ value: o, label: o }))} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
@@ -682,6 +727,31 @@ function Seg({
           } disabled:opacity-40`}
         >
           {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) => void }) {
+  return (
+    <div className="grid grid-cols-3 gap-0.5 rounded-lg border border-zinc-700 bg-zinc-800/50 p-1.5">
+      {ALIGN9.map((a) => (
+        <button
+          key={a}
+          onClick={() => onChange(a)}
+          className={`grid h-6 w-8 place-items-center rounded transition ${value === a ? 'bg-zinc-700/60' : 'hover:bg-zinc-700/30'}`}
+          title={a}
+        >
+          {value === a ? (
+            <span className="flex flex-col items-center gap-[2px]">
+              <i className="block h-[2px] w-2.5 rounded-full bg-brand" />
+              <i className="block h-[2px] w-3.5 rounded-full bg-brand" />
+              <i className="block h-[2px] w-2 rounded-full bg-brand" />
+            </span>
+          ) : (
+            <span className="h-1 w-1 rounded-full bg-zinc-600" />
+          )}
         </button>
       ))}
     </div>

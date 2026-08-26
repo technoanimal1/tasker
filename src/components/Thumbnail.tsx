@@ -8,6 +8,7 @@ import {
   bandStops,
   frameSize,
   hexA,
+  layoutBoxes,
   type AssetUrls,
   type TemplateParams,
   type Thumbnail,
@@ -48,14 +49,20 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const kvBoxH = H * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
 
-  // Landscape frames (3:2, 16:9): key visual on the left, logo on the right.
+  // Layout: a saved per-size alignment layout wins; else auto (landscape splits
+  // KV-left / logo-right, portrait stacks).
+  const layout = params.layouts?.[params.sizeKey]
   const landscape = W / H > 1.2
-  const kvBox = landscape
-    ? { x: 0, y: H * 0.06, w: W * 0.52, h: H * 0.88 }
-    : { x: 0, y: kvTop, w: W, h: kvBoxH }
-  const logoBox = landscape
-    ? { x: W * 0.5, y: H * 0.28, w: W * 0.46, h: H * 0.44 }
-    : { x: params.logo.xPct * W, y: params.logo.yPct * H, w: params.logo.wPct * W, h: params.logo.hPct * H }
+  const kvBox = layout
+    ? layoutBoxes(layout, W, H).kv
+    : landscape
+      ? { x: 0, y: H * 0.06, w: W * 0.52, h: H * 0.88 }
+      : { x: 0, y: kvTop, w: W, h: kvBoxH }
+  const logoBox = layout
+    ? layoutBoxes(layout, W, H).logo
+    : landscape
+      ? { x: W * 0.5, y: H * 0.28, w: W * 0.46, h: H * 0.44 }
+      : { x: params.logo.xPct * W, y: params.logo.yPct * H, w: params.logo.wPct * W, h: params.logo.hPct * H }
 
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`

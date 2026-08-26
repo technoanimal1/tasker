@@ -16,12 +16,54 @@ export function frameSize(key: string) {
   return FRAME_SIZES.find((s) => s.key === key) ?? FRAME_SIZES[0]
 }
 
+/** Position a box of size w×h at a 9-point anchor inside W×H, with a % margin. */
+export function alignBox(align: Align9, W: number, H: number, w: number, h: number, margin = 0.05) {
+  const mx = W * margin
+  const my = H * margin
+  const col = align[1]
+  const row = align[0]
+  const x = col === 'l' ? mx : col === 'r' ? W - mx - w : (W - w) / 2
+  const y = row === 't' ? my : row === 'b' ? H - my - h : (H - h) / 2
+  return { x, y, w, h }
+}
+
+/** Compute key-visual and logo boxes from a per-size layout. Centered anchors
+ *  span wide; side anchors take ~half width (so KV-left / logo-right works). */
+export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
+  const kvCentered = layout.kvAlign[1] === 'c'
+  const kv = alignBox(layout.kvAlign, W, H, kvCentered ? W * 0.92 : W * 0.5, layout.kvScale * H)
+  const lgCentered = layout.logoAlign[1] === 'c'
+  const logo = alignBox(layout.logoAlign, W, H, lgCentered ? W * 0.82 : W * 0.46, layout.logoScale * H)
+  return { kv, logo }
+}
+
+/** A sensible starting layout for a size, based on its orientation. */
+export function defaultLayout(sizeKey: string): SizeLayout {
+  const s = frameSize(sizeKey)
+  const landscape = s.w / s.h > 1.2
+  return landscape
+    ? { kvAlign: 'ml', kvScale: 0.88, logoAlign: 'mr', logoScale: 0.44 }
+    : { kvAlign: 'tc', kvScale: 0.7, logoAlign: 'bc', logoScale: 0.3 }
+}
+
 // corner-radius tokens (Figma "type" collection) expressed as a fraction of a
 // 244px reference card so they scale with any frame width.
 export const CORNER_MODES: Record<string, number> = { sharp: 8, friendly: 16, playful: 24 }
 export const CORNER_REF = 244
 
 export type LogoVariant = 'color' | 'white'
+
+// 9-point alignment: [row t|m|b][col l|c|r]
+export type Align9 = 'tl' | 'tc' | 'tr' | 'ml' | 'mc' | 'mr' | 'bl' | 'bc' | 'br'
+export const ALIGN9: Align9[] = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br']
+
+/** Per-breakpoint layout: where the key visual and logo sit, and how big. */
+export interface SizeLayout {
+  kvAlign: Align9
+  kvScale: number // key-visual height as a fraction of frame height
+  logoAlign: Align9
+  logoScale: number // logo box height as a fraction of frame height
+}
 export type ProviderPos = 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export const PROVIDER_POSITIONS: ProviderPos[] = ['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
 
@@ -34,6 +76,8 @@ export interface TemplateParams {
   kvSizePct: number // key visual height as % of frame height (bottom-anchored, centered)
   kvBottomPct: number // extra offset from the bottom, % of frame height
   logo: { xPct: number; yPct: number; wPct: number; hPct: number }
+  /** Per-breakpoint alignment layout (designer-only). Absent size = auto layout. */
+  layouts?: Record<string, SizeLayout>
   logoVariant: LogoVariant
   textLogo: boolean // render the game name as text instead of the image logo
   fontFamily: string // Google Font family for the text logo
