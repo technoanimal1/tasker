@@ -489,7 +489,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <Row label="Key visual">
                   <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
                 </Row>
-                <Slider label="KV size" min={0.3} max={1.2} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Slider label="KV size" min={0.3} max={2} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                 <Row label="Logo">
                   <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
                 </Row>
