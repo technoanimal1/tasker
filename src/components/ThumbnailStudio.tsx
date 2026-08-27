@@ -737,7 +737,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || !dirty}
-              className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-50"
+              className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
             >
               {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
             </button>
@@ -766,7 +766,7 @@ const intFmt = (v: number) => `${Math.round(v)}`
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{title}</p>
+      <p className="text-[11px] font-semibold text-zinc-300">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -797,8 +797,8 @@ function Seg({
           key={o.value}
           disabled={o.disabled}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md py-1.5 capitalize transition ${
-            value === o.value ? 'bg-zinc-100 font-medium text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
+          className={`flex-1 rounded py-1 capitalize transition ${
+            value === o.value ? 'bg-zinc-700 font-medium text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
           } disabled:opacity-40`}
         >
           {o.label}
@@ -820,9 +820,9 @@ function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) =
         >
           {value === a ? (
             <span className="flex flex-col items-center gap-[2px]">
-              <i className="block h-[2px] w-2.5 rounded-full bg-brand" />
-              <i className="block h-[2px] w-3.5 rounded-full bg-brand" />
-              <i className="block h-[2px] w-2 rounded-full bg-brand" />
+              <i className="block h-[2px] w-2.5 rounded-full bg-accent" />
+              <i className="block h-[2px] w-3.5 rounded-full bg-accent" />
+              <i className="block h-[2px] w-2 rounded-full bg-accent" />
             </span>
           ) : (
             <span className="h-1 w-1 rounded-full bg-zinc-600" />

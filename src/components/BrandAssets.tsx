@@ -75,7 +75,7 @@ function AssetCard({
           handleFile(e.dataTransfer.files[0])
         }}
         className={`checker grid aspect-video cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed transition ${
-          drag ? 'border-brand' : 'border-slate-700'
+          drag ? 'border-accent' : 'border-slate-700'
         }`}
       >
         {asset ? (

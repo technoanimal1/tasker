@@ -92,7 +92,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
           <button
             onClick={save}
             disabled={saving || !dirty}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
           >
             {saving ? 'Saving…' : dirty ? 'Save frame' : 'Saved'}
           </button>
@@ -121,7 +121,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
         </div>
 
         {/* controls */}
-        <aside className="flex flex-col gap-5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <aside className="flex flex-col gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-3">
           {thumbnails.length > 1 && (
             <Row label="Preview game">
               <select
@@ -217,7 +217,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{title}</p>
+      <p className="text-[11px] font-semibold text-zinc-300">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -247,8 +247,8 @@ function Seg({
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md py-1.5 capitalize transition ${
-            value === o.value ? 'bg-zinc-100 font-medium text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
+          className={`flex-1 rounded py-1 capitalize transition ${
+            value === o.value ? 'bg-zinc-700 font-medium text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
           {o.label}

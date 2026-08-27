@@ -83,7 +83,7 @@ export function TemplateView() {
         <button
           onClick={saveAll}
           disabled={saving || !dirty}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
         >
           {saving ? 'Saving…' : dirty ? 'Save template' : 'Saved'}
         </button>
@@ -96,7 +96,7 @@ export function TemplateView() {
             key={s.key}
             onClick={() => setSize(s.key)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              sizeKey === s.key ? 'bg-brand text-zinc-900' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
+              sizeKey === s.key ? 'bg-accent text-white' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
             }`}
           >
             {s.key}
@@ -120,7 +120,7 @@ export function TemplateView() {
         </div>
 
         {/* controls */}
-        <aside className="flex flex-col gap-5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <aside className="flex flex-col gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-3">
           {thumbnails.length > 1 && (
             <Row label="Preview game">
               <select
@@ -199,11 +199,11 @@ function LogoPresetBar({ value, onChange }: { value: Align9; onChange: (a: Align
             key={p.align}
             onClick={() => onChange(p.align)}
             className={`relative h-11 flex-1 rounded-md border transition ${
-              active ? 'border-brand bg-brand/10' : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-500'
+              active ? 'border-accent bg-accent/10' : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-500'
             }`}
           >
             <span
-              className={`absolute h-2.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] ${active ? 'bg-brand' : 'bg-zinc-400'}`}
+              className={`absolute h-2.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] ${active ? 'bg-accent' : 'bg-zinc-400'}`}
               style={{ left: `${p.dot[0] * 100}%`, top: `${p.dot[1] * 100}%` }}
             />
           </button>
@@ -223,7 +223,7 @@ function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) =
             key={a}
             onClick={() => onChange(a)}
             className={`grid h-6 w-6 place-items-center rounded-[3px] transition ${
-              active ? 'bg-brand' : 'hover:bg-zinc-700'
+              active ? 'bg-accent' : 'hover:bg-zinc-700'
             }`}
           >
             <span className={`h-2 w-2 rounded-[1px] ${active ? 'bg-zinc-900' : 'bg-zinc-500'}`} />
@@ -237,7 +237,7 @@ function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) =
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{title}</p>
+      <p className="text-[11px] font-semibold text-zinc-300">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )

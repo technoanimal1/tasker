@@ -238,7 +238,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
               setName(e.target.value)
               setDirty(true)
             }}
-            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm font-medium outline-none focus:border-brand"
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm font-medium outline-none focus:border-accent"
           />
           <span className="text-xs text-slate-500">
             {width}×{height}
@@ -256,7 +256,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
           <button
             onClick={handleSave}
             disabled={saving || !dirty}
-            className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-accent px-4 py-1.5 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
@@ -284,7 +284,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setWidth(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-brand"
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
             <label className="block">
@@ -296,7 +296,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setHeight(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-brand"
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
           </div>
@@ -344,7 +344,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   >
                     <div
                       style={{ width: '100%', height: '100%' }}
-                      className={isSel ? 'outline outline-2 outline-brand' : ''}
+                      className={isSel ? 'outline outline-2 outline-accent' : ''}
                     >
                       <LayerContent
                         layer={l}
@@ -362,7 +362,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                           height: 12,
                           cursor: 'nwse-resize',
                         }}
-                        className="rounded-sm border border-white bg-brand"
+                        className="rounded-sm border border-white bg-accent"
                       />
                     )}
                   </div>
@@ -470,7 +470,7 @@ function PropertiesPanel({
               value={layer.text ?? ''}
               onChange={(e) => onChange({ text: e.target.value })}
               rows={2}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-brand"
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-accent"
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -492,7 +492,7 @@ function PropertiesPanel({
               <select
                 value={layer.align ?? 'left'}
                 onChange={(e) => onChange({ align: e.target.value as Layer['align'] })}
-                className="h-8 w-full rounded border border-slate-700 bg-slate-950 px-2 text-sm outline-none focus:border-brand"
+                className="h-8 w-full rounded border border-slate-700 bg-slate-950 px-2 text-sm outline-none focus:border-accent"
               >
                 <option value="left">Left</option>
                 <option value="center">Center</option>
@@ -525,7 +525,7 @@ function PropertiesPanel({
             value={layer.src ?? ''}
             onChange={(e) => onChange({ src: e.target.value })}
             placeholder="https://…"
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-brand"
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-accent"
           />
         </div>
       )}
@@ -556,7 +556,7 @@ function Num({
         type="number"
         value={Number.isFinite(value) ? value : 0}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-brand"
+        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
       />
     </label>
   )

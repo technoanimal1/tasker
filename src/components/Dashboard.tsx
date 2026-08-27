@@ -66,7 +66,7 @@ export function Dashboard() {
                 key={v}
                 onClick={() => setView(v)}
                 className={`rounded-md px-3 py-1.5 transition ${
-                  view === v ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
+                  view === v ? 'bg-zinc-700/80 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {label}
@@ -78,7 +78,7 @@ export function Dashboard() {
             {role && (
               <span
                 className={`hidden rounded-full px-2 py-0.5 text-[11px] font-medium sm:inline ${
-                  role === 'designer' ? 'bg-brand/20 text-brand' : 'bg-zinc-800 text-zinc-400'
+                  role === 'designer' ? 'bg-accent/15 text-accent' : 'bg-zinc-800 text-zinc-400'
                 }`}
               >
                 {role}

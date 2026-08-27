@@ -179,8 +179,8 @@ export function GenerativeMotion({
   return (
     <div className="space-y-2 border-t border-zinc-800 pt-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Generative motion · AI</p>
-        {inserted && <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-semibold text-brand">● inserted</span>}
+        <p className="text-[11px] font-semibold text-zinc-300">Generative motion · AI</p>
+        {inserted && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold text-accent">● inserted</span>}
       </div>
 
       {matted && (
@@ -223,7 +223,7 @@ export function GenerativeMotion({
         <button
           onClick={animate}
           disabled={busy}
-          className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-zinc-900 hover:bg-brand-dark disabled:opacity-60"
+          className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
         >
           {stage === 'generating'
             ? `Animating… ${elapsed}s`
@@ -248,7 +248,7 @@ export function GenerativeMotion({
       {busy && (
         <div className="space-y-1">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-            <div className="h-full w-2/5 animate-pulse rounded-full bg-brand" />
+            <div className="h-full w-2/5 animate-pulse rounded-full bg-accent" />
           </div>
           <p className="text-[11px] text-zinc-500">
             {stage === 'generating' ? 'Rendering the clip' : 'Removing background (alpha matte)'} · {elapsed}s
