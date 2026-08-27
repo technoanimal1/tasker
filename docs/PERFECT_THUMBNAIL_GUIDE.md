@@ -67,11 +67,17 @@ In **Thumbnails**, select the game (scope shows its name):
 
 Open a game, scroll to **Generative motion · AI**.
 
-**Defaults that give the best result:**
+**Motion style — pick per clip. Every option loops perfectly** (the model's end
+frame is set equal to the start frame, so the clip returns to frame 1):
+
+| Style | Engine | When to use |
+|---|---|---|
+| **Smooth · fast** | Hailuo 02 Standard | Default. Gentle, natural idle motion, quickest. |
+| **Smooth · high quality** | Hailuo 02 Pro | Crisper detail, a bit slower. |
+| **Cinematic · most motion** | Kling Pro v1.6 | Boldest, most dynamic motion; slowest. |
 
 | Setting | Value | Why |
 |---|---|---|
-| Perfect loop | **ON** | Hailuo 02 with `end frame = start frame` → the clip returns to frame 1, so `loop` is seamless. |
 | Prompt | short, describe **subtle** motion | e.g. "the dragon breathes and blinks, tail sways gently". |
 | — | keep "camera locked, preserve artwork" | already appended automatically. |
 
@@ -91,8 +97,8 @@ Open a game, scroll to **Generative motion · AI**.
 - Keep it **small** — big motion drifts the character and fights the frame.
 - One or two ideas max. Over-describing yields jitter.
 
-**Speed vs. quality:** Perfect loop is Hailuo 02 (fast + high quality). Turn it
-**off** to use LTX distilled (~20s) for quick drafts that don't need a loop.
+**Speed vs. quality:** all three styles loop; they trade speed for motion
+richness. Start with **Smooth · fast**; step up only if a clip needs more life.
 
 ---
 

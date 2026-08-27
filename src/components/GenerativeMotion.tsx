@@ -2,17 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase, figmaProxyUrl } from '../lib/supabase'
 import type { Thumbnail } from '../lib/thumb'
 
-const MODELS = [
-  { id: 'fal-ai/ltx-video-13b-distilled/image-to-video', label: 'LTX distilled · ⚡ ~20s' },
-  { id: 'fal-ai/ltx-2.3/image-to-video/fast', label: 'LTX-2.3 Fast' },
-  { id: 'fal-ai/wan-i2v', label: 'Wan 2.1 · balanced' },
-  { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best (slow)' },
+// Motion styles offered to clients. EVERY option produces a perfect loop: each
+// model accepts an end/tail frame, and we set it equal to the head frame so the
+// clip returns to frame 1. `tail` is that model's end-frame parameter name.
+const LOOP_MODELS = [
+  { id: 'fal-ai/minimax/hailuo-02/standard/image-to-video', label: 'Smooth · fast', tail: 'end_image_url', note: 'Gentle, natural motion. Quickest.' },
+  { id: 'fal-ai/minimax/hailuo-02/pro/image-to-video', label: 'Smooth · high quality', tail: 'end_image_url', note: 'Crisper, more detail. A bit slower.' },
+  { id: 'fal-ai/kling-video/v1.6/pro/image-to-video', label: 'Cinematic · most motion', tail: 'tail_image_url', note: 'Boldest, most dynamic motion. Slowest.' },
 ]
-
-// Hailuo 02 accepts an end frame. Setting the end frame equal to the head makes
-// the clip start and end on the same frame → a perfect, natural forward loop.
-// (Fast + high quality; cheaper than Kling Pro.)
-const LOOP_MODEL = 'fal-ai/minimax/hailuo-02/standard/image-to-video'
 
 type Stage = 'idle' | 'generating' | 'matting' | 'done'
 
@@ -67,8 +64,7 @@ export function GenerativeMotion({
   saveAnim: (id: string, url: string | null, prompt: string | null) => Promise<void>
 }) {
   const [prompt, setPrompt] = useState('')
-  const [model, setModel] = useState(MODELS[0].id)
-  const [perfectLoop, setPerfectLoop] = useState(true)
+  const [loopModel, setLoopModel] = useState(LOOP_MODELS[0].id)
   const [stage, setStage] = useState<Stage>('idle')
   // last matted (transparent) clip produced this session, for download
   const [matted, setMatted] = useState<string | null>(thumb.anim_video_url ?? null)
@@ -107,24 +103,17 @@ export function GenerativeMotion({
       // bucket first so the model keeps the full width (no side cropping).
       setStage('generating')
       let imageUrl = figmaProxyUrl(fk, kv, 2)
-      let aspect = 'auto'
       try {
         const padded = await padToBucket(imageUrl)
         imageUrl = padded.imageUrl
-        aspect = padded.aspect
       } catch {
-        /* CORS/taint → fall back to the raw url with auto aspect */
+        /* CORS/taint → fall back to the raw url */
       }
-      // Perfect loop → Hailuo 02 with the end frame = head (same padded frame).
-      // Otherwise use the chosen fast model (aspect only applies to LTX distilled).
-      const useModel = perfectLoop ? LOOP_MODEL : model
-      const extra: Record<string, unknown> = perfectLoop
-        ? { end_image_url: imageUrl }
-        : useModel === MODELS[0].id
-          ? { aspect_ratio: aspect, resolution: '720p' }
-          : {}
+      // Every motion style loops: set the model's end/tail frame equal to the
+      // head frame so the clip starts and ends on frame 1.
+      const spec = LOOP_MODELS.find((m) => m.id === loopModel) ?? LOOP_MODELS[0]
       const gen = await supabase.functions.invoke('fal-animate', {
-        body: { action: 'generate', imageUrl, prompt: fullPrompt, model: useModel, extra },
+        body: { action: 'generate', imageUrl, prompt: fullPrompt, model: spec.id, extra: { [spec.tail]: imageUrl } },
       })
       if (gen.error || !gen.data?.video) {
         throw new Error(
@@ -212,26 +201,23 @@ export function GenerativeMotion({
         placeholder="e.g. the lion roars on loop, keep artwork & proportions"
         className="w-full resize-none rounded-lg border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-zinc-500"
       />
-      <label className="flex cursor-pointer items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2">
-        <span className="text-xs text-zinc-200">
-          Perfect loop <span className="text-zinc-500">· seamless · Hailuo 02</span>
-        </span>
-        <input type="checkbox" checked={perfectLoop} onChange={(e) => setPerfectLoop(e.target.checked)} disabled={busy} />
-      </label>
-      {!perfectLoop && (
+      <div className="space-y-1">
         <select
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
+          value={loopModel}
+          onChange={(e) => setLoopModel(e.target.value)}
           disabled={busy}
           className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500 disabled:opacity-60"
         >
-          {MODELS.map((m) => (
+          {LOOP_MODELS.map((m) => (
             <option key={m.id} value={m.id}>
               {m.label}
             </option>
           ))}
         </select>
-      )}
+        <p className="text-[11px] text-zinc-500">
+          {LOOP_MODELS.find((m) => m.id === loopModel)?.note} · always a seamless loop.
+        </p>
+      </div>
 
       <div className="flex items-center gap-2">
         <button
