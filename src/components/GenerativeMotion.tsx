@@ -69,13 +69,21 @@ export function GenerativeMotion({
       }
       const rawVideo: string = gen.data.video
 
-      // 2 — matte to a transparent clip so it drops onto the background cleanly
+      // 2 — matte to a transparent clip so it drops onto the background cleanly.
+      // Must succeed: the raw clip sits on black, so inserting it un-matted would
+      // show a black box instead of compositing over the thumbnail background.
       setStage('matting')
       const mat = await supabase.functions.invoke('fal-animate', {
         body: { action: 'matte', videoUrl: rawVideo },
       })
-      // if matting fails we still fall back to the un-matted clip
-      const finalVideo: string = mat.data?.video || rawVideo
+      if (mat.error || !mat.data?.video) {
+        throw new Error(
+          mat.data?.error ||
+            mat.error?.message ||
+            `Background removal failed.${mat.data?.raw ? ' ' + JSON.stringify(mat.data.raw).slice(0, 200) : ''}`,
+        )
+      }
+      const finalVideo: string = mat.data.video
 
       // 3 — insert into the thumbnail (persist) so it composites everywhere
       await saveAnim(thumb.id, finalVideo, prompt.trim() || null)
