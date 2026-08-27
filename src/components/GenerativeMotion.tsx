@@ -9,9 +9,10 @@ const MODELS = [
   { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best (slow)' },
 ]
 
-// Kling Pro accepts a tail (end) frame. Setting the tail equal to the head makes
+// Hailuo 02 accepts an end frame. Setting the end frame equal to the head makes
 // the clip start and end on the same frame → a perfect, natural forward loop.
-const LOOP_MODEL = 'fal-ai/kling-video/v1.6/pro/image-to-video'
+// (Fast + high quality; cheaper than Kling Pro.)
+const LOOP_MODEL = 'fal-ai/minimax/hailuo-02/standard/image-to-video'
 
 type Stage = 'idle' | 'generating' | 'matting' | 'done'
 
@@ -114,11 +115,11 @@ export function GenerativeMotion({
       } catch {
         /* CORS/taint → fall back to the raw url with auto aspect */
       }
-      // Perfect loop → Kling Pro with tail = head (same padded frame). Otherwise
-      // use the chosen fast model (aspect only applies to the LTX distilled one).
+      // Perfect loop → Hailuo 02 with the end frame = head (same padded frame).
+      // Otherwise use the chosen fast model (aspect only applies to LTX distilled).
       const useModel = perfectLoop ? LOOP_MODEL : model
       const extra: Record<string, unknown> = perfectLoop
-        ? { tail_image_url: imageUrl }
+        ? { end_image_url: imageUrl }
         : useModel === MODELS[0].id
           ? { aspect_ratio: aspect, resolution: '720p' }
           : {}
@@ -213,7 +214,7 @@ export function GenerativeMotion({
       />
       <label className="flex cursor-pointer items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2">
         <span className="text-xs text-zinc-200">
-          Perfect loop <span className="text-zinc-500">· seamless, slower</span>
+          Perfect loop <span className="text-zinc-500">· seamless · Hailuo 02</span>
         </span>
         <input type="checkbox" checked={perfectLoop} onChange={(e) => setPerfectLoop(e.target.checked)} disabled={busy} />
       </label>
