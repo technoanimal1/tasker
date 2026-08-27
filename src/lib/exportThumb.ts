@@ -272,7 +272,7 @@ function drawFrame(
 
   const ptext = params.providerName.trim() || thumb.provider
   if (params.showProvider && ptext) {
-    const fs = W * 0.025
+    const fs = W * 0.025 * params.providerScale
     ctx.font = `700 ${fs}px "Helvetica Neue", Arial, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -281,13 +281,14 @@ function drawFrame(
     const pillW = tw + params.providerPadX * kk * 2
     const pillH = fs * 1.15 + topPad // top padding only — no bottom padding
     const pos = params.providerPos
-    const mx = W * 0.04
+    const mx = params.providerMarginX * kk
+    const my = params.providerMarginY * kk
     const pillX = pos === 'top' || pos === 'bottom'
       ? W / 2 - pillW / 2
       : pos.endsWith('left')
         ? mx
         : W - mx - pillW
-    const pillY = pos.startsWith('top') ? H * 0.035 : H - H * 0.035 - pillH
+    const pillY = pos.startsWith('top') ? my : H - my - pillH
     const cap = pillH / 2
     const rr = params.providerRadius
     ctx.fillStyle = color.blur

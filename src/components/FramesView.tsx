@@ -170,7 +170,10 @@ export function FramesView({ branch, saveFrameParams }: Props) {
                 className="w-[150px] rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
               />
             </Row>
+            <Slider label="Size" min={0.4} max={3} step={0.05} value={p.providerScale} onChange={(v) => set('providerScale', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
             <div className="grid grid-cols-2 gap-2">
+              <Slider label="Space X" min={0} max={80} value={p.providerMarginX} onChange={(v) => set('providerMarginX', v)} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Space Y" min={0} max={80} value={p.providerMarginY} onChange={(v) => set('providerMarginY', v)} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="Pad X" min={0} max={40} value={p.providerPadX} onChange={(v) => set('providerPadX', v)} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="Pad Y" min={0} max={40} value={p.providerPadY} onChange={(v) => set('providerPadY', v)} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="R ◜" min={0} max={40} value={p.providerRadius.tl} onChange={(v) => set('providerRadius', { ...p.providerRadius, tl: v })} fmt={(v) => `${Math.round(v)}`} />

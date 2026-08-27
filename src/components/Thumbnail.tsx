@@ -234,10 +234,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           <div
             style={{
               position: 'absolute',
-              ...providerPlacement(params.providerPos, W, H),
+              ...providerPlacement(params.providerPos, params.providerMarginX * k, params.providerMarginY * k),
               background: color.blur,
               color: '#ffffff',
-              font: `700 ${W * 0.025}px "Helvetica Neue", Arial, sans-serif`,
+              font: `700 ${W * 0.025 * params.providerScale}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
               padding: `${params.providerPadY * k}px ${params.providerPadX * k}px 0`,
               borderRadius: provRadius,
@@ -268,9 +268,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   )
 }
 
-function providerPlacement(pos: TemplateParams['providerPos'], W: number, H: number): CSSProperties {
-  const my = H * 0.035
-  const mx = W * 0.04
+function providerPlacement(pos: TemplateParams['providerPos'], mx: number, my: number): CSSProperties {
   const top = pos.startsWith('top')
   const v = top ? { top: my } : { bottom: my }
   if (pos === 'top' || pos === 'bottom') return { ...v, left: '50%', transform: 'translateX(-50%)' }

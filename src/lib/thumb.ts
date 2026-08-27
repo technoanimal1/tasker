@@ -103,6 +103,9 @@ export interface TemplateParams {
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
   providerPadX: number // px @244 ref
   providerPadY: number
+  providerScale: number // overall badge size multiplier (1 = default)
+  providerMarginX: number // distance from the frame's side edge, px @244 ref
+  providerMarginY: number // distance from the frame's top/bottom edge, px @244 ref
   // light band gradient (bg-semantic → bg-blur), stop positions in %
   gradStop1: number // top fade: transparent at 0 → full colour here
   gradStop2: number // colour crossover: semantic → blur
@@ -151,6 +154,9 @@ export const DEFAULT_PARAMS: TemplateParams = {
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
   providerPadX: 0,
   providerPadY: 0,
+  providerScale: 1,
+  providerMarginX: 10,
+  providerMarginY: 10,
   gradStop1: 29.327,
   gradStop2: 74.038,
   gradBottom: 88,
@@ -224,6 +230,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
   'strokeWidth', 'strokePad', 'strokePos',
   'showProvider', 'providerPos', 'providerName', 'providerRadius', 'providerPadX', 'providerPadY',
+  'providerScale', 'providerMarginX', 'providerMarginY',
   'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct',
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
