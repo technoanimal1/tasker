@@ -149,14 +149,45 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     } else if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
   }
-  // Per-size alignment layout (designer, template-level).
+  // Per-size alignment layout. Global scope edits the template; selected scope
+  // stores a per-thumbnail layout override (merged over the template by size).
   function setLayout(patch: Partial<SizeLayout>) {
-    setParams((prev) => {
-      if (!prev) return prev
-      const key = prev.sizeKey
-      const cur = prev.layouts?.[key] ?? defaultLayout(key)
-      return { ...prev, layouts: { ...(prev.layouts ?? {}), [key]: { ...cur, ...patch } } }
-    })
+    if (!params) return
+    const key = params.sizeKey
+    if (scope === 'global') {
+      setParams((prev) => {
+        if (!prev) return prev
+        const cur = prev.layouts?.[key] ?? defaultLayout(key)
+        return { ...prev, layouts: { ...(prev.layouts ?? {}), [key]: { ...cur, ...patch } } }
+      })
+    } else if (selectedId) {
+      setOverrides((o) => {
+        const curOv = o[selectedId] ?? {}
+        const cur = curOv.layouts?.[key] ?? params.layouts?.[key] ?? defaultLayout(key)
+        return { ...o, [selectedId]: { ...curOv, layouts: { ...(curOv.layouts ?? {}), [key]: { ...cur, ...patch } } } }
+      })
+    }
+  }
+  // Drop the layout for the current size (revert to template / auto).
+  function resetLayout() {
+    if (!params) return
+    const key = params.sizeKey
+    if (scope === 'global') {
+      setParams((prev) => {
+        if (!prev?.layouts) return prev
+        const next = { ...prev.layouts }
+        delete next[key]
+        return { ...prev, layouts: next }
+      })
+    } else if (selectedId) {
+      setOverrides((o) => {
+        const curOv = o[selectedId]
+        if (!curOv?.layouts) return o
+        const next = { ...curOv.layouts }
+        delete next[key]
+        return { ...o, [selectedId]: { ...curOv, layouts: next } }
+      })
+    }
   }
   function setLogo(patch: Partial<TemplateParams['logo']>) {
     if (editingBranch) return // logo geometry is designer-only
@@ -482,8 +513,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {showDesignerSections && scope === 'global' && (() => {
+          {showDesignerSections && (() => {
             const lay = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
+            const hasLayout = scope === 'global' ? !!params.layouts?.[p.sizeKey] : !!selOv.layouts?.[p.sizeKey]
             return (
               <Section title={`Layout · ${p.sizeKey}`}>
                 <Row label="Key visual">
@@ -495,17 +527,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 </Row>
                 <Slider label="Logo size" min={0.1} max={0.7} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] text-zinc-500">Saved per size · applies to all thumbnails.</p>
-                  {p.layouts?.[p.sizeKey] && (
-                    <button
-                      onClick={() => setParams((prev) => {
-                        if (!prev?.layouts) return prev
-                        const next = { ...prev.layouts }
-                        delete next[prev.sizeKey]
-                        return { ...prev, layouts: next }
-                      })}
-                      className="text-[11px] text-zinc-400 underline hover:text-zinc-200"
-                    >
+                  <p className="text-[11px] text-zinc-500">
+                    {scope === 'global' ? 'Saved per size · applies to all thumbnails.' : `Placement for “${selected?.name}” · this size.`}
+                  </p>
+                  {hasLayout && (
+                    <button onClick={resetLayout} className="text-[11px] text-zinc-400 underline hover:text-zinc-200">
                       Auto
                     </button>
                   )}

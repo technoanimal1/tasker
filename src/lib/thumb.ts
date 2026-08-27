@@ -213,10 +213,15 @@ export type ParamOverride = Partial<Omit<TemplateParams, 'logo'>> & {
   logo?: Partial<TemplateParams['logo']>
 }
 
-/** Merge a thumbnail's overrides on top of the global template params. */
+/** Merge a thumbnail's overrides on top of the global template params. The
+ *  per-size `layouts` and `gradients` maps are merged by size (so a thumbnail can
+ *  override just its own size) rather than replacing the whole map. */
 export function effectiveParams(base: TemplateParams, ov?: ParamOverride | null): TemplateParams {
   if (!ov || Object.keys(ov).length === 0) return base
-  return { ...base, ...ov, logo: { ...base.logo, ...(ov.logo ?? {}) } }
+  const merged: TemplateParams = { ...base, ...ov, logo: { ...base.logo, ...(ov.logo ?? {}) } }
+  if (ov.layouts) merged.layouts = { ...(base.layouts ?? {}), ...ov.layouts }
+  if (ov.gradients) merged.gradients = { ...(base.gradients ?? {}), ...ov.gradients }
+  return merged
 }
 
 /** Keys that can be overridden per-thumbnail (subset of the editor controls). */
