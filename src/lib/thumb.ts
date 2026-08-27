@@ -64,6 +64,14 @@ export interface SizeLayout {
   logoAlign: Align9
   logoScale: number // logo box height as a fraction of frame height
 }
+/** Light-band gradient placement — can be set globally or per aspect size. */
+export interface GradientParams {
+  gradStop1: number
+  gradStop2: number
+  gradBottom: number
+  gradOpacity: number
+  gradBandPct: number
+}
 export type ProviderPos = 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export const PROVIDER_POSITIONS: ProviderPos[] = ['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
 
@@ -112,6 +120,8 @@ export interface TemplateParams {
   gradBottom: number // bottom fade: colour holds until here → transparent at 100
   gradOpacity: number // overall band opacity 0..1
   gradBandPct: number // band height as % of frame height
+  /** Per-aspect-size gradient overrides; absent size falls back to the globals above. */
+  gradients?: Record<string, GradientParams>
   // animation
   animEnabled: boolean
   animPreset: AnimPreset
@@ -231,7 +241,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'strokeWidth', 'strokePad', 'strokePos',
   'showProvider', 'providerPos', 'providerName', 'providerRadius', 'providerPadX', 'providerPadY',
   'providerScale', 'providerMarginX', 'providerMarginY',
-  'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct',
+  'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct', 'gradients',
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
   'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
@@ -263,6 +273,18 @@ export interface AssetUrls {
   logoWhite?: string
   /** Matted (transparent) AI motion clip that replaces the static key visual. */
   animVideo?: string
+}
+
+/** Gradient params for the active size — a per-size override wins over the globals. */
+export function resolveGrad(p: TemplateParams): GradientParams {
+  const g = p.gradients?.[p.sizeKey]
+  return {
+    gradStop1: g?.gradStop1 ?? p.gradStop1,
+    gradStop2: g?.gradStop2 ?? p.gradStop2,
+    gradBottom: g?.gradBottom ?? p.gradBottom,
+    gradOpacity: g?.gradOpacity ?? p.gradOpacity,
+    gradBandPct: g?.gradBandPct ?? p.gradBandPct,
+  }
 }
 
 export function withDefaults(p: Partial<TemplateParams> | null | undefined): TemplateParams {

@@ -9,6 +9,7 @@ import {
   frameSize,
   hexA,
   layoutBoxes,
+  resolveGrad,
   type AssetUrls,
   type TemplateParams,
   type Thumbnail,
@@ -66,7 +67,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
 
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
-  const bandH = H * (params.gradBandPct / 100)
+  const grad = resolveGrad(params)
+  const bandH = H * (grad.gradBandPct / 100)
 
   const m = motionAt(params, phase)
 
@@ -163,7 +165,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             right: 0,
             bottom: 0,
             height: bandH,
-            background: `linear-gradient(to bottom, ${bandStops(color.semantic, color.blur, params)
+            background: `linear-gradient(to bottom, ${bandStops(color.semantic, color.blur, grad)
               .map((s) => `${s.color} ${s.offset * 100}%`)
               .join(', ')})`,
           }}

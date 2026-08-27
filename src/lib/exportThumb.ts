@@ -2,7 +2,7 @@ import { figmaProxyUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
-import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, layoutBoxes, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -176,9 +176,10 @@ function drawFrame(
   }
 
   // light band
-  const bandH = H * (params.gradBandPct / 100)
+  const grad = resolveGrad(params)
+  const bandH = H * (grad.gradBandPct / 100)
   const band = ctx.createLinearGradient(0, H - bandH, 0, H)
-  for (const s of bandStops(color.semantic, color.blur, params)) band.addColorStop(s.offset, s.color)
+  for (const s of bandStops(color.semantic, color.blur, grad)) band.addColorStop(s.offset, s.color)
   ctx.fillStyle = band
   ctx.fillRect(0, H - bandH, W, bandH)
 

@@ -6,10 +6,11 @@ import { useBranches } from '../hooks/useBranches'
 import { useBrandAssets } from '../hooks/useBrandAssets'
 import { BrandAssets } from './BrandAssets'
 import { FramesView } from './FramesView'
+import { TemplateView } from './TemplateView'
 import { BranchMenu } from './BranchMenu'
 import { ThumbnailStudio } from './ThumbnailStudio'
 
-type View = 'studio' | 'frames' | 'assets'
+type View = 'studio' | 'template' | 'frames' | 'assets'
 
 export function Dashboard() {
   const { session } = useAuth()
@@ -57,6 +58,7 @@ export function Dashboard() {
           <div className="flex items-center gap-1 rounded-lg bg-zinc-900/70 p-1 text-sm">
             {([
               ['studio', 'Thumbnails'],
+              ...(role === 'designer' ? [['template', 'Template'] as [View, string]] : []),
               ['frames', 'Frames'],
               ['assets', 'Brand assets'],
             ] as [View, string][]).map(([v, label]) => (
@@ -96,6 +98,8 @@ export function Dashboard() {
       <main className={view === 'studio' ? 'px-4 py-4' : 'mx-auto max-w-7xl px-4 py-6'}>
         {view === 'studio' ? (
           <ThumbnailStudio role={role ?? 'client'} branch={branch} saveFrameParams={branchesApi.saveFrameParams} />
+        ) : view === 'template' ? (
+          <TemplateView />
         ) : view === 'assets' ? (
           <BrandAssets api={assetsApi} />
         ) : branch ? (
