@@ -11,6 +11,46 @@ const MODELS = [
 
 type Stage = 'idle' | 'generating' | 'matting' | 'done'
 
+// LTX only renders three aspect buckets; snapping the source to the nearest one
+// with transparent letterbox padding stops the model from cropping the sides.
+const BUCKETS = [
+  { ratio: '9:16', a: 9 / 16 },
+  { ratio: '1:1', a: 1 },
+  { ratio: '16:9', a: 16 / 9 },
+]
+
+function loadImg(url: string) {
+  return new Promise<HTMLImageElement>((res, rej) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => res(img)
+    img.onerror = () => rej(new Error('key-visual load failed'))
+    img.src = url
+  })
+}
+
+/** Contain the key visual on its nearest aspect bucket (transparent padding) so
+ *  nothing is cropped; returns a PNG data URL + the bucket's aspect ratio. */
+async function padToBucket(url: string): Promise<{ imageUrl: string; aspect: string }> {
+  const img = await loadImg(url)
+  const iw = img.naturalWidth
+  const ih = img.naturalHeight
+  const aSrc = iw / ih
+  const bucket = BUCKETS.reduce((b, c) => (Math.abs(c.a - aSrc) < Math.abs(b.a - aSrc) ? c : b))
+  const MAX = 1024
+  const W = bucket.a >= 1 ? MAX : Math.round(MAX * bucket.a)
+  const H = bucket.a >= 1 ? Math.round(MAX / bucket.a) : MAX
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  const s = Math.min(W / iw, H / ih)
+  const dw = iw * s
+  const dh = ih * s
+  ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
+  return { imageUrl: canvas.toDataURL('image/png'), aspect: bucket.ratio }
+}
+
 export function GenerativeMotion({
   thumb,
   saveAnim,
@@ -52,13 +92,24 @@ export function GenerativeMotion({
     setMatted(null)
     setElapsed(0)
     startRef.current = Date.now()
-    const imageUrl = figmaProxyUrl(fk, kv, 2)
     const fullPrompt = `${prompt.trim() || 'subtle idle animation'}. Camera locked, preserve the artwork, seamless loop.`
     try {
-      // 1 — generate the motion clip from the still key visual
+      // 1 — generate the motion clip. Letterbox the KV onto its nearest aspect
+      // bucket first so the model keeps the full width (no side cropping).
       setStage('generating')
+      let imageUrl = figmaProxyUrl(fk, kv, 2)
+      let aspect = 'auto'
+      try {
+        const padded = await padToBucket(imageUrl)
+        imageUrl = padded.imageUrl
+        aspect = padded.aspect
+      } catch {
+        /* CORS/taint → fall back to the raw url with auto aspect */
+      }
+      const extra: Record<string, unknown> =
+        model === MODELS[0].id ? { aspect_ratio: aspect, resolution: '720p' } : {}
       const gen = await supabase.functions.invoke('fal-animate', {
-        body: { action: 'generate', imageUrl, prompt: fullPrompt, model },
+        body: { action: 'generate', imageUrl, prompt: fullPrompt, model, extra },
       })
       if (gen.error || !gen.data?.video) {
         throw new Error(
