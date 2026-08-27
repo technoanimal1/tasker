@@ -516,22 +516,33 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {showDesignerSections && (
-            <Section title="Colour">
-              <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => set('palette', v as PaletteMode)} />
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {PALETTES[p.palette].map((c) => (
-                  <button
-                    key={c.key}
-                    title={c.label}
-                    onClick={() => set('colorKey', c.key)}
-                    className={`h-6 w-6 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
-                    style={{ background: c.stroke }}
-                  />
-                ))}
-              </div>
-            </Section>
-          )}
+          {showDesignerSections && (() => {
+            // In the selected-thumbnail scope, persist the colour immediately (like
+            // the quick picker); in global scope it edits the template via set().
+            const pickPalette = (v: PaletteMode) =>
+              scope === 'selected' && selectedId ? recolorThumb(selectedId, v, p.colorKey) : set('palette', v)
+            const pickColor = (key: string) =>
+              scope === 'selected' && selectedId ? recolorThumb(selectedId, p.palette, key) : set('colorKey', key)
+            return (
+              <Section title={scope === 'selected' && selected ? `Colour · ${selected.name}` : 'Colour'}>
+                <Seg options={['dark', 'light'].map((o) => ({ value: o, label: o }))} value={p.palette} onChange={(v) => pickPalette(v as PaletteMode)} />
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {PALETTES[p.palette].map((c) => (
+                    <button
+                      key={c.key}
+                      title={c.label}
+                      onClick={() => pickColor(c.key)}
+                      className={`h-6 w-6 rounded-full ring-2 ${p.colorKey === c.key ? 'ring-white' : 'ring-transparent'}`}
+                      style={{ background: c.stroke }}
+                    />
+                  ))}
+                </div>
+                {scope === 'selected' && (
+                  <p className="text-[11px] text-zinc-500">Overrides the auto colour for this thumbnail · saved instantly.</p>
+                )}
+              </Section>
+            )
+          })()}
 
           {showDesignerSections && (
             <Section title="Background">
