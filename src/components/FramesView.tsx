@@ -7,7 +7,9 @@ import {
   CORNER_MODES,
   PROVIDER_POSITIONS,
   branchParams,
+  resolveGrad,
   withDefaults,
+  type GradientParams,
   type ParamOverride,
   type TemplateParams,
 } from '../lib/thumb'
@@ -48,6 +50,15 @@ export function FramesView({ branch, saveFrameParams }: Props) {
 
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
     setFp((cur) => ({ ...cur, [key]: value }))
+  }
+  // Edit the effective gradient: per-size when one is active, else the flat globals.
+  function setGrad<K extends keyof GradientParams>(key: K, value: number) {
+    const size = p!.sizeKey
+    setFp((cur) => {
+      const per = cur.gradients?.[size]
+      if (per) return { ...cur, gradients: { ...(cur.gradients ?? {}), [size]: { ...per, [key]: value } } }
+      return { ...cur, [key]: value }
+    })
   }
 
   async function save() {
@@ -184,11 +195,18 @@ export function FramesView({ branch, saveFrameParams }: Props) {
           </Section>
 
           <Section title="Light band">
-            <Slider label="Top fade" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Colour stop" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Bottom fade" min={0} max={100} value={p.gradBottom} onChange={(v) => set('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Opacity" min={0} max={1} step={0.02} value={p.gradOpacity} onChange={(v) => set('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
-            <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+            {(() => {
+              const g = resolveGrad(p)
+              return (
+                <>
+                  <Slider label="Top fade" min={0} max={100} value={g.gradStop1} onChange={(v) => setGrad('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
+                  <Slider label="Colour stop" min={0} max={100} value={g.gradStop2} onChange={(v) => setGrad('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+                  <Slider label="Bottom fade" min={0} max={100} value={g.gradBottom} onChange={(v) => setGrad('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
+                  <Slider label="Opacity" min={0} max={1} step={0.02} value={g.gradOpacity} onChange={(v) => setGrad('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
+                  <Slider label="Band height" min={10} max={80} value={g.gradBandPct} onChange={(v) => setGrad('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+                </>
+              )
+            })()}
           </Section>
         </aside>
       </div>

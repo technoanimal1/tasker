@@ -398,21 +398,26 @@ export async function renderThumbAnimBlob(thumb: Thumbnail, params: TemplatePara
   }
   const durationMs = Math.max(0.5, params.animSpeed) * 1000
 
-  return new Promise<Blob>((resolve) => {
+  return new Promise<Blob>((resolve, reject) => {
     rec.onstop = () => resolve(new Blob(chunks, { type: mime }))
     // draw the first frame before starting so the stream has content
     drawFrame(ctx, thumb, params, W, H, assets, color, 0)
     rec.start()
     const t0 = performance.now()
     const loop = () => {
-      const el = performance.now() - t0
-      const phase = (el % durationMs) / durationMs
-      drawFrame(ctx, thumb, params, W, H, assets, color, phase)
-      if (el >= durationMs) {
-        drawFrame(ctx, thumb, params, W, H, assets, color, 1)
-        rec.stop()
-      } else {
-        requestAnimationFrame(loop)
+      try {
+        const el = performance.now() - t0
+        const phase = (el % durationMs) / durationMs
+        drawFrame(ctx, thumb, params, W, H, assets, color, phase)
+        if (el >= durationMs) {
+          drawFrame(ctx, thumb, params, W, H, assets, color, 1)
+          rec.stop()
+        } else {
+          requestAnimationFrame(loop)
+        }
+      } catch (e) {
+        try { rec.stop() } catch { /* already stopped */ }
+        reject(e instanceof Error ? e : new Error(String(e)))
       }
     }
     requestAnimationFrame(loop)
@@ -434,8 +439,14 @@ export async function renderThumbVideoBlob(thumb: Thumbnail, params: TemplatePar
   const assets = await loadAssets(thumb, params)
   if (params.textLogo) await loadFontFace(params.fontFamily)
   const vid = assets.kvVideo
-  // No usable clip (load/CORS failure) → fall back to procedural motion.
-  if (!vid) return renderThumbAnimBlob(thumb, params, mult, fps)
+  // The clip is inserted but couldn't be decoded (usually the host didn't send
+  // CORS headers). Fail loudly rather than silently exporting a frozen frame.
+  if (!vid) {
+    if (thumb.anim_video_url) {
+      throw new Error('Could not load the motion clip for export — its host must allow cross-origin (CORS) requests.')
+    }
+    return renderThumbAnimBlob(thumb, params, mult, fps)
+  }
 
   const stream = canvas.captureStream(fps)
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 })
@@ -450,20 +461,26 @@ export async function renderThumbVideoBlob(thumb: Thumbnail, params: TemplatePar
   vid.currentTime = 0
   await vid.play().catch(() => {})
 
-  return new Promise<Blob>((resolve) => {
+  return new Promise<Blob>((resolve, reject) => {
     rec.onstop = () => resolve(new Blob(chunks, { type: mime }))
     drawFrame(ctx, thumb, params, W, H, assets, color, 0)
     rec.start()
     const t0 = performance.now()
     const loop = () => {
-      const el = performance.now() - t0
-      const phase = Math.min(1, el / durationMs)
-      drawFrame(ctx, thumb, params, W, H, assets, color, phase)
-      if (el >= durationMs || vid.ended) {
+      try {
+        const el = performance.now() - t0
+        const phase = Math.min(1, el / durationMs)
+        drawFrame(ctx, thumb, params, W, H, assets, color, phase)
+        if (el >= durationMs || vid.ended) {
+          vid.pause()
+          rec.stop()
+        } else {
+          requestAnimationFrame(loop)
+        }
+      } catch (e) {
         vid.pause()
-        rec.stop()
-      } else {
-        requestAnimationFrame(loop)
+        try { rec.stop() } catch { /* already stopped */ }
+        reject(e instanceof Error ? e : new Error(String(e)))
       }
     }
     requestAnimationFrame(loop)

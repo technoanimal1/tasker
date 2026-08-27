@@ -11,8 +11,10 @@ import {
   defaultLayout,
   effectiveParams,
   frameSize,
+  resolveGrad,
   withDefaults,
   type Align9,
+  type GradientParams,
   type ParamOverride,
   type SizeLayout,
   type TemplateParams,
@@ -143,6 +145,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const lockedForClient = !isDesigner && !editingBranch // client viewing the main template
 
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
+    // Aspect is the size you're viewing/designing — always template-level, never
+    // a per-thumbnail override (that would resize a single game).
+    if (key === 'sizeKey') {
+      setParams((prev) => (prev ? { ...prev, sizeKey: value as string } : prev))
+      return
+    }
     if (editingBranch) {
       if (!FRAME_DESIGN_KEYS.includes(key)) return
       setFrameParams((fp) => ({ ...fp, [key]: value }))
@@ -186,6 +194,37 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         const next = { ...curOv.layouts }
         delete next[key]
         return { ...o, [selectedId]: { ...curOv, layouts: next } }
+      })
+    }
+  }
+  // Gradient edits: if the effective gradient for this size comes from a per-size
+  // override, keep editing there (so the slider stays live); otherwise edit the
+  // flat globals. Prevents the "dead slider" once a per-size gradient exists.
+  function setGrad<K extends keyof GradientParams>(key: K, value: number) {
+    if (!params) return
+    const size = params.sizeKey
+    if (editingBranch) {
+      setFrameParams((fp) => {
+        const per = (fp.gradients as TemplateParams['gradients'])?.[size]
+        if (per) return { ...fp, gradients: { ...(fp.gradients ?? {}), [size]: { ...per, [key]: value } } }
+        return { ...fp, [key]: value }
+      })
+    } else if (scope === 'global') {
+      setParams((prev) => {
+        if (!prev) return prev
+        if (prev.gradients?.[size]) return { ...prev, gradients: { ...prev.gradients, [size]: { ...prev.gradients[size], [key]: value } } }
+        return { ...prev, [key]: value }
+      })
+    } else if (selectedId) {
+      setOverrides((o) => {
+        const cur = o[selectedId] ?? {}
+        const basePer = params.gradients?.[size]
+        const ovPer = cur.gradients?.[size]
+        if (ovPer || basePer) {
+          const merged: GradientParams = { ...resolveGrad(params), ...(ovPer ?? {}), [key]: value }
+          return { ...o, [selectedId]: { ...cur, gradients: { ...(cur.gradients ?? {}), [size]: merged } } }
+        }
+        return { ...o, [selectedId]: { ...cur, [key]: value } }
       })
     }
   }
@@ -258,6 +297,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
 
   const p = activeParams
+  // When a per-size layout is active it drives KV/logo placement; the legacy fine
+  // sliders (KV Size/Lift, Logo X/Y/W/H) are then inert, so hide them and let the
+  // Layout section own placement (click "Auto" there to fall back to the sliders).
+  const layoutActive = !!p.layouts?.[p.sizeKey]
   const size = frameSize(p.sizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
   const gridW = Math.min(260, Math.round(size.w * (260 / size.h)))
@@ -496,17 +539,20 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {showFrameSections && (
-            <Section title="Light gradient">
-              <Slider label="Top fade" min={0} max={100} value={p.gradStop1} onChange={(v) => set('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Slider label="Colour stop" min={0} max={100} value={p.gradStop2} onChange={(v) => set('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Slider label="Bottom fade" min={0} max={100} value={p.gradBottom} onChange={(v) => set('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Slider label="Opacity" min={0} max={1} step={0.02} value={p.gradOpacity} onChange={(v) => set('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
-              <Slider label="Band height" min={10} max={80} value={p.gradBandPct} onChange={(v) => set('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-            </Section>
-          )}
+          {showFrameSections && (() => {
+            const g = resolveGrad(p)
+            return (
+              <Section title="Light gradient">
+                <Slider label="Top fade" min={0} max={100} value={g.gradStop1} onChange={(v) => setGrad('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
+                <Slider label="Colour stop" min={0} max={100} value={g.gradStop2} onChange={(v) => setGrad('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
+                <Slider label="Bottom fade" min={0} max={100} value={g.gradBottom} onChange={(v) => setGrad('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
+                <Slider label="Opacity" min={0} max={1} step={0.02} value={g.gradOpacity} onChange={(v) => setGrad('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Slider label="Band height" min={10} max={80} value={g.gradBandPct} onChange={(v) => setGrad('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
+              </Section>
+            )
+          })()}
 
-          {showDesignerSections && (
+          {showDesignerSections && !layoutActive && (
             <Section title="Key visual">
               <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
               <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
@@ -624,7 +670,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {showDesignerSections && (
+          {showDesignerSections && !layoutActive && (
             <Section title="Logo placement">
               <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
               <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
