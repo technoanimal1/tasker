@@ -312,9 +312,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const canExportAnim = animSupported()
 
   return (
-    <div className="flex h-[calc(100vh-7.5rem)] gap-3">
+    <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
       {/* LEFT — thumbnails */}
-      <aside className="flex w-[236px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <aside className="flex max-h-[38vh] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 lg:max-h-none lg:w-[236px]">
         <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5">
           <span className="text-sm font-medium">Thumbnails</span>
           <span className="text-xs text-zinc-500">{thumbnails.length}</span>
@@ -354,7 +354,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </aside>
 
       {/* CENTER — canvas / grid */}
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40">
+      <div className="flex min-h-[55vh] flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0">
         <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
           <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
           <div className="flex items-center gap-2">
@@ -459,7 +459,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </div>
 
       {/* RIGHT — controls */}
-      <aside className="flex w-[300px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <aside className="flex max-h-[75vh] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 lg:max-h-none lg:w-[300px]">
         <div className="border-b border-zinc-800 p-3">
           {editingBranch ? (
             <>

@@ -36,7 +36,7 @@ export function Dashboard() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#0a0b0d]/90 backdrop-blur">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5 font-semibold">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-zinc-900 shadow-[0_0_20px_rgba(255,240,80,0.35)]">
@@ -55,7 +55,7 @@ export function Dashboard() {
             />
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg bg-zinc-900/70 p-1 text-sm">
+          <div className="order-last flex w-full items-center gap-1 overflow-x-auto rounded-lg bg-zinc-900/70 p-1 text-sm sm:order-none sm:w-auto">
             {([
               ['studio', 'Thumbnails'],
               ...(role === 'designer' ? [['template', 'Template'] as [View, string]] : []),
@@ -65,7 +65,7 @@ export function Dashboard() {
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`rounded-md px-3 py-1.5 transition ${
+                className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition ${
                   view === v ? 'bg-zinc-700/80 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
