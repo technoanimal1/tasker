@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase, figmaProxyUrl } from '../lib/supabase'
-import { whitenLogo } from '../lib/whiten'
+import { supabase } from '../lib/supabase'
 import type { AssetUrls, Thumbnail } from '../lib/thumb'
 
 // Figma render URLs last ~30 days; we cache resolved URLs per browser for 6h and
@@ -30,29 +29,7 @@ function cacheSet(fileKey: string, node: string, scale: number, url: string) {
 
 export function useFigmaAssets(thumbnails: Thumbnail[], scale = 2) {
   const [map, setMap] = useState<Record<string, string>>({})
-  const [whiteMap, setWhiteMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
-
-  // Auto-generate a white logotype from the colour logo when Figma has no white
-  // node — a deterministic canvas recolour (keeps the shape, fills white).
-  useEffect(() => {
-    let active = true
-    ;(async () => {
-      for (const t of thumbnails) {
-        // Skip if a white logo already exists (Figma node or server-derived URL).
-        if (t.figma_logo_white_node || t.logo_white_url) continue
-        const fk = t.figma_file_key
-        const cn = t.figma_logo_color_node
-        if (!fk || !cn || whiteMap[t.id]) continue
-        const data = await whitenLogo(figmaProxyUrl(fk, cn, 3))
-        if (active && data) setWhiteMap((m) => ({ ...m, [t.id]: data }))
-      }
-    })()
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thumbnails])
 
   useEffect(() => {
     let active = true
@@ -104,9 +81,10 @@ export function useFigmaAssets(thumbnails: Thumbnail[], scale = 2) {
       bg: u(t.figma_bg_node),
       kv: u(t.figma_kv_node),
       logoColor: u(t.figma_logo_color_node),
-      // Prefer the Figma white node, then the server-derived white URL, then the
-      // client-side canvas fallback.
-      logoWhite: u(t.figma_logo_white_node) ?? t.logo_white_url ?? whiteMap[t.id],
+      // Prefer the Figma white node, then the server-derived white URL. No client
+      // knockout fallback — for a busy/plate logo it produces a white blob, so when
+      // no clean white logo exists yet the render falls back to the colour logo.
+      logoWhite: u(t.figma_logo_white_node) ?? t.logo_white_url ?? undefined,
       animVideo: t.anim_video_url ?? undefined,
     }
   }

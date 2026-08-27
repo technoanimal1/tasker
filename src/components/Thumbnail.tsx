@@ -38,7 +38,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const color = resolveColor(params.palette, params.colorKey)
   const bg = assets.bg
   const kv = assets.kv
-  const logo = params.logoVariant === 'white' ? assets.logoWhite : assets.logoColor
+  // White variant uses the clean server white logo; if a game has none yet, fall
+  // back to its colour logo rather than a knockout blob.
+  const logo = params.logoVariant === 'white' ? (assets.logoWhite ?? assets.logoColor) : assets.logoColor
 
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const strokeW = params.strokeWidth * k
