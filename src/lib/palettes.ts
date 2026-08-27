@@ -34,6 +34,20 @@ export const PALETTES: Record<PaletteMode, PaletteColor[]> = {
     { key: 'pink', label: 'Pink', semantic: 'rgba(199,27,214,0.6)', stroke: '#df2dee', blur: '#c71bd6' },
     { key: 'peach', label: 'Peach', semantic: 'rgba(228,132,91,0.6)', stroke: '#ff8f5f', blur: '#ff8f5f' },
     { key: 'indigo', label: 'Indigo', semantic: 'rgba(38,51,223,0.6)', stroke: '#2633df', blur: '#2633df' },
+    // extended set — broader spectrum so a background colour finds a close match
+    { key: 'cyan', label: 'Cyan', semantic: 'rgba(18,194,194,0.6)', stroke: '#12c2c2', blur: '#0e9a9a' },
+    { key: 'teal', label: 'Teal', semantic: 'rgba(15,155,142,0.6)', stroke: '#0f9b8e', blur: '#0b7a6f' },
+    { key: 'sky', label: 'Sky', semantic: 'rgba(42,167,255,0.6)', stroke: '#2aa7ff', blur: '#1f86e0' },
+    { key: 'purple', label: 'Purple', semantic: 'rgba(122,51,255,0.6)', stroke: '#7a33ff', blur: '#6627db' },
+    { key: 'violet', label: 'Violet', semantic: 'rgba(155,48,255,0.6)', stroke: '#9b30ff', blur: '#7d1fe0' },
+    { key: 'magenta', label: 'Magenta', semantic: 'rgba(255,47,208,0.6)', stroke: '#ff2fd0', blur: '#d61bb0' },
+    { key: 'red', label: 'Red', semantic: 'rgba(255,42,42,0.6)', stroke: '#ff2a2a', blur: '#d61414' },
+    { key: 'crimson', label: 'Crimson', semantic: 'rgba(214,28,78,0.6)', stroke: '#d61c4e', blur: '#a81340' },
+    { key: 'gold', label: 'Gold', semantic: 'rgba(245,179,1,0.6)', stroke: '#f5b301', blur: '#d69a00' },
+    { key: 'lime', label: 'Lime', semantic: 'rgba(126,211,33,0.6)', stroke: '#7ed321', blur: '#63a81a' },
+    { key: 'coral', label: 'Coral', semantic: 'rgba(255,107,94,0.6)', stroke: '#ff6b5e', blur: '#e04c40' },
+    { key: 'navy', label: 'Navy', semantic: 'rgba(41,62,150,0.6)', stroke: '#293e96', blur: '#1b2a6b' },
+    { key: 'slate', label: 'Slate', semantic: 'rgba(100,116,139,0.6)', stroke: '#64748b', blur: '#475569' },
   ],
 }
 
