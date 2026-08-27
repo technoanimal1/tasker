@@ -44,7 +44,10 @@ async function padToBucket(url: string): Promise<{ imageUrl: string; aspect: str
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const s = Math.min(W / iw, H / ih)
+  // Leave a uniform margin so the character never touches the frame edge — the
+  // matte keeps this as transparent breathing room, matching the still artwork.
+  const MARGIN = 0.1
+  const s = Math.min((W * (1 - 2 * MARGIN)) / iw, (H * (1 - 2 * MARGIN)) / ih)
   const dw = iw * s
   const dh = ih * s
   ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
