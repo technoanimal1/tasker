@@ -39,7 +39,8 @@ export function useFigmaAssets(thumbnails: Thumbnail[], scale = 2) {
     let active = true
     ;(async () => {
       for (const t of thumbnails) {
-        if (t.figma_logo_white_node) continue
+        // Skip if a white logo already exists (Figma node or server-derived URL).
+        if (t.figma_logo_white_node || t.logo_white_url) continue
         const fk = t.figma_file_key
         const cn = t.figma_logo_color_node
         if (!fk || !cn || whiteMap[t.id]) continue
@@ -103,7 +104,9 @@ export function useFigmaAssets(thumbnails: Thumbnail[], scale = 2) {
       bg: u(t.figma_bg_node),
       kv: u(t.figma_kv_node),
       logoColor: u(t.figma_logo_color_node),
-      logoWhite: u(t.figma_logo_white_node) ?? whiteMap[t.id],
+      // Prefer the Figma white node, then the server-derived white URL, then the
+      // client-side canvas fallback.
+      logoWhite: u(t.figma_logo_white_node) ?? t.logo_white_url ?? whiteMap[t.id],
       animVideo: t.anim_video_url ?? undefined,
     }
   }
