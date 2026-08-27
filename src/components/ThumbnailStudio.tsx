@@ -57,6 +57,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
   const [exportOpen, setExportOpen] = useState(false)
   const [showFrame, setShowFrame] = useState(true)
+  const [mobilePanel, setMobilePanel] = useState<'thumbs' | 'controls' | null>(null)
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -311,13 +312,64 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
 
+  // Below lg the side panels become bottom-sheet modals (toggled by the mobile
+  // toolbar); at lg they revert to inline sidebars. `mobilePanel` picks which is open.
+  const sheetBase =
+    'fixed inset-x-2 bottom-2 top-16 z-40 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl ' +
+    'lg:static lg:inset-auto lg:bottom-auto lg:top-auto lg:z-auto lg:rounded-xl lg:shadow-none lg:bg-zinc-900/50'
+  const leftSheet = `${sheetBase} lg:max-h-none lg:w-[236px] lg:shrink-0 ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
+  const rightSheet = `${sheetBase} lg:max-h-none lg:w-[300px] lg:shrink-0 ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
+
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
+      {/* MOBILE toolbar — opens the panels as sheets (hidden on lg) */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <button
+          onClick={() => setMobilePanel('thumbs')}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/70 py-2 text-xs font-medium text-zinc-200"
+        >
+          ▤ Thumbnails <span className="text-zinc-500">{thumbnails.length}</span>
+        </button>
+        {!lockedForClient && (
+          <button
+            onClick={() => setMobilePanel('controls')}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/70 py-2 text-xs font-medium text-zinc-200"
+          >
+            ⚙ Edit
+          </button>
+        )}
+        <button
+          onClick={exportAll}
+          disabled={exporting}
+          className="rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2 text-xs font-medium text-zinc-200 disabled:opacity-60"
+        >
+          {exporting ? '…' : '⤓'}
+        </button>
+      </div>
+
+      {/* Backdrop behind an open mobile sheet */}
+      {mobilePanel && (
+        <button
+          aria-label="Close panel"
+          onClick={() => setMobilePanel(null)}
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+        />
+      )}
+
       {/* LEFT — thumbnails */}
-      <aside className="flex max-h-[38vh] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 lg:max-h-none lg:w-[236px]">
+      <aside className={leftSheet}>
         <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5">
           <span className="text-sm font-medium">Thumbnails</span>
-          <span className="text-xs text-zinc-500">{thumbnails.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500">{thumbnails.length}</span>
+            <button
+              onClick={() => setMobilePanel(null)}
+              className="grid h-6 w-6 place-items-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 lg:hidden"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </div>
         <div className="flex-1 space-y-1 overflow-y-auto p-2">
           {thumbnails.map((t) => {
@@ -326,7 +378,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             return (
               <button
                 key={t.id}
-                onClick={() => setSelectedId(t.id)}
+                onClick={() => {
+                  setSelectedId(t.id)
+                  setMobilePanel(null)
+                }}
                 className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
                   t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
                 }`}
@@ -354,10 +409,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </aside>
 
       {/* CENTER — canvas / grid */}
-      <div className="flex min-h-[55vh] flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0">
-        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
+      <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0 lg:overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 px-4 py-2.5">
           <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
             <button
               onClick={() => setShowFrame((v) => !v)}
@@ -402,7 +457,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         </div>
         {singleView && selected && selectedParams ? (
           <div
-            className="flex flex-1 items-center justify-center overflow-auto p-8"
+            className="flex flex-1 items-center justify-center overflow-auto p-4 sm:p-8"
             style={{
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
               backgroundSize: '22px 22px',
@@ -414,13 +469,16 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         ) : (
           <div
-            className="flex-1 overflow-auto p-6"
+            className="overflow-visible p-4 sm:p-6 lg:flex-1 lg:overflow-auto"
             style={{
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
               backgroundSize: '22px 22px',
             }}
           >
-            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${gridW}px, 1fr))` }}>
+            <div
+              className="grid grid-cols-2 gap-3 sm:gap-4 lg:[grid-template-columns:repeat(auto-fill,minmax(var(--gw),1fr))]"
+              style={{ '--gw': `${gridW}px` } as React.CSSProperties}
+            >
               {thumbnails.map((t) => {
                 const pp = paramsForThumb(t)
                 if (!pp) return null
@@ -459,7 +517,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </div>
 
       {/* RIGHT — controls */}
-      <aside className="flex max-h-[75vh] w-full shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 lg:max-h-none lg:w-[300px]">
+      <aside className={rightSheet}>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5 lg:hidden">
+          <span className="text-sm font-medium">Edit</span>
+          <button
+            onClick={() => setMobilePanel(null)}
+            className="grid h-6 w-6 place-items-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </div>
         <div className="border-b border-zinc-800 p-3">
           {editingBranch ? (
             <>
