@@ -27,6 +27,7 @@ import { ThumbnailCard } from './Thumbnail'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
+import { WhiteLogo } from './WhiteLogo'
 
 type ExportFormat = StillFormat | 'anim'
 
@@ -40,7 +41,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides, saveAnim } = useThumbnailsData()
+  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -712,6 +713,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
+          {isDesigner && selected && <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />}
           {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} />}
 
           {showFrameSections && (
