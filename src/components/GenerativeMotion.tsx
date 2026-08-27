@@ -9,6 +9,10 @@ const MODELS = [
   { id: 'fal-ai/kling-video/v1.6/standard/image-to-video', label: 'Kling · best (slow)' },
 ]
 
+// Kling Pro accepts a tail (end) frame. Setting the tail equal to the head makes
+// the clip start and end on the same frame → a perfect, natural forward loop.
+const LOOP_MODEL = 'fal-ai/kling-video/v1.6/pro/image-to-video'
+
 type Stage = 'idle' | 'generating' | 'matting' | 'done'
 
 // LTX only renders three aspect buckets; snapping the source to the nearest one
@@ -63,6 +67,7 @@ export function GenerativeMotion({
 }) {
   const [prompt, setPrompt] = useState('')
   const [model, setModel] = useState(MODELS[0].id)
+  const [perfectLoop, setPerfectLoop] = useState(true)
   const [stage, setStage] = useState<Stage>('idle')
   // last matted (transparent) clip produced this session, for download
   const [matted, setMatted] = useState<string | null>(thumb.anim_video_url ?? null)
@@ -109,10 +114,16 @@ export function GenerativeMotion({
       } catch {
         /* CORS/taint → fall back to the raw url with auto aspect */
       }
-      const extra: Record<string, unknown> =
-        model === MODELS[0].id ? { aspect_ratio: aspect, resolution: '720p' } : {}
+      // Perfect loop → Kling Pro with tail = head (same padded frame). Otherwise
+      // use the chosen fast model (aspect only applies to the LTX distilled one).
+      const useModel = perfectLoop ? LOOP_MODEL : model
+      const extra: Record<string, unknown> = perfectLoop
+        ? { tail_image_url: imageUrl }
+        : useModel === MODELS[0].id
+          ? { aspect_ratio: aspect, resolution: '720p' }
+          : {}
       const gen = await supabase.functions.invoke('fal-animate', {
-        body: { action: 'generate', imageUrl, prompt: fullPrompt, model, extra },
+        body: { action: 'generate', imageUrl, prompt: fullPrompt, model: useModel, extra },
       })
       if (gen.error || !gen.data?.video) {
         throw new Error(
@@ -200,18 +211,26 @@ export function GenerativeMotion({
         placeholder="e.g. the lion roars on loop, keep artwork & proportions"
         className="w-full resize-none rounded-lg border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-zinc-500"
       />
-      <select
-        value={model}
-        onChange={(e) => setModel(e.target.value)}
-        disabled={busy}
-        className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500 disabled:opacity-60"
-      >
-        {MODELS.map((m) => (
-          <option key={m.id} value={m.id}>
-            {m.label}
-          </option>
-        ))}
-      </select>
+      <label className="flex cursor-pointer items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2">
+        <span className="text-xs text-zinc-200">
+          Perfect loop <span className="text-zinc-500">· seamless, slower</span>
+        </span>
+        <input type="checkbox" checked={perfectLoop} onChange={(e) => setPerfectLoop(e.target.checked)} disabled={busy} />
+      </label>
+      {!perfectLoop && (
+        <select
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          disabled={busy}
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500 disabled:opacity-60"
+        >
+          {MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      )}
 
       <div className="flex items-center gap-2">
         <button
