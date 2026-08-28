@@ -42,6 +42,12 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ logo_white_url }).eq('id', id)
   }, [])
 
+  // Record a freshly baked grid preview (URL + the signature it was baked at).
+  const savePreview = useCallback(async (id: string, preview_url: string, preview_sig: string) => {
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, preview_url, preview_sig } : t)))
+    await supabase.from('thumbnails').update({ preview_url, preview_sig }).eq('id', id)
+  }, [])
+
   const deleteThumbnail = useCallback(async (id: string) => {
     setThumbnails((ts) => ts.filter((t) => t.id !== id))
     const { error } = await supabase.from('thumbnails').delete().eq('id', id)
@@ -55,5 +61,5 @@ export function useThumbnailsData() {
     if (error) await refresh()
   }, [refresh])
 
-  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail, insertThumbnail }
+  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail }
 }

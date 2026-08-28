@@ -208,6 +208,10 @@ export interface Thumbnail {
   /** AI-generated key-visual animation (fal.ai), if any. */
   anim_video_url?: string | null
   anim_prompt?: string | null
+  /** Baked flat WebP preview for instant grid overview (CDN URL), + the render
+   *  signature it was baked at, so a stale one can be detected and re-baked. */
+  preview_url?: string | null
+  preview_sig?: string | null
 }
 
 /** A partial set of template params (logo sub-keys are also optional). */

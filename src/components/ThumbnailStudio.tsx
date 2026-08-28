@@ -26,6 +26,7 @@ import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
 import { LazyMount } from './LazyMount'
+import { GridTile } from './GridTile'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
@@ -43,7 +44,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -59,6 +60,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
   const [exportOpen, setExportOpen] = useState(false)
   const [showFrame, setShowFrame] = useState(true)
+  // Grid render mode: false = fast baked-WebP overview; true = live layered tiles
+  // that react to setting changes. Auto-enables the moment a global setting
+  // changes so the whole grid reflects the edit; the toolbar toggle overrides.
+  const [liveGrid, setLiveGrid] = useState(false)
   const [mobilePanel, setMobilePanel] = useState<'thumbs' | 'controls' | null>(null)
   // Bulk multi-select editor (grid): pick several, change size/variant/colour at once.
   const [selectMode, setSelectMode] = useState(false)
@@ -200,6 +205,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const lockedForClient = !isDesigner && !editingBranch // client viewing the main template
 
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
+    setLiveGrid(true) // a user edit → let the grid reflect it live
     // Aspect is the size you're viewing/designing — always template-level, never
     // a per-thumbnail override (that would resize a single game).
     if (key === 'sizeKey') {
@@ -216,6 +222,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // stores a per-thumbnail layout override (merged over the template by size).
   function setLayout(patch: Partial<SizeLayout>) {
     if (!params) return
+    setLiveGrid(true)
     const key = params.sizeKey
     if (scope === 'global') {
       setParams((prev) => {
@@ -285,6 +292,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   function setLogo(patch: Partial<TemplateParams['logo']>) {
     if (editingBranch) return // logo geometry is designer-only
+    setLiveGrid(true)
     if (scope === 'global') setParams((prev) => (prev ? { ...prev, logo: { ...prev.logo, ...patch } } : prev))
     else if (selectedId)
       setOverrides((o) => {
@@ -660,7 +668,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               </button>
             )}
             <button
-              onClick={() => setShowFrame((v) => !v)}
+              onClick={() => {
+                setShowFrame((v) => !v)
+                setLiveGrid(true)
+              }}
               className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                 showFrame ? 'border-zinc-700 text-zinc-200 hover:bg-zinc-800' : 'border-zinc-800 bg-zinc-800/40 text-zinc-500'
               }`}
@@ -668,6 +679,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             >
               {showFrame ? '▣ Frames' : '▢ Frames'}
             </button>
+            {!singleView && (
+              <button
+                onClick={() => setLiveGrid((v) => !v)}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${
+                  liveGrid ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-200 hover:bg-zinc-800'
+                }`}
+                title={liveGrid ? 'Live tiles react to setting changes (slower). Click for fast overview.' : 'Fast baked-image overview. Click for live tiles that react to edits.'}
+              >
+                {liveGrid ? '⚡ Live' : '⚡ Fast'}
+              </button>
+            )}
             {p.animEnabled && (
               <button
                 onClick={() => setPlaying((v) => !v)}
@@ -788,14 +810,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       </div>
                     )}
                     <div className="w-full overflow-hidden rounded-lg shadow-lg">
-                      {(() => {
-                        const fr = frameSize(pp.sizeKey)
-                        return (
-                          <LazyMount w={gridW} h={(gridW * fr.h) / fr.w}>
-                            <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} showFrame={showFrame} />
-                          </LazyMount>
-                        )
-                      })()}
+                      <GridTile
+                        thumb={t}
+                        params={pp}
+                        assets={assetsFor(t)}
+                        showFrame={showFrame}
+                        gridW={gridW}
+                        phase={previewPhase}
+                        live={liveGrid || selectMode}
+                        canBake={isDesigner}
+                        onBaked={savePreview}
+                      />
                     </div>
                     {isDesigner && !selectMode && (
                       <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">
