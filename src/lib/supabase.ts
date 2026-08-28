@@ -34,3 +34,12 @@ export function figmaProxyUrl(fileKey: string, node: string, scale = 3): string 
 export function storageUrl(path: string | null | undefined): string | null {
   return path ? `${url}/storage/v1/object/public/${BRAND_BUCKET}/${path}` : null
 }
+
+/**
+ * Public CDN URL for a cached thumbnail layer (bg/kv/logo) in the `assets`
+ * bucket. These are our own hosted copies of the Figma renders, so the app can
+ * serve them directly instead of resolving Figma's rate-limited image API.
+ */
+export function assetUrl(path: string | null | undefined): string | null {
+  return path ? `${url}/storage/v1/object/public/assets/${path}` : null
+}

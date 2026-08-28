@@ -1,4 +1,4 @@
-import { figmaProxyUrl } from './supabase'
+import { figmaProxyUrl, assetUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
@@ -81,12 +81,16 @@ interface Assets {
 
 async function loadAssets(thumb: Thumbnail, params: TemplateParams): Promise<Assets> {
   const fk = thumb.figma_file_key
+  // Prefer our own hosted copy (CDN, CORS-enabled) so export/bake never depends
+  // on Figma; fall back to the CORS-safe Figma proxy for any uncached layer.
   const proxy = (node: string | null) => (fk && node ? figmaProxyUrl(fk, node, 3) : null)
-  const bgU = proxy(thumb.figma_bg_node)
-  const kvU = proxy(thumb.figma_kv_node)
+  const bgU = assetUrl(thumb.bg_path) ?? proxy(thumb.figma_bg_node)
+  const kvU = assetUrl(thumb.kv_path) ?? proxy(thumb.figma_kv_node)
   const logoU = params.textLogo
     ? null
-    : proxy(params.logoVariant === 'white' ? thumb.figma_logo_white_node : thumb.figma_logo_color_node)
+    : params.logoVariant === 'white'
+      ? assetUrl(thumb.logo_white_path) ?? proxy(thumb.figma_logo_white_node)
+      : assetUrl(thumb.logo_color_path) ?? proxy(thumb.figma_logo_color_node)
   const [bg, kv, logo, kvVideo] = await Promise.all([
     bgU ? loadImage(bgU).catch(() => null) : null,
     kvU ? loadImage(kvU).catch(() => null) : null,
