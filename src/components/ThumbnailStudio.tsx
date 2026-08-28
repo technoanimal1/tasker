@@ -153,6 +153,21 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   )
   const dirty = editingBranch ? branchDirty : scope === 'global' ? globalDirty : selDirty
 
+  // Sidebar: group games by provider (sorted), each group sorted by name.
+  // MUST stay above the early return below — hooks can't run conditionally.
+  const providerGroups = useMemo(() => {
+    const m = new Map<string, typeof thumbnails>()
+    for (const t of thumbnails) {
+      const key = t.provider || '—'
+      const arr = m.get(key) ?? []
+      arr.push(t)
+      m.set(key, arr)
+    }
+    return [...m.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([k, v]) => [k, v.slice().sort((a, b) => a.name.localeCompare(b.name))] as const)
+  }, [thumbnails])
+
   if (tLoading || thLoading || !params || !activeParams) {
     return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
   }
@@ -386,20 +401,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const singleView = !editingBranch && scope === 'selected' && !!selected
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
-
-  // Sidebar: group games by provider (sorted), each group sorted by name.
-  const providerGroups = useMemo(() => {
-    const m = new Map<string, typeof thumbnails>()
-    for (const t of thumbnails) {
-      const key = t.provider || '—'
-      const arr = m.get(key) ?? []
-      arr.push(t)
-      m.set(key, arr)
-    }
-    return [...m.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([k, v]) => [k, v.slice().sort((a, b) => a.name.localeCompare(b.name))] as const)
-  }, [thumbnails])
   const sidebarQuery = sidebarSearch.trim().toLowerCase()
 
   // Below lg the side panels become bottom-sheet modals (toggled by the mobile
