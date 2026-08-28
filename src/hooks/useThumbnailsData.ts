@@ -42,5 +42,11 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ logo_white_url }).eq('id', id)
   }, [])
 
-  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite }
+  const deleteThumbnail = useCallback(async (id: string) => {
+    setThumbnails((ts) => ts.filter((t) => t.id !== id))
+    const { error } = await supabase.from('thumbnails').delete().eq('id', id)
+    if (error) await refresh() // put it back if the delete was rejected
+  }, [refresh])
+
+  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail }
 }

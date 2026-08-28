@@ -41,7 +41,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite } = useThumbnailsData()
+  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -289,6 +289,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   const exportAll = () => runExport(thumbnails)
 
+  async function handleDelete(id: string, name: string) {
+    if (typeof window !== 'undefined' && !window.confirm(`Delete “${name}”?\nThis removes the thumbnail from the dashboard (the Figma source is untouched).`)) return
+    if (selectedId === id) setSelectedId(thumbnails.find((t) => t.id !== id)?.id ?? null)
+    await deleteThumbnail(id)
+  }
+
   // Quick per-thumbnail recolour (designer): set + persist the colour override.
   function recolorThumb(id: string, palette: PaletteMode, colorKey: string) {
     setOverrides((o) => {
@@ -376,24 +382,40 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
             const pp = paramsForThumb(t)
             return (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setSelectedId(t.id)
-                  setMobilePanel(null)
-                }}
-                className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
-                  t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
-                }`}
-              >
-                <div className="overflow-hidden rounded">
-                  {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
-                  <p className="text-[10px] text-zinc-500">{hasOv ? 'custom' : t.provider}</p>
-                </div>
-              </button>
+              <div key={t.id} className="group/item relative">
+                <button
+                  onClick={() => {
+                    setSelectedId(t.id)
+                    setMobilePanel(null)
+                  }}
+                  className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
+                    t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
+                  }`}
+                >
+                  <div className="overflow-hidden rounded">
+                    {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
+                  </div>
+                  <div className="min-w-0 flex-1 pr-6">
+                    <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
+                    <p className="text-[10px] text-zinc-500">{hasOv ? 'custom' : t.provider}</p>
+                  </div>
+                </button>
+                {isDesigner && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(t.id, t.name)
+                    }}
+                    title="Delete thumbnail"
+                    aria-label={`Delete ${t.name}`}
+                    className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-zinc-500 opacity-0 transition hover:bg-red-500/15 hover:text-red-400 focus:opacity-100 group-hover/item:opacity-100"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             )
           })}
         </div>
