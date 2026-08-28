@@ -447,11 +447,13 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
   // Below lg the side panels become bottom-sheet modals (toggled by the mobile
   // toolbar); at lg they revert to inline sidebars. `mobilePanel` picks which is open.
-  const sheetBase =
-    'fixed inset-x-2 bottom-2 top-16 z-40 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl ' +
-    'lg:static lg:inset-auto lg:bottom-auto lg:top-auto lg:z-auto lg:rounded-xl lg:shadow-none lg:bg-zinc-900/50'
-  const leftSheet = `${sheetBase} lg:max-h-none lg:w-[236px] lg:shrink-0 ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
-  const rightSheet = `${sheetBase} lg:max-h-none lg:w-[300px] lg:shrink-0 ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
+  const sheetChrome =
+    'z-40 flex-col overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl ' +
+    'lg:static lg:inset-auto lg:z-auto lg:rounded-xl lg:shadow-none lg:bg-zinc-900/50 lg:max-h-none lg:shrink-0'
+  // Thumbnails: near-full sheet. Controls: a bottom HALF sheet so the tapped
+  // thumbnail stays visible above while you edit.
+  const leftSheet = `fixed inset-x-2 bottom-2 top-16 rounded-2xl ${sheetChrome} lg:w-[236px] ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
+  const rightSheet = `fixed inset-x-0 bottom-0 top-[42vh] rounded-t-2xl ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
 
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
@@ -485,7 +487,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         <button
           aria-label="Close panel"
           onClick={() => setMobilePanel(null)}
-          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
         />
       )}
 
@@ -556,7 +558,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                           <button
                             onClick={() => {
                               setSelectedId(t.id)
-                              setMobilePanel(null)
+                              if (showScope) setScope('selected')
+                              setMobilePanel('controls') // mobile: open the edit half-sheet
                             }}
                             className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
                               t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
@@ -732,6 +735,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       }
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
+                      setMobilePanel('controls') // mobile: pop the edit half-sheet
                     }}
                     className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       selectMode && picked
@@ -789,8 +793,13 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
       {/* RIGHT — controls */}
       <aside className={rightSheet}>
+        <button
+          onClick={() => setMobilePanel(null)}
+          aria-label="Close editor"
+          className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-zinc-600 lg:hidden"
+        />
         <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5 lg:hidden">
-          <span className="text-sm font-medium">Edit</span>
+          <span className="text-sm font-medium">Edit{selected ? ` · ${selected.name}` : ''}</span>
           <button
             onClick={() => setMobilePanel(null)}
             className="grid h-6 w-6 place-items-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
