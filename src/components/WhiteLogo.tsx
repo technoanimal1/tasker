@@ -50,11 +50,18 @@ export function WhiteLogo({
       const { data, error: e } = await supabase.functions.invoke('logo-white', {
         body: { fileKey: fk, node, slug: thumb.slug, mode: engine },
       })
-      if (e || !data?.url) {
-        setError(data?.error || e?.message || 'White logo generation failed.')
+      // On a non-2xx, supabase-js gives a generic message; read the function's
+      // JSON body for the real reason (e.g. OpenAI out of credits).
+      let body: { error?: string; url?: string } | null = data ?? null
+      if (e && 'context' in e) {
+        try { body = await (e as unknown as { context: Response }).context.json() } catch { /* keep generic */ }
+      }
+      if (e || !body?.url) {
+        const raw = body?.error || e?.message || 'White logo generation failed.'
+        setError(/credit/i.test(raw) ? 'OpenAI is out of credits — add credits to generate white logos.' : raw)
       } else {
         // cache-bust: the storage path is stable, so version it so the new image shows
-        const busted = `${data.url}?v=${Date.now()}`
+        const busted = `${body.url}?v=${Date.now()}`
         await saveLogoWhite(thumb.id, busted)
         setUrl(busted)
       }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
@@ -58,6 +59,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [exportOpen, setExportOpen] = useState(false)
   const [showFrame, setShowFrame] = useState(true)
   const [mobilePanel, setMobilePanel] = useState<'thumbs' | 'controls' | null>(null)
+  // Bulk multi-select editor (grid): pick several, change size/variant/colour at once.
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkKv, setBulkKv] = useState(120)
+  const [bulkLogo, setBulkLogo] = useState(80)
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -311,6 +318,58 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     })
   }
 
+  // Pick the frame colour automatically from a thumbnail's background (bg-color fn).
+  async function autoColorThumb(t: (typeof thumbnails)[number]): Promise<boolean> {
+    if (!t.figma_file_key || !t.figma_bg_node) return false
+    const { data } = await supabase.functions.invoke('bg-color', {
+      body: { fileKey: t.figma_file_key, node: t.figma_bg_node },
+    })
+    const key = (data as { colorKey?: string })?.colorKey
+    if (!key) return false
+    recolorThumb(t.id, ((data as { palette?: PaletteMode }).palette ?? 'dark'), key)
+    return true
+  }
+
+  // ── Bulk (multi-select) helpers ──────────────────────────────────────────
+  function toggleSelected(id: string) {
+    setSelectedIds((s) => {
+      const n = new Set(s)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
+  }
+  function exitSelect() {
+    setSelectMode(false)
+    setSelectedIds(new Set())
+  }
+  async function bulkPatch(patch: ParamOverride) {
+    if (!selectedIds.size) return
+    setBulkBusy(true)
+    try {
+      for (const id of selectedIds) {
+        const cur = overrides[id] ?? {}
+        const next: ParamOverride = { ...cur, ...patch }
+        if (patch.logo) next.logo = { ...(cur.logo ?? {}), ...patch.logo }
+        setOverrides((o) => ({ ...o, [id]: next }))
+        await saveOverrides(id, next)
+      }
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+  async function bulkAutoColor() {
+    if (!selectedIds.size) return
+    setBulkBusy(true)
+    try {
+      for (const id of selectedIds) {
+        const t = thumbnails.find((x) => x.id === id)
+        if (t) await autoColorThumb(t)
+      }
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
   const p = activeParams
   // When a per-size layout is active it drives KV/logo placement; the legacy fine
   // sliders (KV Size/Lift, Logo X/Y/W/H) are then inert, so hide them and let the
@@ -460,6 +519,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 {playing ? '❚❚ Pause' : '▶ Play'}
               </button>
             )}
+            {!singleView && isDesigner && (
+              <button
+                onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${
+                  selectMode ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-200 hover:bg-zinc-800'
+                }`}
+                title="Select multiple thumbnails to edit in bulk"
+              >
+                {selectMode ? `✓ Selecting${selectedIds.size ? ` · ${selectedIds.size}` : ''}` : '☰ Select'}
+              </button>
+            )}
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value as ExportFormat)}
@@ -504,6 +574,23 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               backgroundSize: '22px 22px',
             }}
           >
+            {selectMode && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-accent/5 p-2 text-xs">
+                <span className="font-medium text-zinc-100">{selectedIds.size} selected</span>
+                <button onClick={() => setSelectedIds(new Set(thumbnails.map((t) => t.id)))} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">All</button>
+                <button onClick={() => setSelectedIds(new Set())} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">None</button>
+                <span className="mx-1 h-4 w-px bg-zinc-700" />
+                <span className="text-zinc-400">Logo</span>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'white' })} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40">White</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'color' })} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40">Colour</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40" title="Pick each frame colour from its background">🎨 Auto colour</button>
+                <span className="mx-1 h-4 w-px bg-zinc-700" />
+                <label className="flex items-center gap-1 text-zinc-300">KV<input type="range" min={20} max={300} value={bulkKv} onChange={(e) => setBulkKv(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkKv}%</span></label>
+                <label className="flex items-center gap-1 text-zinc-300">Logo<input type="range" min={20} max={200} value={bulkLogo} onChange={(e) => setBulkLogo(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkLogo}%</span></label>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ kvSizePct: bulkKv, logo: { wPct: bulkLogo / 100, hPct: (bulkLogo / 100) * 0.375 } })} className="rounded-md bg-accent px-2.5 py-1 font-medium text-white hover:bg-accent-dark disabled:opacity-40">Apply size</button>
+                {bulkBusy && <span className="text-zinc-400">working…</span>}
+              </div>
+            )}
             <div
               className="grid grid-cols-2 gap-3 sm:gap-4 lg:[grid-template-columns:repeat(auto-fill,minmax(var(--gw),1fr))]"
               style={{ '--gw': `${gridW}px` } as React.CSSProperties}
@@ -512,22 +599,40 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 const pp = paramsForThumb(t)
                 if (!pp) return null
                 const active = t.id === selectedId
+                const picked = selectedIds.has(t.id)
                 return (
                   <div
                     key={t.id}
                     onClick={() => {
+                      if (selectMode) {
+                        toggleSelected(t.id)
+                        return
+                      }
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
                     }}
                     className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
-                      active ? 'bg-zinc-800/60 ring-1 ring-zinc-600' : 'hover:bg-zinc-800/30'
+                      selectMode && picked
+                        ? 'bg-accent/10 ring-2 ring-accent'
+                        : active
+                          ? 'bg-zinc-800/60 ring-1 ring-zinc-600'
+                          : 'hover:bg-zinc-800/30'
                     }`}
-                    title={showScope ? 'Open in canvas' : t.name}
+                    title={selectMode ? 'Toggle selection' : showScope ? 'Open in canvas' : t.name}
                   >
+                    {selectMode && (
+                      <div
+                        className={`absolute left-3 top-3 z-10 grid h-5 w-5 place-items-center rounded-md border text-[11px] leading-none ${
+                          picked ? 'border-accent bg-accent text-white' : 'border-zinc-400 bg-black/50 text-transparent'
+                        }`}
+                      >
+                        ✓
+                      </div>
+                    )}
                     <div className="w-full overflow-hidden rounded-lg shadow-lg">
                       <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} showFrame={showFrame} />
                     </div>
-                    {isDesigner && (
+                    {isDesigner && !selectMode && (
                       <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">
                         <ThumbColorPicker
                           palette={pp.palette}
@@ -634,6 +739,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     />
                   ))}
                 </div>
+                {scope === 'selected' && selected && (
+                  <button
+                    onClick={() => autoColorThumb(selected)}
+                    className="w-full rounded-lg border border-zinc-700 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
+                    title="Pick the frame colour from this game's background"
+                  >
+                    🎨 Auto colour from background
+                  </button>
+                )}
                 {scope === 'selected' && (
                   <p className="text-[11px] text-zinc-500">Overrides the auto colour for this thumbnail · saved instantly.</p>
                 )}
@@ -663,7 +777,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
           {showDesignerSections && !layoutActive && (
             <Section title="Key visual">
-              <Slider label="Size" min={20} max={120} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
+              <Slider label="Size" min={20} max={300} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
               <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
             </Section>
           )}
@@ -676,11 +790,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <Row label="Key visual">
                   <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
                 </Row>
-                <Slider label="KV size" min={0.3} max={2} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Slider label="KV size" min={0.3} max={3} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                 <Row label="Logo">
                   <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
                 </Row>
-                <Slider label="Logo size" min={0.1} max={0.7} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Slider label="Logo size" min={0.1} max={1.4} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] text-zinc-500">
                     {scope === 'global' ? 'Saved per size · applies to all thumbnails.' : `Placement for “${selected?.name}” · this size.`}
@@ -783,8 +897,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <Section title="Logo placement">
               <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
               <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
-              <Slider label="Width" min={0.1} max={1} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
-              <Slider label="Height" min={0.05} max={0.6} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
+              <Slider label="Width" min={0.1} max={2} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
+              <Slider label="Height" min={0.05} max={1.5} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
             </Section>
           )}
 
