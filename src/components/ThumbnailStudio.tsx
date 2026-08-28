@@ -65,6 +65,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [bulkBusy, setBulkBusy] = useState(false)
   const [bulkKv, setBulkKv] = useState(120)
   const [bulkLogo, setBulkLogo] = useState(80)
+  // Left sidebar: provider dropdowns + game search.
+  const [sidebarSearch, setSidebarSearch] = useState('')
+  const [collapsedProviders, setCollapsedProviders] = useState<Set<string>>(new Set())
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -384,6 +387,21 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
 
+  // Sidebar: group games by provider (sorted), each group sorted by name.
+  const providerGroups = useMemo(() => {
+    const m = new Map<string, typeof thumbnails>()
+    for (const t of thumbnails) {
+      const key = t.provider || '—'
+      const arr = m.get(key) ?? []
+      arr.push(t)
+      m.set(key, arr)
+    }
+    return [...m.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([k, v]) => [k, v.slice().sort((a, b) => a.name.localeCompare(b.name))] as const)
+  }, [thumbnails])
+  const sidebarQuery = sidebarSearch.trim().toLowerCase()
+
   // Below lg the side panels become bottom-sheet modals (toggled by the mobile
   // toolbar); at lg they revert to inline sidebars. `mobilePanel` picks which is open.
   const sheetBase =
@@ -443,47 +461,98 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </button>
           </div>
         </div>
-        <div className="flex-1 space-y-1 overflow-y-auto p-2">
-          {thumbnails.map((t) => {
-            const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
-            const pp = paramsForThumb(t)
+        <div className="border-b border-zinc-800 p-2">
+          <div className="relative">
+            <svg className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+              <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <input
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
+              placeholder="Search games…"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-800/70 py-1.5 pl-8 pr-7 text-xs text-zinc-200 outline-none placeholder:text-zinc-500 focus:border-accent"
+            />
+            {sidebarSearch && (
+              <button onClick={() => setSidebarSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-zinc-500 hover:text-zinc-300">✕</button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 space-y-1.5 overflow-y-auto p-2">
+          {providerGroups.map(([provider, games]) => {
+            const shown = sidebarQuery ? games.filter((t) => t.name.toLowerCase().includes(sidebarQuery)) : games
+            if (sidebarQuery && shown.length === 0) return null
+            const open = !!sidebarQuery || !collapsedProviders.has(provider)
             return (
-              <div key={t.id} className="group/item relative">
+              <div key={provider}>
                 <button
-                  onClick={() => {
-                    setSelectedId(t.id)
-                    setMobilePanel(null)
-                  }}
-                  className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
-                    t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
-                  }`}
+                  onClick={() =>
+                    setCollapsedProviders((s) => {
+                      const n = new Set(s)
+                      n.has(provider) ? n.delete(provider) : n.add(provider)
+                      return n
+                    })
+                  }
+                  className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-zinc-300 transition hover:bg-zinc-800/50"
                 >
-                  <div className="overflow-hidden rounded">
-                    {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
-                  </div>
-                  <div className="min-w-0 flex-1 pr-6">
-                    <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
-                    <p className="text-[10px] text-zinc-500">{hasOv ? 'custom' : t.provider}</p>
-                  </div>
+                  <span className="flex items-center gap-1.5">
+                    <span className={`text-zinc-500 transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
+                    {provider}
+                  </span>
+                  <span className="rounded-full bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
+                    {sidebarQuery ? `${shown.length}/${games.length}` : games.length}
+                  </span>
                 </button>
-                {isDesigner && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(t.id, t.name)
-                    }}
-                    title="Delete thumbnail"
-                    aria-label={`Delete ${t.name}`}
-                    className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-zinc-500 opacity-0 transition hover:bg-red-500/15 hover:text-red-400 focus:opacity-100 group-hover/item:opacity-100"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
+                {open && (
+                  <div className="mt-0.5 space-y-0.5 pl-1">
+                    {shown.map((t) => {
+                      const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
+                      const pp = paramsForThumb(t)
+                      return (
+                        <div key={t.id} className="group/item relative">
+                          <button
+                            onClick={() => {
+                              setSelectedId(t.id)
+                              setMobilePanel(null)
+                            }}
+                            className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
+                              t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
+                            }`}
+                          >
+                            <div className="overflow-hidden rounded">
+                              {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
+                            </div>
+                            <div className="min-w-0 flex-1 pr-6">
+                              <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
+                              <p className="text-[10px] text-zinc-500">{hasOv ? 'custom' : t.provider}</p>
+                            </div>
+                          </button>
+                          {isDesigner && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(t.id, t.name)
+                              }}
+                              title="Delete thumbnail"
+                              aria-label={`Delete ${t.name}`}
+                              className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-zinc-500 opacity-0 transition hover:bg-red-500/15 hover:text-red-400 focus:opacity-100 group-hover/item:opacity-100"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
             )
           })}
+          {sidebarQuery && providerGroups.every(([, g]) => !g.some((t) => t.name.toLowerCase().includes(sidebarQuery))) && (
+            <p className="px-2 py-4 text-center text-xs text-zinc-500">No games match “{sidebarSearch}”.</p>
+          )}
         </div>
         <div className="border-t border-zinc-800 p-2">
           <button
