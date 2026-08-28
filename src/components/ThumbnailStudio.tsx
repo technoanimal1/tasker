@@ -1113,7 +1113,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {isDesigner && selected && <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />}
+          {/* AI white-logo remake only for games with NO Figma white variant. */}
+          {isDesigner && selected && !selected.figma_logo_white_node && (
+            <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />
+          )}
           {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} />}
 
           {showFrameSections && (
