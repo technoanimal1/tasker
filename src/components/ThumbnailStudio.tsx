@@ -42,7 +42,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail } = useThumbnailsData()
+  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -68,6 +68,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // Left sidebar: provider dropdowns + game search.
   const [sidebarSearch, setSidebarSearch] = useState('')
   const [collapsedProviders, setCollapsedProviders] = useState<Set<string>>(new Set())
+  // Undo stack for risky actions (delete / bulk / recolour).
+  const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -138,6 +140,20 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
   }, [playing, activeParams?.animEnabled, activeParams?.animSpeed])
+
+  // Cmd/Ctrl+Z → undo the last risky action.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        const tag = (e.target as HTMLElement | null)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        undo()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const globalDirty = useMemo(
     () => (template && params ? JSON.stringify(params) !== JSON.stringify(template.params) : false),
@@ -321,14 +337,36 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   const exportAll = () => runExport(thumbnails)
 
+  // ── Undo ─────────────────────────────────────────────────────────────────
+  function pushUndo(label: string, run: () => void | Promise<void>) {
+    setUndoStack((s) => [...s.slice(-49), { label, run }])
+  }
+  function undo() {
+    setUndoStack((s) => {
+      const entry = s[s.length - 1]
+      if (entry) Promise.resolve(entry.run())
+      return s.slice(0, -1)
+    })
+  }
+  function restoreOverride(id: string, prev: ParamOverride | undefined) {
+    setOverrides((o) => ({ ...o, [id]: prev ?? {} }))
+    saveOverrides(id, prev ?? {})
+  }
+
   async function handleDelete(id: string, name: string) {
     if (typeof window !== 'undefined' && !window.confirm(`Delete “${name}”?\nThis removes the thumbnail from the dashboard (the Figma source is untouched).`)) return
+    const snapshot = thumbnails.find((t) => t.id === id)
     if (selectedId === id) setSelectedId(thumbnails.find((t) => t.id !== id)?.id ?? null)
     await deleteThumbnail(id)
+    if (snapshot) pushUndo(`Deleted “${name}”`, () => insertThumbnail(snapshot))
   }
 
   // Quick per-thumbnail recolour (designer): set + persist the colour override.
-  function recolorThumb(id: string, palette: PaletteMode, colorKey: string) {
+  function recolorThumb(id: string, palette: PaletteMode, colorKey: string, record = true) {
+    if (record) {
+      const prev = overrides[id]
+      pushUndo('Recolour', () => restoreOverride(id, prev))
+    }
     setOverrides((o) => {
       const next = { ...(o[id] ?? {}), palette, colorKey }
       saveOverrides(id, next)
@@ -337,14 +375,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
 
   // Pick the frame colour automatically from a thumbnail's background (bg-color fn).
-  async function autoColorThumb(t: (typeof thumbnails)[number]): Promise<boolean> {
+  async function autoColorThumb(t: (typeof thumbnails)[number], record = true): Promise<boolean> {
     if (!t.figma_file_key || !t.figma_bg_node) return false
     const { data } = await supabase.functions.invoke('bg-color', {
       body: { fileKey: t.figma_file_key, node: t.figma_bg_node },
     })
     const key = (data as { colorKey?: string })?.colorKey
     if (!key) return false
-    recolorThumb(t.id, ((data as { palette?: PaletteMode }).palette ?? 'dark'), key)
+    recolorThumb(t.id, ((data as { palette?: PaletteMode }).palette ?? 'dark'), key, record)
     return true
   }
 
@@ -362,6 +400,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   async function bulkPatch(patch: ParamOverride) {
     if (!selectedIds.size) return
+    const prev = [...selectedIds].map((id) => [id, overrides[id]] as const)
+    pushUndo('Bulk edit', () => prev.forEach(([id, o]) => restoreOverride(id, o)))
     setBulkBusy(true)
     try {
       for (const id of selectedIds) {
@@ -377,11 +417,13 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
   async function bulkAutoColor() {
     if (!selectedIds.size) return
+    const prev = [...selectedIds].map((id) => [id, overrides[id]] as const)
+    pushUndo('Bulk auto-colour', () => prev.forEach(([id, o]) => restoreOverride(id, o)))
     setBulkBusy(true)
     try {
       for (const id of selectedIds) {
         const t = thumbnails.find((x) => x.id === id)
-        if (t) await autoColorThumb(t)
+        if (t) await autoColorThumb(t, false)
       }
     } finally {
       setBulkBusy(false)
@@ -572,6 +614,16 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
+            {isDesigner && (
+              <button
+                onClick={undo}
+                disabled={!undoStack.length}
+                title={undoStack.length ? `Undo: ${undoStack[undoStack.length - 1].label} (⌘Z)` : 'Nothing to undo'}
+                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
+              >
+                ↶ Undo
+              </button>
+            )}
             <button
               onClick={() => setShowFrame((v) => !v)}
               className={`rounded-lg border px-3 py-1.5 text-xs transition ${

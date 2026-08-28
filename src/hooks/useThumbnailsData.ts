@@ -48,5 +48,12 @@ export function useThumbnailsData() {
     if (error) await refresh() // put it back if the delete was rejected
   }, [refresh])
 
-  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail }
+  // Re-insert a previously deleted thumbnail (for undo).
+  const insertThumbnail = useCallback(async (t: Thumbnail) => {
+    setThumbnails((ts) => (ts.some((x) => x.id === t.id) ? ts : [...ts, t]))
+    const { error } = await supabase.from('thumbnails').insert(t as never)
+    if (error) await refresh()
+  }, [refresh])
+
+  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, deleteThumbnail, insertThumbnail }
 }
