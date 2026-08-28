@@ -645,7 +645,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             }}
           >
             {selectMode && (
-              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-accent/5 p-2 text-xs">
+              <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-zinc-900/95 p-2 text-xs shadow-lg backdrop-blur">
                 <span className="font-medium text-zinc-100">{selectedIds.size} selected</span>
                 <button onClick={() => setSelectedIds(new Set(thumbnails.map((t) => t.id)))} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">All</button>
                 <button onClick={() => setSelectedIds(new Set())} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">None</button>
