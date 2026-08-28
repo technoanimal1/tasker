@@ -70,6 +70,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [collapsedProviders, setCollapsedProviders] = useState<Set<string>>(new Set())
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
+  // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
+  const [sheetTopVh, setSheetTopVh] = useState(30)
+  const [sheetDragging, setSheetDragging] = useState(false)
+  const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
 
   const isDesigner = role === 'designer'
@@ -353,6 +357,29 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     saveOverrides(id, prev ?? {})
   }
 
+  // Mobile: open the controls half-sheet at 70%.
+  function openControls() {
+    setSheetTopVh(30)
+    setMobilePanel('controls')
+  }
+  // Drag the sheet handle to resize/maximize; release snaps to full / 70% / close.
+  function onSheetDown(e: React.PointerEvent) {
+    sheetDrag.current = { startY: e.clientY, startTop: sheetTopVh }
+    setSheetDragging(true)
+    ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+  }
+  function onSheetMove(e: React.PointerEvent) {
+    if (!sheetDrag.current) return
+    const dvh = ((e.clientY - sheetDrag.current.startY) / window.innerHeight) * 100
+    setSheetTopVh(Math.max(4, Math.min(92, sheetDrag.current.startTop + dvh)))
+  }
+  function onSheetUp() {
+    if (!sheetDrag.current) return
+    sheetDrag.current = null
+    setSheetDragging(false)
+    setSheetTopVh((t) => (t > 60 ? (setMobilePanel(null), 30) : t < 20 ? 6 : 30))
+  }
+
   async function handleDelete(id: string, name: string) {
     if (typeof window !== 'undefined' && !window.confirm(`Delete “${name}”?\nThis removes the thumbnail from the dashboard (the Figma source is untouched).`)) return
     const snapshot = thumbnails.find((t) => t.id === id)
@@ -453,7 +480,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // Thumbnails: near-full sheet. Controls: a bottom HALF sheet so the tapped
   // thumbnail stays visible above while you edit.
   const leftSheet = `fixed inset-x-2 bottom-2 top-16 rounded-2xl ${sheetChrome} lg:w-[236px] ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
-  const rightSheet = `fixed inset-x-0 bottom-0 top-[42vh] rounded-t-2xl ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
+  const rightSheet = `fixed inset-x-0 bottom-0 rounded-t-2xl ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
 
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
@@ -467,7 +494,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         </button>
         {!lockedForClient && (
           <button
-            onClick={() => setMobilePanel('controls')}
+            onClick={openControls}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/70 py-2 text-xs font-medium text-zinc-200"
           >
             ⚙ Edit
@@ -559,7 +586,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                             onClick={() => {
                               setSelectedId(t.id)
                               if (showScope) setScope('selected')
-                              setMobilePanel('controls') // mobile: open the edit half-sheet
+                              openControls()
                             }}
                             className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
                               t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
@@ -735,7 +762,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       }
                       setSelectedId(t.id)
                       if (showScope) setScope('selected')
-                      setMobilePanel('controls') // mobile: pop the edit half-sheet
+                      openControls()
                     }}
                     className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       selectMode && picked
@@ -792,13 +819,18 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </div>
 
       {/* RIGHT — controls */}
-      <aside className={rightSheet}>
-        <button
-          onClick={() => setMobilePanel(null)}
-          aria-label="Close editor"
-          className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-zinc-600 lg:hidden"
-        />
-        <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5 lg:hidden">
+      <aside className={rightSheet} style={{ top: `${sheetTopVh}vh`, transition: sheetDragging ? 'none' : 'top 0.22s ease' }}>
+        <div
+          onPointerDown={onSheetDown}
+          onPointerMove={onSheetMove}
+          onPointerUp={onSheetUp}
+          onPointerCancel={onSheetUp}
+          className="flex shrink-0 cursor-grab touch-none justify-center py-2.5 active:cursor-grabbing lg:hidden"
+          aria-label="Drag to resize (up to maximize, down to close)"
+        >
+          <div className="h-1.5 w-10 rounded-full bg-zinc-600" />
+        </div>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-3 pb-2.5 lg:hidden">
           <span className="text-sm font-medium">Edit{selected ? ` · ${selected.name}` : ''}</span>
           <button
             onClick={() => setMobilePanel(null)}
