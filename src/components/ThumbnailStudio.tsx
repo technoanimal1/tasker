@@ -25,6 +25,7 @@ import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
+import { LazyMount } from './LazyMount'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
@@ -593,7 +594,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                             }`}
                           >
                             <div className="overflow-hidden rounded">
-                              {pp && <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />}
+                              {pp && (
+                                <LazyMount w={52} h={(52 * frameSize(pp.sizeKey).h) / frameSize(pp.sizeKey).w} rootMargin="300px">
+                                  <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />
+                                </LazyMount>
+                              )}
                             </div>
                             <div className="min-w-0 flex-1 pr-6">
                               <p className="truncate text-xs font-medium text-zinc-200">{t.name}</p>
@@ -783,7 +788,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       </div>
                     )}
                     <div className="w-full overflow-hidden rounded-lg shadow-lg">
-                      <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} showFrame={showFrame} />
+                      {(() => {
+                        const fr = frameSize(pp.sizeKey)
+                        return (
+                          <LazyMount w={gridW} h={(gridW * fr.h) / fr.w}>
+                            <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={gridW} phase={previewPhase} showFrame={showFrame} />
+                          </LazyMount>
+                        )
+                      })()}
                     </div>
                     {isDesigner && !selectMode && (
                       <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">

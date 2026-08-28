@@ -149,6 +149,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             <img
               src={kv}
               draggable={false}
+              loading="lazy"
+              decoding="async"
               style={{
                 position: 'absolute',
                 left: kvBox.x,
@@ -210,6 +212,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               <img
                 src={logo}
                 draggable={false}
+                loading="lazy"
+                decoding="async"
                 style={{
                   position: 'absolute',
                   left: logoBox.x,
