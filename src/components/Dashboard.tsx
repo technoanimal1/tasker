@@ -9,6 +9,8 @@ import { FramesView } from './FramesView'
 import { TemplateView } from './TemplateView'
 import { BranchMenu } from './BranchMenu'
 import { ThumbnailStudio } from './ThumbnailStudio'
+import { useEntitlements } from '../hooks/useEntitlements'
+import { ClientOnboarding } from './ClientOnboarding'
 
 type View = 'studio' | 'template' | 'frames' | 'assets'
 
@@ -17,6 +19,9 @@ export function Dashboard() {
   const { role } = useProfile()
   const branchesApi = useBranches()
   const assetsApi = useBrandAssets()
+  const ent = useEntitlements()
+  const clientLoading = role === 'client' && ent.loading
+  const needsOnboarding = role === 'client' && !ent.loading && ent.entitlements.length === 0
 
   const [view, setView] = useState<View>('studio')
   const [branchId, setBranchId] = useState<string | null>(null)
@@ -95,8 +100,12 @@ export function Dashboard() {
         </div>
       </header>
 
-      <main className={view === 'studio' ? 'px-4 py-4' : 'mx-auto max-w-7xl px-4 py-6'}>
-        {view === 'studio' ? (
+      <main className={needsOnboarding || clientLoading ? 'mx-auto max-w-7xl px-4 py-6' : view === 'studio' ? 'px-4 py-4' : 'mx-auto max-w-7xl px-4 py-6'}>
+        {clientLoading ? (
+          <div className="py-20 text-center text-slate-500">Loading…</div>
+        ) : needsOnboarding ? (
+          <ClientOnboarding providers={ent.providers} onChoose={ent.chooseFreeProvider} />
+        ) : view === 'studio' ? (
           <ThumbnailStudio role={role ?? 'client'} branch={branch} saveFrameParams={branchesApi.saveFrameParams} />
         ) : view === 'template' ? (
           <TemplateView />
