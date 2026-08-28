@@ -710,6 +710,21 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         />
                       </div>
                     )}
+                    {isDesigner && !selectMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(t.id, t.name)
+                        }}
+                        title="Remove thumbnail"
+                        aria-label={`Remove ${t.name}`}
+                        className="absolute left-3 top-3 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/50 text-zinc-200 opacity-0 shadow-md transition hover:bg-red-500/80 hover:text-white group-hover:opacity-100"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    )}
                     <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
                   </div>
                 )
@@ -966,8 +981,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <Section title="Logo placement">
               <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
               <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
-              <Slider label="Width" min={0.1} max={2} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v })} fmt={pctFmt} />
-              <Slider label="Height" min={0.05} max={1.5} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v })} fmt={pctFmt} />
+              <Slider label="Width" min={0.1} max={2} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v, xPct: p.logo.xPct + (p.logo.wPct - v) / 2 })} fmt={pctFmt} />
+              <Slider label="Height" min={0.05} max={1.5} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v, yPct: p.logo.yPct + (p.logo.hPct - v) / 2 })} fmt={pctFmt} />
             </Section>
           )}
 

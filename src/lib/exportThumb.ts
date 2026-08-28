@@ -163,9 +163,9 @@ function drawFrame(
     kvH = H * 0.88
   } else {
     kvH = H * (params.kvSizePct / 100)
-    kvX = 0
+    kvW = W * (params.kvSizePct / 100)
+    kvX = (W - kvW) / 2
     kvY = H - kvH - H * (params.kvBottomPct / 100)
-    kvW = W
   }
   const kvDX = m.kvDXFrac * W
   const kvDY = m.kvDYFrac * H

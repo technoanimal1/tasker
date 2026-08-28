@@ -50,6 +50,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const contentInset = frameOn && params.strokePos === 'outside' ? strokeW + strokePad : 0
 
   const kvBoxH = H * (params.kvSizePct / 100)
+  // Width scales with the size too (not fixed to the frame width), so a KV that
+  // has filled the frame width keeps growing instead of capping. Centered.
+  const kvBoxW = W * (params.kvSizePct / 100)
   const kvTop = H - kvBoxH - H * (params.kvBottomPct / 100)
 
   // Layout: a saved per-size alignment layout wins; else auto (landscape splits
@@ -60,7 +63,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
     ? layoutBoxes(layout, W, H).kv
     : landscape
       ? { x: 0, y: H * 0.06, w: W * 0.52, h: H * 0.88 }
-      : { x: 0, y: kvTop, w: W, h: kvBoxH }
+      : { x: (W - kvBoxW) / 2, y: kvTop, w: kvBoxW, h: kvBoxH }
   const logoBox = layout
     ? layoutBoxes(layout, W, H).logo
     : landscape
