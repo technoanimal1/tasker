@@ -83,7 +83,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // The composited params used to render a given thumbnail (list, preview, export).
   // The active branch's frame design (frame_params) is layered on for every branch;
   // while editing a client branch we use the live draft so changes preview instantly.
-  const activeFrameParams = editingBranch ? frameParams : ((branch?.frame_params as ParamOverride) ?? {})
+  // The default (main) branch never overlays the template — the template *is* the
+  // main design, so frame keys like cornerMode/stroke edit it directly. Only a
+  // client branch layers its own frame_params on top.
+  const activeFrameParams = editingBranch
+    ? frameParams
+    : branch && !branch.is_default
+      ? ((branch.frame_params as ParamOverride) ?? {})
+      : {}
   const paramsForThumb = useMemo(() => {
     return (t: (typeof thumbnails)[number]): TemplateParams | null => {
       if (!params) return null

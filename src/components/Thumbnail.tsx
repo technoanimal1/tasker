@@ -239,7 +239,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             style={{
               position: 'absolute',
               ...providerPlacement(params.providerPos, params.providerMarginX * k, params.providerMarginY * k),
-              background: color.blur,
+              // Provider badge shares the frame's stroke colour (one colour drives both).
+              background: color.stroke,
               color: '#ffffff',
               font: `700 ${W * 0.025 * params.providerScale}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
@@ -247,7 +248,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               borderRadius: provRadius,
               whiteSpace: 'nowrap',
               lineHeight: 1.15,
-              boxShadow: `0 0 ${W * 0.06}px ${hexA(color.blur, 0.75)}`,
+              boxShadow: `0 0 ${W * 0.06}px ${hexA(color.stroke, 0.75)}`,
             }}
           >
             {params.providerName.trim() || thumb.provider}
