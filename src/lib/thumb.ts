@@ -28,12 +28,24 @@ export function alignBox(align: Align9, W: number, H: number, w: number, h: numb
 }
 
 /** Compute key-visual and logo boxes from a per-size layout. Centered anchors
- *  span wide; side anchors take ~half width (so KV-left / logo-right works). */
+ *  span wide; side anchors take ~half width (so KV-left / logo-right works).
+ *
+ *  The box height is driven by the size slider (kvScale / logoScale). Its width
+ *  used to be hard-capped (0.92·W for KV, 0.82·W for logo), which walled off any
+ *  art already as wide as that cap: pushing the size slider only grew height, so
+ *  a width-bound key visual or a wide logo could never get bigger and always sat
+ *  inside a fixed left/right "safe area". We now let the width grow with the size
+ *  slider once it passes that cap, so the art can scale up and bleed to (past)
+ *  the edges. The cap stays the floor, so existing tuned layouts are unchanged. */
 export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
   const kvCentered = layout.kvAlign[1] === 'c'
-  const kv = alignBox(layout.kvAlign, W, H, kvCentered ? W * 0.92 : W * 0.5, layout.kvScale * H)
+  const kvW = kvCentered ? W * Math.max(0.92, layout.kvScale) : W * 0.5
+  const kv = alignBox(layout.kvAlign, W, H, kvW, layout.kvScale * H)
   const lgCentered = layout.logoAlign[1] === 'c'
-  const logo = alignBox(layout.logoAlign, W, H, lgCentered ? W * 0.82 : W * 0.46, layout.logoScale * H)
+  // Logos are wide, so their width binds well before their height; scale the
+  // width faster than the height (×2.2) so "Logo size" visibly enlarges them.
+  const lgW = lgCentered ? W * Math.max(0.82, layout.logoScale * 2.2) : W * 0.46
+  const logo = alignBox(layout.logoAlign, W, H, lgW, layout.logoScale * H)
   return { kv, logo }
 }
 
