@@ -40,16 +40,27 @@ export function alignBox(align: Align9, W: number, H: number, w: number, h: numb
 export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
   const kvCentered = layout.kvAlign[1] === 'c'
   // Width follows the size slider (past a per-anchor baseline) for EVERY anchor,
-  // so nothing is width-capped: the art keeps growing as the size slider goes up,
-  // while the alignment anchor stays put (size isn't tied to position).
+  // so nothing is width-capped: the art keeps growing as the size slider goes up.
   const kvW = W * Math.max(kvCentered ? 0.92 : 0.5, layout.kvScale)
-  const kv = alignBox(layout.kvAlign, W, H, kvW, layout.kvScale * H)
+  const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H)
   const lgCentered = layout.logoAlign[1] === 'c'
   // Logos are wide, so their width binds well before their height; scale the
   // width faster than the height (×2.2) so "Logo size" visibly enlarges them.
   const lgW = W * Math.max(lgCentered ? 0.82 : 0.46, layout.logoScale * 2.2)
-  const logo = alignBox(layout.logoAlign, W, H, lgW, layout.logoScale * H)
+  const logo = anchorCenterBox(layout.logoAlign, W, H, lgW, layout.logoScale * H)
   return { kv, logo }
+}
+
+/** Place a w×h box CENTERED on the alignment's anchor point, so changing the
+ *  size grows the box symmetrically around that point — the art stays put as you
+ *  resize (position is independent of size), instead of drifting because an edge
+ *  was pinned. The 9-point alignment picks the anchor point; size never moves it. */
+export function anchorCenterBox(align: Align9, W: number, H: number, w: number, h: number) {
+  const col = align[1]
+  const row = align[0]
+  const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) * W
+  const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) * H
+  return { x: cx - w / 2, y: cy - h / 2, w, h }
 }
 
 /** A sensible starting layout for a size, based on its orientation. */
