@@ -1221,10 +1221,18 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
                 </Row>
                 <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <div className="grid grid-cols-2 gap-2">
+                  <Slider label="KV X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                  <Slider label="KV Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                </div>
                 <Row label="Logo">
                   <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
                 </Row>
                 <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <div className="grid grid-cols-2 gap-2">
+                  <Slider label="Logo X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => setLayout({ logoDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                  <Slider label="Logo Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => setLayout({ logoDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+                </div>
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] text-zinc-500">
                     {scope === 'global' ? 'Saved per size · applies to all thumbnails.' : `Placement for “${selected?.name}” · this size.`}

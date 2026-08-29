@@ -42,24 +42,24 @@ export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
   // Width follows the size slider (past a per-anchor baseline) for EVERY anchor,
   // so nothing is width-capped: the art keeps growing as the size slider goes up.
   const kvW = W * Math.max(kvCentered ? 0.92 : 0.5, layout.kvScale)
-  const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H)
+  const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H, layout.kvDX ?? 0, layout.kvDY ?? 0)
   const lgCentered = layout.logoAlign[1] === 'c'
   // Logos are wide, so their width binds well before their height; scale the
   // width faster than the height (×2.2) so "Logo size" visibly enlarges them.
   const lgW = W * Math.max(lgCentered ? 0.82 : 0.46, layout.logoScale * 2.2)
-  const logo = anchorCenterBox(layout.logoAlign, W, H, lgW, layout.logoScale * H)
+  const logo = anchorCenterBox(layout.logoAlign, W, H, lgW, layout.logoScale * H, layout.logoDX ?? 0, layout.logoDY ?? 0)
   return { kv, logo }
 }
 
-/** Place a w×h box CENTERED on the alignment's anchor point, so changing the
- *  size grows the box symmetrically around that point — the art stays put as you
- *  resize (position is independent of size), instead of drifting because an edge
- *  was pinned. The 9-point alignment picks the anchor point; size never moves it. */
-export function anchorCenterBox(align: Align9, W: number, H: number, w: number, h: number) {
+/** Place a w×h box CENTERED on the alignment's anchor point (plus a fine X/Y
+ *  offset as a fraction of W/H), so changing the size grows the box symmetrically
+ *  around that point — the art stays put as you resize (position is independent
+ *  of size). The 9-point alignment picks the anchor; the offset nudges it. */
+export function anchorCenterBox(align: Align9, W: number, H: number, w: number, h: number, dx = 0, dy = 0) {
   const col = align[1]
   const row = align[0]
-  const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) * W
-  const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) * H
+  const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) * W + dx * W
+  const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) * H + dy * H
   return { x: cx - w / 2, y: cy - h / 2, w, h }
 }
 
@@ -89,6 +89,11 @@ export interface SizeLayout {
   kvScale: number // key-visual height as a fraction of frame height
   logoAlign: Align9
   logoScale: number // logo box height as a fraction of frame height
+  // Fine offset from the anchor point, as a fraction of frame W/H (default 0).
+  kvDX?: number
+  kvDY?: number
+  logoDX?: number
+  logoDY?: number
 }
 /** Which edge the light band sits on (and the direction it fades from). */
 export type GradDir = 'bottom' | 'top' | 'left' | 'right'

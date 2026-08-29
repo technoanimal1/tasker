@@ -66,8 +66,10 @@ export function TemplateView() {
     return <div className="py-20 text-center text-zinc-500">Loading template…</div>
   }
 
-  // Fit the preview card to the available width (min so it never overflows).
-  const previewW = Math.max(220, Math.min(360, vw - 96))
+  // Desktop shows a large preview; mobile pins a small tile so you can watch the
+  // design change while the controls scroll beneath it.
+  const isWide = vw >= 1024
+  const previewW = isWide ? 360 : 150
 
   const sizeKey = params.sizeKey
   const lay = params.layouts?.[sizeKey] ?? defaultLayout(sizeKey)
@@ -135,7 +137,7 @@ export function TemplateView() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* preview */}
         <div
-          className="flex min-h-[420px] items-center justify-center rounded-2xl border border-zinc-800 p-4 sm:min-h-[520px] sm:p-8"
+          className="sticky top-2 z-20 flex min-h-0 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950/85 p-3 backdrop-blur lg:static lg:min-h-[520px] lg:bg-transparent lg:p-8 lg:backdrop-blur-0"
           style={{ backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)', backgroundSize: '22px 22px' }}
         >
           {sample ? (
@@ -171,6 +173,10 @@ export function TemplateView() {
               <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
             </Row>
             <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <div className="grid grid-cols-2 gap-2">
+              <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => setLayout({ logoDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+              <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => setLayout({ logoDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            </div>
           </Section>
 
           <Section title={`Key visual · ${sizeKey}`}>
@@ -178,6 +184,10 @@ export function TemplateView() {
               <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
             </Row>
             <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <div className="grid grid-cols-2 gap-2">
+              <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+              <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            </div>
           </Section>
 
           <Section title={`Gradient · ${sizeKey}`}>
