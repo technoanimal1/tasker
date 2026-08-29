@@ -15,10 +15,12 @@ import {
   resolveGrad,
   withDefaults,
   type Align9,
+  type AssetUrls,
   type GradientParams,
   type ParamOverride,
   type SizeLayout,
   type TemplateParams,
+  type Thumbnail,
 } from '../lib/thumb'
 import { PALETTES, type PaletteMode } from '../lib/palettes'
 import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
@@ -395,9 +397,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     saveOverrides(id, prev ?? {})
   }
 
-  // Mobile: open the controls half-sheet at 70%.
+  // Mobile: open the controls sheet tall (top at 12vh → ~88vh sheet) so the
+  // pinned live preview sits above a comfortable scrolling controls area.
   function openControls() {
-    setSheetTopVh(30)
+    setSheetTopVh(12)
     setMobilePanel('controls')
   }
   // Drag the sheet handle to resize/maximize; release snaps to full / 70% / close.
@@ -1056,6 +1059,30 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             ✕
           </button>
         </div>
+
+        {/* Mobile: pinned live preview of the thumbnail being edited. Stays fixed
+            at the top of the sheet while the controls below scroll, so slider and
+            colour changes are visible as you make them. Hidden on lg (the desktop
+            canvas already shows the live preview). */}
+        {selected && selectedParams && (
+          <div
+            className="shrink-0 border-b border-zinc-800 lg:hidden"
+            style={{
+              height: '38vh',
+              backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
+              backgroundSize: '22px 22px',
+            }}
+          >
+            <FitPreview
+              thumb={selected}
+              params={selectedParams}
+              assets={assetsFor(selected)}
+              showFrame={showFrame}
+              phase={previewPhase}
+            />
+          </div>
+        )}
+
         <div className="border-b border-zinc-800 p-3">
           {editingBranch ? (
             <>
@@ -1377,6 +1404,52 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           cancelRef.current = true
         }}
       />
+    </div>
+  )
+}
+
+/**
+ * Renders a thumbnail scaled to fit ("contain") inside whatever box it's given,
+ * preserving aspect ratio for any frame size. Used for the pinned mobile editor
+ * preview: it fills the fixed preview area at the top of the controls sheet and
+ * updates live as params change.
+ */
+function FitPreview({
+  thumb,
+  params,
+  assets,
+  showFrame,
+  phase,
+}: {
+  thumb: Thumbnail
+  params: TemplateParams
+  assets: AssetUrls
+  showFrame: boolean
+  phase: number
+}) {
+  const fr = frameSize(params.sizeKey)
+  const ref = useRef<HTMLDivElement>(null)
+  const [box, setBox] = useState({ w: 0, h: 0 })
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0]?.contentRect
+      if (r) setBox({ w: r.width, h: r.height })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  // Contain within the box: width capped by both the box width and the width
+  // implied by the box height at the frame's aspect ratio.
+  const dw = box.w && box.h ? Math.floor(Math.min(box.w, (box.h * fr.w) / fr.h)) : 0
+  return (
+    <div ref={ref} className="flex h-full w-full items-center justify-center p-3">
+      {dw > 0 && (
+        <div className="overflow-hidden rounded-lg shadow-2xl">
+          <ThumbnailCard thumb={thumb} params={params} assets={assets} displayW={dw} phase={phase} showFrame={showFrame} />
+        </div>
+      )}
     </div>
   )
 }
