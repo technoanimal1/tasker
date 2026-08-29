@@ -112,6 +112,23 @@ export interface GradientParams {
 export type ProviderPos = 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export const PROVIDER_POSITIONS: ProviderPos[] = ['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
 
+/** How the provider badge text is cased, so mixed source names (NETENT vs
+ *  Spribe) can be normalised to one consistent style across the product. */
+export type ProviderCase = 'as-is' | 'upper' | 'title' | 'lower'
+export const PROVIDER_CASES: ProviderCase[] = ['as-is', 'title', 'upper', 'lower']
+export function applyCase(text: string, mode: ProviderCase): string {
+  switch (mode) {
+    case 'upper':
+      return text.toUpperCase()
+    case 'lower':
+      return text.toLowerCase()
+    case 'title':
+      return text.toLowerCase().replace(/\b[\p{L}\p{N}]/gu, (c) => c.toUpperCase())
+    default:
+      return text
+  }
+}
+
 export interface TemplateParams {
   sizeKey: string
   cornerMode: 'sharp' | 'friendly' | 'playful'
@@ -145,6 +162,7 @@ export interface TemplateParams {
   showProvider: boolean
   providerPos: ProviderPos
   providerName: string // overrides each thumbnail's provider text when non-empty
+  providerCase: ProviderCase // normalise the badge text casing (default as-is)
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
   providerPadX: number // px @244 ref
   providerPadY: number
@@ -199,6 +217,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   showProvider: true,
   providerPos: 'bottom',
   providerName: '',
+  providerCase: 'as-is',
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
   providerPadX: 0,
   providerPadY: 0,
@@ -292,7 +311,7 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
   'strokeWidth', 'strokePad', 'strokePos',
-  'showProvider', 'providerPos', 'providerName', 'providerRadius', 'providerPadX', 'providerPadY',
+  'showProvider', 'providerPos', 'providerName', 'providerCase', 'providerRadius', 'providerPadX', 'providerPadY',
   'providerScale', 'providerMarginX', 'providerMarginY',
   'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct', 'gradients',
   'logoVariant', 'textLogo', 'fontFamily',

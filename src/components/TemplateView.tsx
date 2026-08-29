@@ -6,6 +6,7 @@ import {
   ALIGN9,
   FRAME_SIZES,
   GRAD_DIRS,
+  PROVIDER_CASES,
   PROVIDER_POSITIONS,
   defaultLayout,
   resolveGrad,
@@ -245,6 +246,19 @@ export function TemplateView() {
                 {PROVIDER_POSITIONS.map((pos) => (
                   <option key={pos} value={pos}>
                     {pos}
+                  </option>
+                ))}
+              </select>
+            </Row>
+            <Row label="Text case">
+              <select
+                value={params.providerCase ?? 'as-is'}
+                onChange={(e) => setP({ providerCase: e.target.value as TemplateParams['providerCase'] })}
+                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+              >
+                {PROVIDER_CASES.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'as-is' ? 'As is' : c === 'title' ? 'Title Case' : c === 'upper' ? 'UPPERCASE' : 'lowercase'}
                   </option>
                 ))}
               </select>

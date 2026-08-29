@@ -6,6 +6,7 @@ import { AlphaVideo } from './AlphaVideo'
 import {
   CORNER_MODES,
   CORNER_REF,
+  applyCase,
   bandStops,
   frameSize,
   hexA,
@@ -285,7 +286,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               boxShadow: `0 0 ${W * 0.06}px ${hexA(color.stroke, 0.75)}`,
             }}
           >
-            {params.providerName.trim() || thumb.provider}
+            {applyCase(params.providerName.trim() || thumb.provider, params.providerCase ?? 'as-is')}
           </div>
         )}
         </div>
