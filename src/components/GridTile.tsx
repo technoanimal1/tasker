@@ -39,8 +39,6 @@ export function GridTile({
   onNeedAssets?: () => void
 }) {
   const fr = frameSize(params.sizeKey)
-  const w = gridW
-  const h = (gridW * fr.h) / fr.w
 
   const sig = previewSig(params, thumb, showFrame)
   const fresh = !!thumb.preview_url && thumb.preview_sig === sig
@@ -48,6 +46,20 @@ export function GridTile({
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
   const [liveReady, setLiveReady] = useState(false)
+  // The tile fills its grid cell and scales to that width, so it's fully visible
+  // and responsive (2-up on mobile, more on wider screens) instead of overflowing.
+  const [cw, setCw] = useState(gridW)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width
+      if (width && Math.abs(width - cw) > 0.5) setCw(width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [cw])
+  const h = (cw * fr.h) / fr.w
 
   // Observe visibility (pre-load a screen ahead), then stay mounted.
   useEffect(() => {
@@ -97,7 +109,7 @@ export function GridTile({
   }, [canBake, visible, fresh, sig])
 
   return (
-    <div ref={ref} style={{ position: 'relative', width: w, height: h }}>
+    <div ref={ref} style={{ position: 'relative', width: '100%', height: h }}>
       {/* instant WebP underlay (fresh or stale-but-useful) */}
       {thumb.preview_url && (
         <img
@@ -126,7 +138,7 @@ export function GridTile({
       {showLive && (
         <div style={{ position: 'absolute', inset: 0, opacity: liveReady || !thumb.preview_url ? 1 : 0 }}>
           <LiveCardReady onReady={() => setLiveReady(true)}>
-            <ThumbnailCard thumb={thumb} params={params} assets={assets} displayW={gridW} phase={phase} showFrame={showFrame} />
+            <ThumbnailCard thumb={thumb} params={params} assets={assets} displayW={cw} phase={phase} showFrame={showFrame} />
           </LiveCardReady>
         </div>
       )}
