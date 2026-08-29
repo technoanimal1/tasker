@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
+import { computeOpaqueCenter, opaqueCenterCached, type Center } from '../lib/opaqueCenter'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
 import { motionAt } from '../lib/animate'
 import { AlphaVideo } from './AlphaVideo'
@@ -179,20 +180,11 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           />
         ) : (
           kv && (
-            <img
+            <ContainImg
               src={kv}
-              draggable={false}
-              loading="lazy"
-              decoding="async"
-              style={{
-                position: 'absolute',
-                left: kvBox.x,
-                top: kvBox.y,
-                width: kvBox.w,
-                height: kvBox.h,
-                objectFit: 'contain',
-                transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
-              }}
+              box={kvBox}
+              autoCenter={params.kvAutoCenter ?? true}
+              transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`}
             />
           )
         )}
@@ -310,6 +302,69 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * Draws an image "contained" inside a box. With `autoCenter` it centres the
+ * image's *visible artwork* (opaque pixels) on the box centre instead of its
+ * transparent bounding box — so scaling the KV up keeps the subject put rather
+ * than drifting when the source PNG has uneven padding. Falls back to plain
+ * object-fit:contain until (or unless) the artwork centre is known.
+ */
+function ContainImg({
+  src,
+  box,
+  autoCenter,
+  transform,
+}: {
+  src: string
+  box: { x: number; y: number; w: number; h: number }
+  autoCenter: boolean
+  transform?: string
+}) {
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null)
+  const [ctr, setCtr] = useState<Center>(opaqueCenterCached(src) ?? { cx: 0.5, cy: 0.5 })
+  useEffect(() => {
+    let live = true
+    const img = new Image()
+    img.onload = () => live && setNat({ w: img.naturalWidth, h: img.naturalHeight })
+    img.src = src
+    if (autoCenter) {
+      const c = opaqueCenterCached(src)
+      if (c) setCtr(c)
+      else computeOpaqueCenter(src).then((r) => live && setCtr(r))
+    }
+    return () => {
+      live = false
+    }
+  }, [src, autoCenter])
+
+  const common: CSSProperties = { position: 'absolute', transform }
+  if (!autoCenter || !nat) {
+    return (
+      <img
+        src={src}
+        draggable={false}
+        loading="lazy"
+        decoding="async"
+        style={{ ...common, left: box.x, top: box.y, width: box.w, height: box.h, objectFit: 'contain' }}
+      />
+    )
+  }
+  const s = Math.min(box.w / nat.w, box.h / nat.h)
+  const rw = nat.w * s
+  const rh = nat.h * s
+  const left = box.x + box.w / 2 - ctr.cx * rw
+  const top = box.y + box.h / 2 - ctr.cy * rh
+  return (
+    <img
+      src={src}
+      draggable={false}
+      loading="lazy"
+      decoding="async"
+      style={{ ...common, left, top, width: rw, height: rh }}
+    />
   )
 }
 

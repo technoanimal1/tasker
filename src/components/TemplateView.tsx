@@ -214,6 +214,14 @@ export function TemplateView() {
               <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
               <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
             </div>
+            <Row label="Center on artwork">
+              <input
+                type="checkbox"
+                checked={params.kvAutoCenter ?? true}
+                onChange={(e) => setP({ kvAutoCenter: e.target.checked })}
+                className="h-4 w-4 accent-accent"
+              />
+            </Row>
           </Section>
 
           <Section title={`Gradient · ${sizeKey}`}>

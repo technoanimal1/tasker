@@ -2,6 +2,7 @@ import { figmaProxyUrl, assetUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
+import { opaqueCenterFromImage } from './opaqueCenter'
 import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -176,7 +177,16 @@ function drawFrame(
   if (assets.kvVideo) {
     drawFitSource(ctx, assets.kvVideo, assets.kvVideo.videoWidth, assets.kvVideo.videoHeight, kvX + kvDX, kvY + kvDY, kvW, kvH)
   } else if (kv) {
-    drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
+    if (params.kvAutoCenter ?? true) {
+      // Centre on the visible artwork (matches Thumbnail.tsx ContainImg).
+      const c = opaqueCenterFromImage(kv)
+      const r = Math.min(kvW / kv.naturalWidth, kvH / kv.naturalHeight)
+      const dw = kv.naturalWidth * r
+      const dh = kv.naturalHeight * r
+      ctx.drawImage(kv, kvX + kvDX + kvW / 2 - c.cx * dw, kvY + kvDY + kvH / 2 - c.cy * dh, dw, dh)
+    } else {
+      drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
+    }
   }
 
   // light band

@@ -137,6 +137,7 @@ export interface TemplateParams {
   bgScale: number // zoom on top of cover-fill (always centered)
   kvSizePct: number // key visual height as % of frame height (bottom-anchored, centered)
   kvBottomPct: number // extra offset from the bottom, % of frame height
+  kvAutoCenter: boolean // centre the KV on its visible artwork (ignore transparent padding)
   logo: { xPct: number; yPct: number; wPct: number; hPct: number }
   /** Per-breakpoint alignment layout (designer-only). Absent size = auto layout. */
   layouts?: Record<string, SizeLayout>
@@ -197,6 +198,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   bgScale: 1.0,
   kvSizePct: 70,
   kvBottomPct: 0,
+  kvAutoCenter: true,
   logo: { xPct: 0.1, yPct: 0.55, wPct: 0.8, hPct: 0.3 },
   logoVariant: 'color',
   textLogo: false,
@@ -296,7 +298,7 @@ export function effectiveParams(base: TemplateParams, ov?: ParamOverride | null)
 /** Keys that can be overridden per-thumbnail (subset of the editor controls). */
 export const OVERRIDABLE: (keyof TemplateParams)[] = [
   'bgScale',
-  'kvSizePct', 'kvBottomPct',
+  'kvSizePct', 'kvBottomPct', 'kvAutoCenter',
   'logo', 'logoVariant',
   'palette', 'colorKey',
 ]
@@ -305,7 +307,7 @@ export const OVERRIDABLE: (keyof TemplateParams)[] = [
 // Designer-only: brand-defining choices set on the main template.
 export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
   'bgScale',
-  'kvSizePct', 'kvBottomPct',
+  'kvSizePct', 'kvBottomPct', 'kvAutoCenter',
   'logo',
   'palette', 'colorKey',
 ]

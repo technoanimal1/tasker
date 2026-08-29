@@ -1261,6 +1261,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   <Slider label="KV X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                   <Slider label="KV Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
                 </div>
+                <Row label="Center on artwork">
+                  <input
+                    type="checkbox"
+                    checked={p.kvAutoCenter ?? true}
+                    onChange={(e) => set('kvAutoCenter', e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                </Row>
                 <Row label="Logo">
                   <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
                 </Row>
@@ -1289,6 +1297,20 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <Row label="Text logo">
                 <input type="checkbox" checked={p.textLogo} onChange={(e) => set('textLogo', e.target.checked)} />
               </Row>
+              {/* One tap: stacked white word-per-line text logotype (readable). */}
+              <button
+                onClick={() => {
+                  set('textLogo', true)
+                  set('textAllCaps', true)
+                  set('textFillLines', true)
+                  set('textMaxLines', 4)
+                  set('textAlign', 'center')
+                  set('textColorMode', 'white')
+                }}
+                className="w-full rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
+              >
+                ⬍ Vertical white logotype
+              </button>
               {p.textLogo && (
                 <>
                   <Row label="Font">
@@ -1409,10 +1431,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </Section>
           )}
 
-          {/* AI white-logo remake only for games with NO Figma white variant. */}
-          {isDesigner && selected && !selected.figma_logo_white_node && (
-            <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />
-          )}
+          {/* AI white-logo remake — available for every game (regenerate even when
+              a Figma white variant exists). */}
+          {isDesigner && selected && <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />}
           {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} saveAnimAlpha={saveAnimAlpha} />}
 
           {/* Provider label styling moved to the Template controller — it's a
