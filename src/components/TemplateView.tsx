@@ -19,6 +19,7 @@ import {
 } from '../lib/thumb'
 import { ThumbnailCard } from './Thumbnail'
 import { LoadingScreen, Spinner } from './Spinner'
+import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight } from 'lucide-react'
 
 /**
  * Master template controller (designer-only). One place to set logo / key-visual
@@ -236,7 +237,7 @@ export function TemplateView() {
                       grad.gradDir === d ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800'
                     }`}
                   >
-                    {d === 'bottom' ? '↓' : d === 'top' ? '↑' : d === 'left' ? '←' : '→'}
+                    {d === 'bottom' ? <ArrowDown size={14} /> : d === 'top' ? <ArrowUp size={14} /> : d === 'left' ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
                   </button>
                 ))}
               </div>

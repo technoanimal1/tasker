@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase, figmaProxyUrl } from '../lib/supabase'
 import type { Thumbnail } from '../lib/thumb'
 import { canPackAlpha, packAndUploadAlpha } from '../lib/alphaPack'
+import { Download } from 'lucide-react'
 
 // Motion styles offered to clients. EVERY option produces a perfect loop: each
 // model accepts an end/tail frame, and we set it equal to the head frame so the
@@ -268,11 +269,11 @@ export function GenerativeMotion({
                 ? 'Encoding for Safari…'
                 : inserted
                   ? 'Regenerate'
-                  : '✨ Animate & insert'}
+                  : 'Animate & insert'}
         </button>
         {matted && !busy && (
-          <button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800">
-            ⭳ webm
+          <button onClick={download} className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800">
+            <Download size={14} /> webm
           </button>
         )}
         {inserted && !busy && (

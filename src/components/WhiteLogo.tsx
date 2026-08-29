@@ -109,7 +109,7 @@ export function WhiteLogo({
         disabled={busy}
         className="w-full rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-60"
       >
-        {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : '✨ Make white logo'}
+        {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : 'Make white logo'}
       </button>
 
       {error && <p className="text-[11px] text-red-400">{error}</p>}

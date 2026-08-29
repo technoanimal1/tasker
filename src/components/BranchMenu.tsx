@@ -76,7 +76,7 @@ export function BranchMenu({ api, activeBranch, onSelect }: Props) {
                     onClick={() => setMode('create')}
                     className="flex-1 rounded-lg bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700"
                   >
-                    ＋ New
+                    + New
                   </button>
                   <button
                     onClick={() => setMode('fork')}

@@ -30,12 +30,31 @@ import { ThumbnailCard } from './Thumbnail'
 import { LazyMount } from './LazyMount'
 import { GridTile } from './GridTile'
 import { LoadingScreen, Spinner } from './Spinner'
+import {
+  Undo2,
+  Frame,
+  Zap,
+  Play,
+  Pause,
+  ListChecks,
+  Download,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  Contrast,
+  Rows3,
+} from 'lucide-react'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
 import { WhiteLogo } from './WhiteLogo'
 
 type ExportFormat = StillFormat | 'anim'
+
+// Compact square icon-button styles (toolbar).
+const ICON_BTN =
+  'grid h-8 w-8 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40'
+const ICON_BTN_ON = 'grid h-8 w-8 place-items-center rounded-lg border border-accent bg-accent/15 text-accent transition'
 
 type Scope = 'global' | 'selected'
 
@@ -548,31 +567,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
-      {/* MOBILE toolbar — opens the panels as sheets (hidden on lg) */}
-      <div className="flex items-center gap-2 lg:hidden">
-        <button
-          onClick={() => setMobilePanel('thumbs')}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/70 py-2 text-xs font-medium text-zinc-200"
-        >
-          ▤ Thumbnails <span className="text-zinc-500">{thumbnails.length}</span>
-        </button>
-        {!lockedForClient && (
-          <button
-            onClick={openControls}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/70 py-2 text-xs font-medium text-zinc-200"
-          >
-            ⚙ Edit
-          </button>
-        )}
-        <button
-          onClick={exportAll}
-          disabled={exporting}
-          className="rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2 text-xs font-medium text-zinc-200 disabled:opacity-60"
-        >
-          {exporting ? '…' : '⤓'}
-        </button>
-      </div>
-
       {/* Backdrop behind an open mobile sheet */}
       {mobilePanel && (
         <button
@@ -593,7 +587,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             className="flex min-w-0 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2.5 text-xs font-semibold text-zinc-200 shadow-xl backdrop-blur"
           >
             <span className="max-w-[38vw] truncate">{activeProvider ?? 'All providers'}</span>
-            <span className="text-zinc-500">▾</span>
+            <ChevronDown size={14} className="text-zinc-500" />
           </button>
           <div className="flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
             {(['color', 'white'] as const).map((v) => (
@@ -830,12 +824,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 ? `${activeProvider} · ${gridItems.length}`
                 : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`}
           </span>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
             <select
               value={effSizeKey}
               onChange={(e) => setViewSize(e.target.value)}
-              title="Preview all thumbnails at this aspect size (view only)"
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 outline-none transition focus:border-zinc-500"
+              title="Preview aspect size (view only)"
+              className="h-8 rounded-lg border border-zinc-700 bg-zinc-900 px-2 text-xs text-zinc-200 outline-none transition focus:border-zinc-500"
             >
               {FRAME_SIZES.map((s) => (
                 <option key={s.key} value={s.key}>
@@ -844,13 +838,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               ))}
             </select>
             {isDesigner && (
-              <button
-                onClick={undo}
-                disabled={!undoStack.length}
-                title={undoStack.length ? `Undo: ${undoStack[undoStack.length - 1].label} (⌘Z)` : 'Nothing to undo'}
-                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
-              >
-                ↶ Undo
+              <button onClick={undo} disabled={!undoStack.length} title="Undo (⌘Z)" className={ICON_BTN}>
+                <Undo2 size={16} />
               </button>
             )}
             <button
@@ -858,65 +847,56 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 setShowFrame((v) => !v)
                 setLiveGrid(true)
               }}
-              className={`rounded-lg border px-3 py-1.5 text-xs transition ${
-                showFrame ? 'border-zinc-700 text-zinc-200 hover:bg-zinc-800' : 'border-zinc-800 bg-zinc-800/40 text-zinc-500'
-              }`}
-              title="Show or hide the frame stroke + provider badge in previews"
+              className={showFrame ? ICON_BTN_ON : ICON_BTN}
+              title="Show / hide the frame + provider badge"
             >
-              {showFrame ? '▣ Frames' : '▢ Frames'}
+              <Frame size={16} />
             </button>
             {!singleView && (
               <button
                 onClick={() => setLiveGrid((v) => !v)}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${
-                  liveGrid ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-200 hover:bg-zinc-800'
-                }`}
-                title={liveGrid ? 'Live tiles react to setting changes (slower). Click for fast overview.' : 'Fast baked-image overview. Click for live tiles that react to edits.'}
+                className={liveGrid ? ICON_BTN_ON : ICON_BTN}
+                title={liveGrid ? 'Live tiles (react to edits). Tap for fast overview.' : 'Fast baked overview. Tap for live tiles.'}
               >
-                {liveGrid ? '⚡ Live' : '⚡ Fast'}
+                <Zap size={16} />
               </button>
             )}
             {p.animEnabled && (
-              <button
-                onClick={() => setPlaying((v) => !v)}
-                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
-              >
-                {playing ? '❚❚ Pause' : '▶ Play'}
+              <button onClick={() => setPlaying((v) => !v)} className={ICON_BTN} title={playing ? 'Pause' : 'Play'}>
+                {playing ? <Pause size={16} /> : <Play size={16} />}
               </button>
             )}
             {!singleView && isDesigner && (
               <button
                 onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${
-                  selectMode ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-200 hover:bg-zinc-800'
-                }`}
-                title="Select multiple thumbnails to edit in bulk"
+                className={selectMode ? ICON_BTN_ON : ICON_BTN}
+                title={selectMode ? `Selecting${selectedIds.size ? ` · ${selectedIds.size}` : ''}` : 'Select multiple'}
               >
-                {selectMode ? `✓ Selecting${selectedIds.size ? ` · ${selectedIds.size}` : ''}` : '☰ Select'}
+                <ListChecks size={16} />
               </button>
             )}
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value as ExportFormat)}
-              className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500"
+              className="h-8 rounded-lg border border-zinc-700 bg-zinc-800 px-2 text-xs outline-none focus:border-zinc-500"
               title="Export format"
             >
               <option value="png">PNG</option>
               <option value="webp">WebP</option>
               <option value="avif">AVIF</option>
               <option value="anim" disabled={!canExportAnim}>
-                Animated (WebM)
+                WebM
               </option>
             </select>
-            {singleView && selected && selectedParams && (
-              <button
-                onClick={() => runExport([selected])}
-                disabled={exporting}
-                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
-              >
-                Export
-              </button>
-            )}
+            <button
+              onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
+              disabled={exporting}
+              title={singleView ? 'Export this thumbnail' : 'Export all'}
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-50"
+            >
+              {exporting ? <Spinner size={14} /> : <Download size={16} />}
+              <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
+            </button>
           </div>
         </div>
         {singleView && selected && selectedParams ? (
@@ -948,7 +928,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <span className="text-zinc-400">Logo</span>
                 <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'white' })} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40">White</button>
                 <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'color' })} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40">Colour</button>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40" title="Pick each frame colour from its background">🎨 Auto colour</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40" title="Pick each frame colour from its background">Auto colour</button>
                 <span className="mx-1 h-4 w-px bg-zinc-700" />
                 <label className="flex items-center gap-1 text-zinc-300">KV<input type="range" min={20} max={300} value={bulkKv} onChange={(e) => setBulkKv(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkKv}%</span></label>
                 <label className="flex items-center gap-1 text-zinc-300">Logo<input type="range" min={20} max={200} value={bulkLogo} onChange={(e) => setBulkLogo(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkLogo}%</span></label>
@@ -1025,9 +1005,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         }}
                         title={`Edit ${t.name}`}
                         aria-label={`Edit ${t.name}`}
-                        className="absolute bottom-2 right-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white shadow-md backdrop-blur transition hover:bg-black/80 lg:opacity-0 lg:group-hover:opacity-100"
+                        className="absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white shadow-md backdrop-blur transition hover:bg-black/80 lg:opacity-0 lg:group-hover:opacity-100"
                       >
-                        ✎ Edit
+                        <Pencil size={12} /> Edit
                       </button>
                     )}
                     {isDesigner && !selectMode && (
@@ -1040,9 +1020,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         aria-label={`Remove ${t.name}`}
                         className="absolute left-3 top-3 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/50 text-zinc-200 opacity-0 shadow-md transition hover:bg-red-500/80 hover:text-white group-hover:opacity-100"
                       >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <Trash2 size={13} />
                       </button>
                     )}
                     <span className="max-w-full truncate text-[11px] text-zinc-400">{t.name}</span>
@@ -1211,7 +1189,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     className="w-full rounded-lg border border-zinc-700 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
                     title="Pick the frame colour from this game's background"
                   >
-                    🎨 Auto colour from background
+                    Auto colour from background
                   </button>
                 )}
                 {scope === 'selected' && (
@@ -1307,9 +1285,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   set('textAlign', 'center')
                   set('textColorMode', 'white')
                 }}
-                className="w-full rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
               >
-                ⬍ Vertical white logotype
+                <Rows3 size={14} /> Vertical white logotype
               </button>
               {p.textLogo && (
                 <>
@@ -1423,7 +1401,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     onClick={() => setPlaying((v) => !v)}
                     className="w-full rounded-lg bg-zinc-800 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
                   >
-                    {playing ? '❚❚ Pause preview' : '▶ Play preview'}
+                    {playing ? "Pause preview" : "Play preview"}
                   </button>
                   <p className="text-[11px] text-zinc-500">Export with the “Animated (WebM)” format to save the motion.</p>
                 </>
@@ -1658,7 +1636,7 @@ function ThumbColorPicker({
         className="grid h-7 w-7 place-items-center rounded-full border-2 border-white/80 shadow-md ring-1 ring-black/30"
         style={{ background: current }}
       >
-        <span className="text-[11px] leading-none text-white mix-blend-difference">◑</span>
+        <Contrast size={13} className="text-white mix-blend-difference" />
       </button>
       {/* popover — pt-1.5 acts as an invisible bridge so hover survives the gap */}
       <div className="invisible absolute right-0 top-full z-30 pt-1.5 opacity-0 transition group-hover/col:visible group-hover/col:opacity-100">

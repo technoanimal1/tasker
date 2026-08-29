@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Download, Check, X, Loader2, Circle } from 'lucide-react'
 
 export type ExportStatus = 'pending' | 'active' | 'done' | 'error'
 
@@ -137,7 +138,7 @@ export function ExportProgress({
 
           {/* footer */}
           <div className="flex items-center gap-3 bg-accent px-4 py-3 text-zinc-900">
-            <span className="text-xl">⭳</span>
+            <Download size={20} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">
                 {running ? `Exporting ${Math.min(done + failed + 1, total)} of ${total} item${total > 1 ? 's' : ''}` : `Done · ${done}/${total} saved${failed ? `, ${failed} failed` : ''}`}
@@ -153,11 +154,8 @@ export function ExportProgress({
 }
 
 function StatusIcon({ status }: { status: ExportStatus }) {
-  if (status === 'done')
-    return <span className="grid h-5 w-5 place-items-center rounded-full text-green-400">✓</span>
-  if (status === 'error')
-    return <span className="grid h-5 w-5 place-items-center rounded-full text-red-400">✕</span>
-  if (status === 'active')
-    return <span className="grid h-5 w-5 animate-spin place-items-center text-zinc-300">↻</span>
-  return <span className="grid h-5 w-5 place-items-center text-zinc-600">○</span>
+  if (status === 'done') return <Check size={16} className="text-green-400" />
+  if (status === 'error') return <X size={16} className="text-red-400" />
+  if (status === 'active') return <Loader2 size={16} className="animate-spin text-zinc-300" />
+  return <Circle size={14} className="text-zinc-600" />
 }
