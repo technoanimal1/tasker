@@ -544,6 +544,32 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         />
       )}
 
+      {/* Mobile: bottom-fixed colour/white logo switcher for the whole grid */}
+      {!singleView && !mobilePanel && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-30 flex justify-center pb-3 lg:hidden"
+          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+        >
+          <div className="flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
+            <span className="pl-2 pr-1 text-[11px] font-medium text-zinc-500">Logo</span>
+            {(['color', 'white'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => {
+                  setParams((prev) => (prev ? { ...prev, logoVariant: v } : prev))
+                  setLiveGrid(true)
+                }}
+                className={`rounded-full px-5 py-2 font-semibold transition ${
+                  p.logoVariant === v ? 'bg-accent text-white shadow' : 'text-zinc-300'
+                }`}
+              >
+                {v === 'color' ? 'Colour' : 'White'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* LEFT — thumbnails */}
       <aside className={leftSheet}>
         <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5">
@@ -776,7 +802,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         ) : (
           <div
-            className="overflow-visible p-4 sm:p-6 lg:flex-1 lg:overflow-auto"
+            className="overflow-visible p-4 pb-24 sm:p-6 lg:flex-1 lg:overflow-auto lg:pb-6"
             style={{
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
               backgroundSize: '22px 22px',
