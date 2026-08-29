@@ -24,6 +24,7 @@ export function GridTile({
   live,
   canBake,
   onBaked,
+  onNeedAssets,
 }: {
   thumb: Thumbnail
   params: TemplateParams
@@ -34,6 +35,8 @@ export function GridTile({
   live: boolean
   canBake: boolean
   onBaked: (id: string, url: string, sig: string) => void
+  /** Called when the tile scrolls into view, so its Figma layers resolve lazily. */
+  onNeedAssets?: () => void
 }) {
   const fr = frameSize(params.sizeKey)
   const w = gridW
@@ -53,12 +56,14 @@ export function GridTile({
     if (!el) return
     if (typeof IntersectionObserver === 'undefined') {
       setVisible(true)
+      onNeedAssets?.()
       return
     }
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           setVisible(true)
+          onNeedAssets?.()
           io.disconnect()
         }
       },

@@ -45,7 +45,7 @@ interface Props {
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
   const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
-  const { assetsFor } = useFigmaAssets(thumbnails)
+  const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [overrides, setOverrides] = useState<Record<string, ParamOverride>>({})
@@ -101,6 +101,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
   const selected = thumbnails.find((t) => t.id === selectedId) ?? null
   const selOv = selectedId ? overrides[selectedId] ?? {} : {}
+
+  // Resolve the open game's Figma layers on demand (grid tiles resolve themselves
+  // as they scroll into view; this covers the single-view editor).
+  useEffect(() => {
+    if (selected) ensureResolved(selected)
+  }, [selected, ensureResolved])
 
   // The composited params used to render a given thumbnail (list, preview, export).
   // The active branch's frame design (frame_params) is layered on for every branch;
@@ -820,6 +826,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         live={liveGrid || selectMode}
                         canBake={isDesigner}
                         onBaked={savePreview}
+                        onNeedAssets={() => ensureResolved(t)}
                       />
                     </div>
                     {isDesigner && !selectMode && (
