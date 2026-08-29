@@ -18,6 +18,14 @@ export function previewSig(params: TemplateParams, thumb: Thumbnail, showFrame: 
     thumb.figma_kv_node,
     thumb.figma_logo_color_node,
     thumb.figma_logo_white_node,
+    // Cached-asset state: when a layer is copied to our CDN (path goes from null
+    // to a value) the rendered pixels change, so a preview baked before the
+    // asset existed must be re-baked. Folding the paths in makes caching new
+    // assets automatically invalidate any stale (blank) preview.
+    thumb.bg_path ?? null,
+    thumb.kv_path ?? null,
+    thumb.logo_color_path ?? null,
+    thumb.logo_white_path ?? null,
     thumb.logo_white_url ?? null,
     thumb.name,
     thumb.anim_video_url ?? null,
