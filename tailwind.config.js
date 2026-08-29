@@ -8,10 +8,11 @@ export default {
           DEFAULT: '#FFF050',
           dark: '#E6D625',
         },
-        // Figma-like accent — used for active states and primary actions.
+        // Accent — used for active states and primary actions. White buttons
+        // (dark text) on the dark UI; tints/borders/rings read as subtle white.
         accent: {
-          DEFAULT: '#0d99ff',
-          dark: '#0b87e0',
+          DEFAULT: '#ffffff',
+          dark: '#e6e6e6',
         },
       },
     },

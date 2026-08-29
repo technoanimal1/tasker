@@ -258,7 +258,7 @@ export function GenerativeMotion({
         <button
           onClick={animate}
           disabled={busy}
-          className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
+          className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-60"
         >
           {stage === 'generating'
             ? `Animating… ${elapsed}s`

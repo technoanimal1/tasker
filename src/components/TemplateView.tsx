@@ -18,6 +18,7 @@ import {
   type TemplateParams,
 } from '../lib/thumb'
 import { ThumbnailCard } from './Thumbnail'
+import { LoadingScreen, Spinner } from './Spinner'
 
 /**
  * Master template controller (designer-only). One place to set logo / key-visual
@@ -66,7 +67,7 @@ export function TemplateView() {
   }, [sample, ensureResolved])
 
   if (loading || !params) {
-    return <div className="py-20 text-center text-zinc-500">Loading template…</div>
+    return <LoadingScreen label="Loading template…" />
   }
 
   // Desktop shows a large preview; mobile pins a small tile so you can watch the
@@ -127,7 +128,7 @@ export function TemplateView() {
         <button
           onClick={saveAll}
           disabled={saving || !dirty}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
         >
           {saving ? 'Saving…' : dirty ? 'Save template' : 'Saved'}
         </button>
@@ -140,7 +141,7 @@ export function TemplateView() {
             key={s.key}
             onClick={() => setSize(s.key)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              sizeKey === s.key ? 'bg-accent text-white' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
+              sizeKey === s.key ? 'bg-accent text-zinc-900' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
             }`}
           >
             {s.key}
@@ -165,8 +166,12 @@ export function TemplateView() {
             <div className="shadow-2xl">
               <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={previewW} showFrame />
             </div>
+          ) : pageLoading ? (
+            <div className="flex items-center gap-2 text-sm text-zinc-500">
+              <Spinner size={18} /> Loading a preview game…
+            </div>
           ) : (
-            <p className="text-sm text-zinc-500">{pageLoading ? 'Loading a preview game…' : 'No thumbnails to preview yet.'}</p>
+            <p className="text-sm text-zinc-500">No thumbnails to preview yet.</p>
           )}
         </div>
 
@@ -264,7 +269,7 @@ export function TemplateView() {
                     setLabelEdit(false)
                   }}
                   disabled={saving || !dirty}
-                  className="rounded-md bg-accent px-2 py-0.5 text-[11px] font-medium text-white transition hover:bg-accent-dark disabled:opacity-40"
+                  className="rounded-md bg-accent px-2 py-0.5 text-[11px] font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-40"
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>

@@ -127,7 +127,7 @@ export function ExportProgress({
                   </div>
                   {j.status === 'active' && (
                     <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-zinc-800">
-                      <div className="h-full w-1/3 animate-pulse rounded-full bg-blue-500" />
+                      <div className="h-full w-1/3 animate-pulse rounded-full bg-accent" />
                     </div>
                   )}
                 </div>
@@ -136,15 +136,15 @@ export function ExportProgress({
           </div>
 
           {/* footer */}
-          <div className="flex items-center gap-3 bg-blue-600 px-4 py-3">
+          <div className="flex items-center gap-3 bg-accent px-4 py-3 text-zinc-900">
             <span className="text-xl">⭳</span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">
+              <p className="truncate text-sm font-semibold">
                 {running ? `Exporting ${Math.min(done + failed + 1, total)} of ${total} item${total > 1 ? 's' : ''}` : `Done · ${done}/${total} saved${failed ? `, ${failed} failed` : ''}`}
               </p>
-              <p className="truncate text-xs text-blue-100">{running ? active?.name ?? 'Preparing…' : 'All exports finished'}</p>
+              <p className="truncate text-xs text-zinc-600">{running ? active?.name ?? 'Preparing…' : 'All exports finished'}</p>
             </div>
-            <span className="text-sm font-semibold text-white">{pct}%</span>
+            <span className="text-sm font-semibold">{pct}%</span>
           </div>
         </>
       )}

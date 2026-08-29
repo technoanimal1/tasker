@@ -107,7 +107,7 @@ export function WhiteLogo({
       <button
         onClick={generate}
         disabled={busy}
-        className="w-full rounded-lg bg-accent py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-60"
       >
         {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : '✨ Make white logo'}
       </button>

@@ -92,7 +92,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
           <button
             onClick={save}
             disabled={saving || !dirty}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
           >
             {saving ? 'Saving…' : dirty ? 'Save frame' : 'Saved'}
           </button>

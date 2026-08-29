@@ -9,6 +9,20 @@
 body {
   @apply text-zinc-100 antialiased;
   background: #0a0b0d;
+  font-family: 'Google Sans Flex', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Indeterminate spinner used by the loaders. */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.18);
+  border-top-color: rgb(255 255 255 / 0.9);
+  animation: spin 0.7s linear infinite;
 }
 
 /* Checkerboard used behind transparent asset previews. */

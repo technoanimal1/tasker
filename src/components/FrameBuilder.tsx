@@ -256,7 +256,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
           <button
             onClick={handleSave}
             disabled={saving || !dirty}
-            className="rounded-lg bg-accent px-4 py-1.5 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
+            className="rounded-lg bg-accent px-4 py-1.5 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}
           </button>

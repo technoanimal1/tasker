@@ -29,6 +29,7 @@ import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
 import { LazyMount } from './LazyMount'
 import { GridTile } from './GridTile'
+import { LoadingScreen, Spinner } from './Spinner'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
@@ -237,7 +238,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const pageCount = Math.max(1, Math.ceil(totalCatalog / PAGE_SIZE))
 
   if (tLoading || thLoading || !params || !activeParams) {
-    return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
+    return <LoadingScreen label="Loading studio…" />
   }
 
   // Section visibility by role + mode.
@@ -597,7 +598,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   setLiveGrid(true)
                 }}
                 className={`rounded-full px-4 py-2 font-semibold transition ${
-                  p.logoVariant === v ? 'bg-accent text-white shadow' : 'text-zinc-300'
+                  p.logoVariant === v ? 'bg-accent text-zinc-900 shadow' : 'text-zinc-300'
                 }`}
               >
                 {v === 'color' ? 'Colour' : 'White'}
@@ -746,7 +747,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 {open && (
                   <div className="mt-0.5 space-y-0.5 pl-1">
                     {providerLoading === provider && loaded.length === 0 && (
-                      <p className="px-2 py-2 text-[11px] text-zinc-500">Loading…</p>
+                      <p className="flex items-center gap-1.5 px-2 py-2 text-[11px] text-zinc-500">
+                        <Spinner size={12} /> Loading…
+                      </p>
                     )}
                     {shown.map((t) => {
                       const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
@@ -947,7 +950,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <span className="mx-1 h-4 w-px bg-zinc-700" />
                 <label className="flex items-center gap-1 text-zinc-300">KV<input type="range" min={20} max={300} value={bulkKv} onChange={(e) => setBulkKv(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkKv}%</span></label>
                 <label className="flex items-center gap-1 text-zinc-300">Logo<input type="range" min={20} max={200} value={bulkLogo} onChange={(e) => setBulkLogo(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkLogo}%</span></label>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ kvSizePct: bulkKv, logo: { wPct: bulkLogo / 100, hPct: (bulkLogo / 100) * 0.375 } })} className="rounded-md bg-accent px-2.5 py-1 font-medium text-white hover:bg-accent-dark disabled:opacity-40">Apply size</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ kvSizePct: bulkKv, logo: { wPct: bulkLogo / 100, hPct: (bulkLogo / 100) * 0.375 } })} className="rounded-md bg-accent px-2.5 py-1 font-medium text-zinc-900 hover:bg-accent-dark disabled:opacity-40">Apply size</button>
                 {bulkBusy && <span className="text-zinc-400">working…</span>}
               </div>
             )}
@@ -985,7 +988,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     {selectMode && (
                       <div
                         className={`absolute left-3 top-3 z-10 grid h-5 w-5 place-items-center rounded-md border text-[11px] leading-none ${
-                          picked ? 'border-accent bg-accent text-white' : 'border-zinc-400 bg-black/50 text-transparent'
+                          picked ? 'border-accent bg-accent text-zinc-900' : 'border-zinc-400 bg-black/50 text-transparent'
                         }`}
                       >
                         ✓
@@ -1035,11 +1038,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               })}
             </div>
 
-            {gridItems.length === 0 && (
-              <p className="py-16 text-center text-sm text-zinc-500">
-                {pageLoading || (activeProvider && providerLoading === activeProvider) ? 'Loading…' : 'No games here yet.'}
-              </p>
-            )}
+            {gridItems.length === 0 &&
+              (pageLoading || (activeProvider && providerLoading === activeProvider) ? (
+                <LoadingScreen label="Loading games…" className="py-16" />
+              ) : (
+                <p className="py-16 text-center text-sm text-zinc-500">No games here yet.</p>
+              ))}
 
             {/* "All" view: paginate the whole catalogue, 30 per page */}
             {!activeProvider && totalCatalog > PAGE_SIZE && (
@@ -1407,7 +1411,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || !dirty}
-              className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-50"
+              className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
             >
               {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
             </button>
