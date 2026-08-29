@@ -39,12 +39,15 @@ export function alignBox(align: Align9, W: number, H: number, w: number, h: numb
  *  the edges. The cap stays the floor, so existing tuned layouts are unchanged. */
 export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
   const kvCentered = layout.kvAlign[1] === 'c'
-  const kvW = kvCentered ? W * Math.max(0.92, layout.kvScale) : W * 0.5
+  // Width follows the size slider (past a per-anchor baseline) for EVERY anchor,
+  // so nothing is width-capped: the art keeps growing as the size slider goes up,
+  // while the alignment anchor stays put (size isn't tied to position).
+  const kvW = W * Math.max(kvCentered ? 0.92 : 0.5, layout.kvScale)
   const kv = alignBox(layout.kvAlign, W, H, kvW, layout.kvScale * H)
   const lgCentered = layout.logoAlign[1] === 'c'
   // Logos are wide, so their width binds well before their height; scale the
   // width faster than the height (×2.2) so "Logo size" visibly enlarges them.
-  const lgW = lgCentered ? W * Math.max(0.82, layout.logoScale * 2.2) : W * 0.46
+  const lgW = W * Math.max(lgCentered ? 0.82 : 0.46, layout.logoScale * 2.2)
   const logo = alignBox(layout.logoAlign, W, H, lgW, layout.logoScale * H)
   return { kv, logo }
 }
@@ -76,6 +79,10 @@ export interface SizeLayout {
   logoAlign: Align9
   logoScale: number // logo box height as a fraction of frame height
 }
+/** Which edge the light band sits on (and the direction it fades from). */
+export type GradDir = 'bottom' | 'top' | 'left' | 'right'
+export const GRAD_DIRS: GradDir[] = ['bottom', 'top', 'left', 'right']
+
 /** Light-band gradient placement — can be set globally or per aspect size. */
 export interface GradientParams {
   gradStop1: number
@@ -83,6 +90,8 @@ export interface GradientParams {
   gradBottom: number
   gradOpacity: number
   gradBandPct: number
+  /** Edge the band emanates from (default bottom). */
+  gradDir: GradDir
 }
 export type ProviderPos = 'top' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export const PROVIDER_POSITIONS: ProviderPos[] = ['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
@@ -132,6 +141,7 @@ export interface TemplateParams {
   gradBottom: number // bottom fade: colour holds until here → transparent at 100
   gradOpacity: number // overall band opacity 0..1
   gradBandPct: number // band height as % of frame height
+  gradDir: GradDir // edge the light band sits on (bottom by default)
   /** Per-aspect-size gradient overrides; absent size falls back to the globals above. */
   gradients?: Record<string, GradientParams>
   // animation
@@ -184,6 +194,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   gradBottom: 88,
   gradOpacity: 1,
   gradBandPct: 44.2,
+  gradDir: 'bottom',
   animEnabled: false,
   animPreset: 'float',
   animSpeed: 3,
@@ -313,6 +324,7 @@ export function resolveGrad(p: TemplateParams): GradientParams {
     gradBottom: g?.gradBottom ?? p.gradBottom,
     gradOpacity: g?.gradOpacity ?? p.gradOpacity,
     gradBandPct: g?.gradBandPct ?? p.gradBandPct,
+    gradDir: g?.gradDir ?? p.gradDir ?? 'bottom',
   }
 }
 

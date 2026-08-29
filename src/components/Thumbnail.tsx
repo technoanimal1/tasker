@@ -74,7 +74,22 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
   const grad = resolveGrad(params)
-  const bandH = H * (grad.gradBandPct / 100)
+  // The light band can sit on any edge; its thickness is a % of the frame's
+  // matching dimension (height for top/bottom, width for left/right), and the
+  // gradient fades toward that edge.
+  const bandVertical = grad.gradDir === 'top' || grad.gradDir === 'bottom'
+  const bandExtent = (bandVertical ? H : W) * (grad.gradBandPct / 100)
+  const bandStopsCss = bandStops(color.semantic, color.blur, grad)
+    .map((s) => `${s.color} ${s.offset * 100}%`)
+    .join(', ')
+  const bandStyle: CSSProperties =
+    grad.gradDir === 'bottom'
+      ? { left: 0, right: 0, bottom: 0, height: bandExtent }
+      : grad.gradDir === 'top'
+        ? { left: 0, right: 0, top: 0, height: bandExtent }
+        : grad.gradDir === 'left'
+          ? { top: 0, bottom: 0, left: 0, width: bandExtent }
+          : { top: 0, bottom: 0, right: 0, width: bandExtent }
 
   const m = motionAt(params, phase)
 
@@ -181,17 +196,12 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           )
         )}
 
-        {/* light effect (Figma control-area) */}
+        {/* light effect (Figma control-area) — sits on the chosen edge */}
         <div
           style={{
             position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: bandH,
-            background: `linear-gradient(to bottom, ${bandStops(color.semantic, color.blur, grad)
-              .map((s) => `${s.color} ${s.offset * 100}%`)
-              .join(', ')})`,
+            ...bandStyle,
+            background: `linear-gradient(to ${grad.gradDir}, ${bandStopsCss})`,
           }}
         />
         <div

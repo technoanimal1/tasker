@@ -5,6 +5,7 @@ import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
   ALIGN9,
   FRAME_SIZES,
+  GRAD_DIRS,
   PROVIDER_POSITIONS,
   defaultLayout,
   resolveGrad,
@@ -169,17 +170,33 @@ export function TemplateView() {
             <Row label="Fine (9-point)">
               <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
             </Row>
-            <Slider label="Logo size" min={0.1} max={0.7} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
           </Section>
 
           <Section title={`Key visual · ${sizeKey}`}>
             <Row label="Position">
               <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
             </Row>
-            <Slider label="KV size" min={0.3} max={2} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
           </Section>
 
           <Section title={`Gradient · ${sizeKey}`}>
+            <Row label="Direction">
+              <div className="flex gap-1">
+                {GRAD_DIRS.map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setGrad({ gradDir: d })}
+                    title={d}
+                    className={`grid h-7 w-7 place-items-center rounded-md border text-sm transition ${
+                      grad.gradDir === d ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800'
+                    }`}
+                  >
+                    {d === 'bottom' ? '↓' : d === 'top' ? '↑' : d === 'left' ? '←' : '→'}
+                  </button>
+                ))}
+              </div>
+            </Row>
             <Slider label="Top fade" min={0} max={100} value={grad.gradStop1} onChange={(v) => setGrad({ gradStop1: v })} fmt={(v) => `${Math.round(v)}%`} />
             <Slider label="Colour stop" min={0} max={100} value={grad.gradStop2} onChange={(v) => setGrad({ gradStop2: v })} fmt={(v) => `${Math.round(v)}%`} />
             <Slider label="Bottom fade" min={0} max={100} value={grad.gradBottom} onChange={(v) => setGrad({ gradBottom: v })} fmt={(v) => `${Math.round(v)}%`} />
