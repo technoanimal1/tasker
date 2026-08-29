@@ -78,6 +78,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // Which category the grid shows: a provider name, or null = "All" (paginated).
   const [activeProvider, setActiveProvider] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+  const [providerPickerOpen, setProviderPickerOpen] = useState(false) // mobile 70% sheet
   const PAGE_SIZE = 30
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
@@ -555,14 +556,20 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         />
       )}
 
-      {/* Mobile: bottom-fixed colour/white logo switcher for the whole grid */}
-      {!singleView && !mobilePanel && (
+      {/* Mobile: bottom-fixed provider selector + colour/white logo switcher */}
+      {!singleView && !mobilePanel && !providerPickerOpen && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 flex justify-center pb-3 lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-2 px-3 lg:hidden"
           style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
         >
-          <div className="flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
-            <span className="pl-2 pr-1 text-[11px] font-medium text-zinc-500">Logo</span>
+          <button
+            onClick={() => setProviderPickerOpen(true)}
+            className="flex min-w-0 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2.5 text-xs font-semibold text-zinc-200 shadow-xl backdrop-blur"
+          >
+            <span className="max-w-[38vw] truncate">{activeProvider ?? 'All providers'}</span>
+            <span className="text-zinc-500">▾</span>
+          </button>
+          <div className="flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
             {(['color', 'white'] as const).map((v) => (
               <button
                 key={v}
@@ -570,7 +577,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   setParams((prev) => (prev ? { ...prev, logoVariant: v } : prev))
                   setLiveGrid(true)
                 }}
-                className={`rounded-full px-5 py-2 font-semibold transition ${
+                className={`rounded-full px-4 py-2 font-semibold transition ${
                   p.logoVariant === v ? 'bg-accent text-white shadow' : 'text-zinc-300'
                 }`}
               >
@@ -579,6 +586,61 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Mobile: 70%-height provider picker */}
+      {providerPickerOpen && (
+        <>
+          <button
+            aria-label="Close"
+            onClick={() => setProviderPickerOpen(false)}
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          />
+          <div className="fixed inset-x-0 bottom-0 z-40 flex h-[70vh] flex-col rounded-t-2xl border-t border-zinc-700 bg-zinc-900 shadow-2xl lg:hidden">
+            <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+              <span className="text-sm font-semibold text-zinc-100">Choose provider</span>
+              <button
+                onClick={() => setProviderPickerOpen(false)}
+                className="grid h-7 w-7 place-items-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 space-y-1 overflow-y-auto p-2">
+              <button
+                onClick={() => {
+                  setActiveProvider(null)
+                  setPage(0)
+                  setProviderPickerOpen(false)
+                }}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                  activeProvider === null ? 'bg-accent/15 text-accent' : 'text-zinc-200 hover:bg-zinc-800'
+                }`}
+              >
+                <span>All providers</span>
+                <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400">{totalCatalog}</span>
+              </button>
+              {providerCounts.map(({ provider, count }) => (
+                <button
+                  key={provider}
+                  onClick={() => {
+                    setActiveProvider(provider)
+                    setPage(0)
+                    ensureProvider(provider)
+                    setProviderPickerOpen(false)
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                    activeProvider === provider ? 'bg-accent/15 text-accent' : 'text-zinc-200 hover:bg-zinc-800'
+                  }`}
+                >
+                  <span className="truncate">{provider}</span>
+                  <span className="ml-2 shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400">{count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* LEFT — thumbnails */}
