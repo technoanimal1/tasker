@@ -45,7 +45,15 @@ export function Dashboard() {
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#0a0b0d]/90 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5 font-semibold">
+            <button
+              type="button"
+              onClick={() => {
+                setView('studio')
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              title="Home"
+              className="flex items-center gap-2.5 font-semibold outline-none transition hover:opacity-80 active:scale-95"
+            >
               {brandLogo ? (
                 // Client's uploaded logotype, rendered as a white (on-dark) mark
                 // so it reads on the dark header regardless of the file's colour.
@@ -65,7 +73,7 @@ export function Dashboard() {
                   <span className="hidden text-[15px] tracking-tight sm:inline">Thumbnail Studio</span>
                 </>
               )}
-            </div>
+            </button>
 
             <BranchMenu
               api={branchesApi}

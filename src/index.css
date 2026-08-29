@@ -25,6 +25,43 @@ body {
   animation: spin 0.7s linear infinite;
 }
 
+/* Branded loader: a spinning ring around a gently pulsing mark. */
+@keyframes brand-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+}
+.brand-loader {
+  position: relative;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+}
+.brand-loader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 3px solid rgb(255 255 255 / 0.12);
+  border-top-color: rgb(255 255 255 / 0.85);
+  animation: spin 0.8s linear infinite;
+}
+.brand-loader > i {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: #fff050;
+  box-shadow: 0 0 18px rgb(255 240 80 / 0.4);
+  animation: brand-pulse 1.3s ease-in-out infinite;
+}
+
 /* Checkerboard used behind transparent asset previews. */
 .checker {
   background-image:
