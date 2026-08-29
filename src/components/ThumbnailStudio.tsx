@@ -46,7 +46,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -1360,7 +1360,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           {isDesigner && selected && !selected.figma_logo_white_node && (
             <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />
           )}
-          {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} />}
+          {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} saveAnimAlpha={saveAnimAlpha} />}
 
           {showFrameSections && (
             <Section title="Provider label">

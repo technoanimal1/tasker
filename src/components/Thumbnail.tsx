@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
 import { motionAt } from '../lib/animate'
+import { AlphaVideo } from './AlphaVideo'
 import {
   CORNER_MODES,
   CORNER_REF,
@@ -126,8 +127,24 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           }}
         />
 
-        {/* key visual — an AI motion clip (transparent) when present, else the still */}
-        {assets.animVideo ? (
+        {/* key visual — an AI motion clip when present, else the still.
+            Prefer the alpha-packed MP4 (transparent on every browser incl. iOS
+            Safari); fall back to the transparent WebM (Chrome/Firefox), then the
+            static image. */}
+        {assets.animAlpha ? (
+          <AlphaVideo
+            src={assets.animAlpha}
+            style={{
+              position: 'absolute',
+              left: kvBox.x,
+              top: kvBox.y,
+              width: kvBox.w,
+              height: kvBox.h,
+              objectFit: 'contain',
+              transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
+            }}
+          />
+        ) : assets.animVideo ? (
           <video
             src={assets.animVideo}
             autoPlay

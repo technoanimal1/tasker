@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase, figmaProxyUrl } from '../lib/supabase'
 import type { Thumbnail } from '../lib/thumb'
+import { canPackAlpha, packAndUploadAlpha } from '../lib/alphaPack'
 
 // Motion styles offered to clients. EVERY option produces a perfect loop: each
 // model accepts an end/tail frame, and we set it equal to the head frame so the
@@ -11,7 +12,7 @@ const LOOP_MODELS = [
   { id: 'fal-ai/kling-video/v1.6/pro/image-to-video', label: 'Cinematic · most motion', tail: 'tail_image_url', note: 'Boldest, most dynamic motion. Slowest.' },
 ]
 
-type Stage = 'idle' | 'generating' | 'matting' | 'done'
+type Stage = 'idle' | 'generating' | 'matting' | 'packing' | 'done'
 
 // LTX only renders three aspect buckets; snapping the source to the nearest one
 // with transparent letterbox padding stops the model from cropping the sides.
@@ -59,9 +60,11 @@ async function padToBucket(url: string): Promise<{ imageUrl: string; aspect: str
 export function GenerativeMotion({
   thumb,
   saveAnim,
+  saveAnimAlpha,
 }: {
   thumb: Thumbnail
   saveAnim: (id: string, url: string | null, prompt: string | null) => Promise<void>
+  saveAnimAlpha: (id: string, path: string | null) => Promise<void>
 }) {
   const [prompt, setPrompt] = useState('')
   const [loopModel, setLoopModel] = useState(LOOP_MODELS[0].id)
@@ -71,7 +74,7 @@ export function GenerativeMotion({
   const [error, setError] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const startRef = useRef(0)
-  const busy = stage === 'generating' || stage === 'matting'
+  const busy = stage === 'generating' || stage === 'matting' || stage === 'packing'
 
   useEffect(() => {
     setPrompt(thumb.anim_prompt ?? '')
@@ -85,6 +88,24 @@ export function GenerativeMotion({
     const id = setInterval(() => setElapsed(Math.floor((Date.now() - startRef.current) / 1000)), 200)
     return () => clearInterval(id)
   }, [busy])
+
+  // Auto-upgrade legacy clips: a game animated before alpha-packing existed has a
+  // WebM but no MP4, so it's black on iOS Safari. The first time a designer opens
+  // it we pack + save the MP4 in the background (once), migrating it silently.
+  const upgradingRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!thumb.anim_video_url || thumb.anim_alpha_path) return
+    if (!canPackAlpha() || upgradingRef.current === thumb.id) return
+    upgradingRef.current = thumb.id
+    ;(async () => {
+      try {
+        const alphaUrl = await packAndUploadAlpha(thumb.id, thumb.anim_video_url!)
+        await saveAnimAlpha(thumb.id, alphaUrl)
+      } catch (e) {
+        console.warn('alpha upgrade failed', e)
+      }
+    })()
+  }, [thumb.id, thumb.anim_video_url, thumb.anim_alpha_path, saveAnimAlpha])
 
   async function animate() {
     const fk = thumb.figma_file_key
@@ -143,6 +164,20 @@ export function GenerativeMotion({
       // 3 — insert into the thumbnail (persist) so it composites everywhere
       await saveAnim(thumb.id, finalVideo, prompt.trim() || null)
       setMatted(finalVideo)
+
+      // 4 — pack an alpha H.264 MP4 so the clip is transparent on EVERY browser.
+      // iOS Safari can't decode the WebM's alpha (it paints it black); the packed
+      // MP4 + <AlphaVideo> shader fixes that. Best-effort — the WebM already works
+      // in Chrome/Firefox, so a pack failure isn't fatal.
+      try {
+        if (canPackAlpha()) {
+          setStage('packing')
+          const alphaUrl = await packAndUploadAlpha(thumb.id, finalVideo)
+          await saveAnimAlpha(thumb.id, alphaUrl)
+        }
+      } catch (e) {
+        console.warn('alpha pack failed', e)
+      }
       setStage('done')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -229,9 +264,11 @@ export function GenerativeMotion({
             ? `Animating… ${elapsed}s`
             : stage === 'matting'
               ? `Cutting out… ${elapsed}s`
-              : inserted
-                ? 'Regenerate'
-                : '✨ Animate & insert'}
+              : stage === 'packing'
+                ? 'Encoding for Safari…'
+                : inserted
+                  ? 'Regenerate'
+                  : '✨ Animate & insert'}
         </button>
         {matted && !busy && (
           <button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800">
@@ -251,7 +288,11 @@ export function GenerativeMotion({
             <div className="h-full w-2/5 animate-pulse rounded-full bg-accent" />
           </div>
           <p className="text-[11px] text-zinc-500">
-            {stage === 'generating' ? 'Rendering the clip' : 'Removing background (alpha matte)'} · {elapsed}s
+            {stage === 'generating'
+              ? 'Rendering the clip'
+              : stage === 'matting'
+                ? 'Removing background (alpha matte)'
+                : 'Packing a cross-browser (Safari) MP4'} · {elapsed}s
           </p>
         </div>
       )}

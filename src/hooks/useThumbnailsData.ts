@@ -118,8 +118,18 @@ export function useThumbnailsData() {
   }, [])
 
   const saveAnim = useCallback(async (id: string, anim_video_url: string | null, anim_prompt: string | null) => {
-    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, anim_video_url, anim_prompt } : t)))
-    await supabase.from('thumbnails').update({ anim_video_url, anim_prompt }).eq('id', id)
+    // Removing the clip also clears its alpha-packed rendition.
+    const patch = anim_video_url
+      ? { anim_video_url, anim_prompt }
+      : { anim_video_url: null, anim_prompt: null, anim_alpha_path: null }
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)))
+    await supabase.from('thumbnails').update(patch).eq('id', id)
+  }, [])
+
+  // Persist the alpha-packed MP4 URL (transparent video for every browser).
+  const saveAnimAlpha = useCallback(async (id: string, anim_alpha_path: string | null) => {
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, anim_alpha_path } : t)))
+    await supabase.from('thumbnails').update({ anim_alpha_path }).eq('id', id)
   }, [])
 
   const saveLogoWhite = useCallback(async (id: string, logo_white_url: string | null) => {
@@ -157,6 +167,7 @@ export function useThumbnailsData() {
     setAccent,
     saveOverrides,
     saveAnim,
+    saveAnimAlpha,
     saveLogoWhite,
     savePreview,
     deleteThumbnail,

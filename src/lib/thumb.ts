@@ -220,6 +220,9 @@ export interface Thumbnail {
   /** AI-generated key-visual animation (fal.ai), if any. */
   anim_video_url?: string | null
   anim_prompt?: string | null
+  /** Alpha-packed H.264 MP4 rendition of the animation (public URL). Plays as a
+   *  transparent video on every browser incl. iOS Safari (via <AlphaVideo>). */
+  anim_alpha_path?: string | null
   /** Baked flat WebP preview for instant grid overview (CDN URL), + the render
    *  signature it was baked at, so a stale one can be detected and re-baked. */
   preview_url?: string | null
@@ -296,6 +299,9 @@ export interface AssetUrls {
   logoWhite?: string
   /** Matted (transparent) AI motion clip that replaces the static key visual. */
   animVideo?: string
+  /** Alpha-packed MP4 rendition of the motion clip (transparent everywhere,
+   *  incl. iOS Safari). Preferred over `animVideo` when present. */
+  animAlpha?: string
 }
 
 /** Gradient params for the active size — a per-size override wins over the globals. */

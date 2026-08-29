@@ -118,6 +118,8 @@ export function useFigmaAssets(_thumbnails: Thumbnail[], scale = 2) {
         // No client knockout fallback (a busy/plate logo becomes a white blob).
         logoWhite: assetUrl(t.logo_white_path) ?? u(t.figma_logo_white_node) ?? t.logo_white_url ?? undefined,
         animVideo: t.anim_video_url ?? undefined,
+        // Alpha-packed MP4 (transparent on every browser incl. iOS Safari).
+        animAlpha: t.anim_alpha_path ?? undefined,
       }
     },
     [map],
