@@ -22,26 +22,49 @@ import { ThumbnailCard } from './Thumbnail'
  */
 export function TemplateView() {
   const { template, loading, save } = useTemplate()
-  const { thumbnails, loading: thLoading } = useThumbnailsData()
-  const { assetsFor } = useFigmaAssets(thumbnails)
+  // The catalogue loads lazily per-provider, so pull one page of games to use as
+  // live preview samples for the master template (otherwise there's nothing to
+  // render the template on).
+  const { pageItems, loadPage, pageLoading } = useThumbnailsData()
+  const { assetsFor, ensureResolved } = useFigmaAssets(pageItems)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [saving, setSaving] = useState(false)
   const [previewIdx, setPreviewIdx] = useState(0)
+  // Preview width tracks the viewport so the card fits on mobile (no clipping).
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 800))
 
   useEffect(() => {
     if (template) setParams(withDefaults(template.params))
   }, [template])
 
+  useEffect(() => {
+    loadPage(0, 24)
+  }, [loadPage])
+
+  useEffect(() => {
+    const onR = () => setVw(window.innerWidth)
+    window.addEventListener('resize', onR)
+    return () => window.removeEventListener('resize', onR)
+  }, [])
+
   const dirty = useMemo(
     () => (template && params ? JSON.stringify(params) !== JSON.stringify(withDefaults(template.params)) : false),
     [params, template],
   )
-  const sample = thumbnails[previewIdx] ?? thumbnails[0] ?? null
+  const sample = pageItems[previewIdx] ?? pageItems[0] ?? null
 
-  if (loading || thLoading || !params) {
+  // Resolve the sample's Figma-only layers (assets not yet on our CDN) on demand.
+  useEffect(() => {
+    if (sample) ensureResolved(sample)
+  }, [sample, ensureResolved])
+
+  if (loading || !params) {
     return <div className="py-20 text-center text-zinc-500">Loading template…</div>
   }
+
+  // Fit the preview card to the available width (min so it never overflows).
+  const previewW = Math.max(220, Math.min(360, vw - 96))
 
   const sizeKey = params.sizeKey
   const lay = params.layouts?.[sizeKey] ?? defaultLayout(sizeKey)
@@ -107,28 +130,28 @@ export function TemplateView() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* preview */}
         <div
-          className="flex min-h-[520px] items-center justify-center rounded-2xl border border-zinc-800 p-8"
+          className="flex min-h-[420px] items-center justify-center rounded-2xl border border-zinc-800 p-4 sm:min-h-[520px] sm:p-8"
           style={{ backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)', backgroundSize: '22px 22px' }}
         >
           {sample ? (
             <div className="shadow-2xl">
-              <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={360} showFrame={false} />
+              <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={previewW} showFrame={false} />
             </div>
           ) : (
-            <p className="text-sm text-zinc-500">No thumbnails to preview yet.</p>
+            <p className="text-sm text-zinc-500">{pageLoading ? 'Loading a preview game…' : 'No thumbnails to preview yet.'}</p>
           )}
         </div>
 
         {/* controls */}
         <aside className="flex flex-col gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-3">
-          {thumbnails.length > 1 && (
+          {pageItems.length > 1 && (
             <Row label="Preview game">
               <select
                 value={previewIdx}
                 onChange={(e) => setPreviewIdx(Number(e.target.value))}
                 className="max-w-[200px] rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
               >
-                {thumbnails.map((t, i) => (
+                {pageItems.map((t, i) => (
                   <option key={t.id} value={i}>
                     {t.name}
                   </option>
