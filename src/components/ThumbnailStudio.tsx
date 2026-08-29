@@ -81,6 +81,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [activeProvider, setActiveProvider] = useState<string | null>(null)
   const [page, setPage] = useState(0)
   const [providerPickerOpen, setProviderPickerOpen] = useState(false) // mobile 70% sheet
+  // View-only aspect override for the grid/preview (doesn't change saved params).
+  const [viewSize, setViewSize] = useState<string | null>(null)
   const PAGE_SIZE = 30
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
@@ -512,10 +514,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // sliders (KV Size/Lift, Logo X/Y/W/H) are then inert, so hide them and let the
   // Layout section own placement (click "Auto" there to fall back to the sliders).
   const layoutActive = !!p.layouts?.[p.sizeKey]
-  const size = frameSize(p.sizeKey)
+  // Aspect used for rendering the grid/preview — a view-only override wins over
+  // the saved sizeKey, so you can preview every thumbnail at another size without
+  // editing the template.
+  const effSizeKey = viewSize ?? p.sizeKey
+  const size = frameSize(effSizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
   const gridW = Math.min(260, Math.round(size.w * (260 / size.h)))
-  const selectedParams = selected ? paramsForThumb(selected) : null
+  const selectedParamsBase = selected ? paramsForThumb(selected) : null
+  const selectedParams = selectedParamsBase ? { ...selectedParamsBase, sizeKey: effSizeKey } : null
   // Single canvas only when a specific thumbnail is targeted; otherwise a grid.
   const singleView = !editingBranch && scope === 'selected' && !!selected
   const previewPhase = playing ? phase : 0
@@ -819,7 +826,18 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
+            <select
+              value={effSizeKey}
+              onChange={(e) => setViewSize(e.target.value)}
+              title="Preview all thumbnails at this aspect size (view only)"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 outline-none transition focus:border-zinc-500"
+            >
+              {FRAME_SIZES.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.key}
+                </option>
+              ))}
+            </select>
             {isDesigner && (
               <button
                 onClick={undo}
@@ -938,8 +956,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               style={{ '--gw': `${gridW}px` } as React.CSSProperties}
             >
               {gridItems.map((t) => {
-                const pp = paramsForThumb(t)
-                if (!pp) return null
+                const pp0 = paramsForThumb(t)
+                if (!pp0) return null
+                const pp = { ...pp0, sizeKey: effSizeKey }
                 const active = t.id === selectedId
                 const picked = selectedIds.has(t.id)
                 return (
@@ -980,7 +999,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         showFrame={showFrame}
                         gridW={gridW}
                         phase={previewPhase}
-                        live={liveGrid || selectMode}
+                        live={liveGrid || selectMode || (viewSize != null && viewSize !== p.sizeKey)}
                         canBake={isDesigner && isWide}
                         onBaked={savePreview}
                         onNeedAssets={() => ensureResolved(t)}
