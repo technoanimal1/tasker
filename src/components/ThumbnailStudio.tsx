@@ -89,6 +89,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [sheetDragging, setSheetDragging] = useState(false)
   const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
+  // Desktop-width gate. Background preview baking loads full-res Figma layers per
+  // tile, which is too heavy on a phone (scrolling a large grid can exhaust
+  // memory) — designers bake on desktop; mobile just consumes the baked WebPs.
+  const [isWide, setIsWide] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true))
+  useEffect(() => {
+    const onR = () => setIsWide(window.innerWidth >= 1024)
+    window.addEventListener('resize', onR)
+    return () => window.removeEventListener('resize', onR)
+  }, [])
 
   const isDesigner = role === 'designer'
   const editingBranch = !!branch && !branch.is_default // a client branch = frame-design mode
@@ -972,7 +981,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         gridW={gridW}
                         phase={previewPhase}
                         live={liveGrid || selectMode}
-                        canBake={isDesigner}
+                        canBake={isDesigner && isWide}
                         onBaked={savePreview}
                         onNeedAssets={() => ensureResolved(t)}
                       />

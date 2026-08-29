@@ -85,9 +85,12 @@ export function GridTile({
     return () => io.disconnect()
   }, [visible])
 
-  // Show the live layered card when editing, or when there's no fresh preview to
-  // fall back on. Otherwise the WebP alone is enough (and much cheaper).
-  const showLive = visible && (live || !fresh)
+  // Mount the heavy live layered card ONLY when actually editing this tile, or
+  // when there's no baked image at all to show. A merely *stale* preview (e.g.
+  // after a render-version bump) keeps showing its WebP and re-bakes in the
+  // background — we must not flip every visible tile to a live render, which on
+  // mobile mounts dozens of full renders at once and exhausts memory.
+  const showLive = visible && (live || !thumb.preview_url)
 
   // Background re-bake for designers when the on-screen preview is stale/missing.
   // Debounced so dragging a slider doesn't bake on every frame; the global queue

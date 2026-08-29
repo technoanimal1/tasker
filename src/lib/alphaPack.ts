@@ -30,9 +30,20 @@ export function mp4RecordingType(): string | null {
   return null
 }
 
-/** True if this browser can produce the alpha-packed MP4 (needs MP4 recording). */
+/** Safari/iOS can't decode the source WebM's alpha (they'd pack a black clip),
+ *  so packing must only run where WebM alpha decodes — Chrome/Firefox/Chromium. */
+function isSafariOrIOS(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  const iOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document)
+  const safari = /^((?!chrome|chromium|crios|android|fxios|edg).)*safari/i.test(ua)
+  return iOS || safari
+}
+
+/** True if this browser can produce the alpha-packed MP4: needs MP4 recording AND
+ *  the ability to decode the transparent WebM (so never Safari/iOS). */
 export function canPackAlpha(): boolean {
-  return mp4RecordingType() != null
+  return mp4RecordingType() != null && !isSafariOrIOS()
 }
 
 /** Pack a transparent WebM URL into an alpha-packed H.264 MP4 Blob. */
