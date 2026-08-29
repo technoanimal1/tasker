@@ -1371,22 +1371,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           )}
           {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} saveAnimAlpha={saveAnimAlpha} />}
 
-          {showFrameSections && (
-            <Section title="Provider label">
-              <Row label="Show">
-                <input type="checkbox" checked={p.showProvider} onChange={(e) => set('showProvider', e.target.checked)} />
-              </Row>
-              <Seg options={['bottom', 'top'].map((o) => ({ value: o, label: o }))} value={p.providerPos} onChange={(v) => set('providerPos', v as TemplateParams['providerPos'])} />
-              <div className="grid grid-cols-2 gap-2">
-                <Slider label="Pad X" min={0} max={40} value={p.providerPadX} onChange={(v) => set('providerPadX', v)} fmt={intFmt} />
-                <Slider label="Pad Y" min={0} max={40} value={p.providerPadY} onChange={(v) => set('providerPadY', v)} fmt={intFmt} />
-                <Slider label="R ◜" min={0} max={40} value={p.providerRadius.tl} onChange={(v) => set('providerRadius', { ...p.providerRadius, tl: v })} fmt={intFmt} />
-                <Slider label="R ◝" min={0} max={40} value={p.providerRadius.tr} onChange={(v) => set('providerRadius', { ...p.providerRadius, tr: v })} fmt={intFmt} />
-                <Slider label="R ◟" min={0} max={40} value={p.providerRadius.bl} onChange={(v) => set('providerRadius', { ...p.providerRadius, bl: v })} fmt={intFmt} />
-                <Slider label="R ◞" min={0} max={40} value={p.providerRadius.br} onChange={(v) => set('providerRadius', { ...p.providerRadius, br: v })} fmt={intFmt} />
-              </div>
-            </Section>
-          )}
+          {/* Provider label styling moved to the Template controller — it's a
+              product-wide setting, edited once for every thumbnail. */}
         </div>
 
         {!lockedForClient && (

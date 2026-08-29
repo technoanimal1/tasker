@@ -5,11 +5,13 @@ import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
   ALIGN9,
   FRAME_SIZES,
+  PROVIDER_POSITIONS,
   defaultLayout,
   resolveGrad,
   withDefaults,
   type Align9,
   type GradientParams,
+  type ProviderPos,
   type SizeLayout,
   type TemplateParams,
 } from '../lib/thumb'
@@ -83,6 +85,8 @@ export function TemplateView() {
       const cur = resolveGrad(p)
       return { ...p, gradients: { ...(p.gradients ?? {}), [p.sizeKey]: { ...cur, ...patch } } }
     })
+  // Provider label styling is product-wide (not per aspect size).
+  const setP = (patch: Partial<TemplateParams>) => setParams((p) => (p ? { ...p, ...patch } : p))
 
   async function saveAll() {
     if (!params) return
@@ -135,7 +139,7 @@ export function TemplateView() {
         >
           {sample ? (
             <div className="shadow-2xl">
-              <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={previewW} showFrame={false} />
+              <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={previewW} showFrame />
             </div>
           ) : (
             <p className="text-sm text-zinc-500">{pageLoading ? 'Loading a preview game…' : 'No thumbnails to preview yet.'}</p>
@@ -194,6 +198,42 @@ export function TemplateView() {
                 Reset to global gradient
               </button>
             )}
+          </Section>
+
+          <Section title="Provider label">
+            <Row label="Show">
+              <input
+                type="checkbox"
+                checked={params.showProvider}
+                onChange={(e) => setP({ showProvider: e.target.checked })}
+                className="h-4 w-4 accent-accent"
+              />
+            </Row>
+            <Row label="Position">
+              <select
+                value={params.providerPos}
+                onChange={(e) => setP({ providerPos: e.target.value as ProviderPos })}
+                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+              >
+                {PROVIDER_POSITIONS.map((pos) => (
+                  <option key={pos} value={pos}>
+                    {pos}
+                  </option>
+                ))}
+              </select>
+            </Row>
+            <Slider label="Size" min={0.5} max={2.5} step={0.05} value={params.providerScale} onChange={(v) => setP({ providerScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <div className="grid grid-cols-2 gap-2">
+              <Slider label="Margin X" min={0} max={60} value={params.providerMarginX} onChange={(v) => setP({ providerMarginX: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Margin Y" min={0} max={60} value={params.providerMarginY} onChange={(v) => setP({ providerMarginY: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Pad X" min={0} max={40} value={params.providerPadX} onChange={(v) => setP({ providerPadX: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Pad Y" min={0} max={40} value={params.providerPadY} onChange={(v) => setP({ providerPadY: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="R ◜" min={0} max={40} value={params.providerRadius.tl} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, tl: v } })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="R ◝" min={0} max={40} value={params.providerRadius.tr} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, tr: v } })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="R ◟" min={0} max={40} value={params.providerRadius.bl} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, bl: v } })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="R ◞" min={0} max={40} value={params.providerRadius.br} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, br: v } })} fmt={(v) => `${Math.round(v)}`} />
+            </div>
+            <p className="text-[11px] text-zinc-500">The badge text is each game's provider. Styling here applies to every thumbnail.</p>
           </Section>
 
           <p className="text-[11px] text-zinc-500">Everything here is saved per aspect size and applies to all thumbnails at that size.</p>
