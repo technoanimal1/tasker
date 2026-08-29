@@ -283,6 +283,11 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               borderRadius: provRadius,
               whiteSpace: 'nowrap',
               lineHeight: 1.15,
+              // Center the text within the badge (both axes).
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
               boxShadow: `0 0 ${W * 0.06}px ${hexA(color.stroke, 0.75)}`,
             }}
           >
