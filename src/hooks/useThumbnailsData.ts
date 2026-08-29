@@ -7,11 +7,21 @@ export function useThumbnailsData() {
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
-    const { data } = await supabase
-      .from('thumbnails')
-      .select('*')
-      .order('created_at', { ascending: true })
-    setThumbnails((data as Thumbnail[]) ?? [])
+    // The catalogue is now thousands of games; Supabase caps a single query at
+    // 1000 rows, so page through until we've loaded them all.
+    const pageSize = 1000
+    const all: Thumbnail[] = []
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from('thumbnails')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .range(from, from + pageSize - 1)
+      if (error || !data || data.length === 0) break
+      all.push(...(data as Thumbnail[]))
+      if (data.length < pageSize) break
+    }
+    setThumbnails(all)
     setLoading(false)
   }, [])
 
