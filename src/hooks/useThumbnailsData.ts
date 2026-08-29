@@ -1,29 +1,86 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Thumbnail } from '../lib/thumb'
 
+export interface ProviderCount {
+  provider: string
+  count: number
+}
+
+/**
+ * Loads thumbnails lazily, provider-by-provider, instead of pulling the whole
+ * (thousands-strong) catalogue up front. On mount it fetches only a lightweight
+ * provider index (name + count); a provider's games are fetched the first time
+ * that category is opened (or auto-loaded for the first one). This keeps the
+ * client experience snappy — you load a provider's thumbnails as you jump into
+ * its category and scroll, not all at once.
+ */
 export function useThumbnailsData() {
   const [thumbnails, setThumbnails] = useState<Thumbnail[]>([])
-  const [loading, setLoading] = useState(true)
+  const [providerCounts, setProviderCounts] = useState<ProviderCount[]>([])
+  const [loadedProviders, setLoadedProviders] = useState<Set<string>>(new Set())
+  const [providerLoading, setProviderLoading] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true) // initial provider-index load only
 
-  const refresh = useCallback(async () => {
-    // The catalogue is now thousands of games; Supabase caps a single query at
-    // 1000 rows, so page through until we've loaded them all.
+  // Providers we've already started fetching (claimed synchronously so an
+  // expand + auto-load can't double-fetch the same provider).
+  const claimed = useRef<Set<string>>(new Set())
+
+  const fetchProvider = useCallback(async (provider: string): Promise<Thumbnail[]> => {
     const pageSize = 1000
     const all: Thumbnail[] = []
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabase
         .from('thumbnails')
         .select('*')
-        .order('created_at', { ascending: true })
+        .eq('provider', provider)
+        .order('name', { ascending: true })
         .range(from, from + pageSize - 1)
       if (error || !data || data.length === 0) break
       all.push(...(data as Thumbnail[]))
       if (data.length < pageSize) break
     }
-    setThumbnails(all)
-    setLoading(false)
+    return all
   }, [])
+
+  /** Load a provider's thumbnails on demand (no-op if already loaded/loading). */
+  const ensureProvider = useCallback(
+    async (provider: string) => {
+      if (!provider || claimed.current.has(provider)) return
+      claimed.current.add(provider)
+      setProviderLoading(provider)
+      try {
+        const games = await fetchProvider(provider)
+        setThumbnails((ts) => {
+          const have = new Set(ts.map((t) => t.id))
+          return [...ts, ...games.filter((g) => !have.has(g.id))]
+        })
+        setLoadedProviders((s) => new Set(s).add(provider))
+      } catch {
+        claimed.current.delete(provider) // allow a retry on failure
+      } finally {
+        setProviderLoading((p) => (p === provider ? null : p))
+      }
+    },
+    [fetchProvider],
+  )
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    claimed.current = new Set()
+    setLoadedProviders(new Set())
+    setThumbnails([])
+    const { data } = await supabase.rpc('provider_counts')
+    const counts = ((data as { provider: string; cnt: number }[]) ?? []).map((r) => ({
+      provider: r.provider,
+      count: Number(r.cnt),
+    }))
+    setProviderCounts(counts)
+    setLoading(false)
+    // Auto-load the biggest provider so the grid isn't empty on first paint.
+    const first = counts.slice().sort((a, b) => b.count - a.count)[0]?.provider
+    if (first) ensureProvider(first)
+  }, [ensureProvider])
 
   useEffect(() => {
     refresh()
@@ -34,13 +91,10 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ accent_color }).eq('id', id)
   }, [])
 
-  const saveOverrides = useCallback(
-    async (id: string, overrides: Record<string, unknown>) => {
-      setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, overrides } : t)))
-      await supabase.from('thumbnails').update({ overrides }).eq('id', id)
-    },
-    [],
-  )
+  const saveOverrides = useCallback(async (id: string, overrides: Record<string, unknown>) => {
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, overrides } : t)))
+    await supabase.from('thumbnails').update({ overrides }).eq('id', id)
+  }, [])
 
   const saveAnim = useCallback(async (id: string, anim_video_url: string | null, anim_prompt: string | null) => {
     setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, anim_video_url, anim_prompt } : t)))
@@ -52,7 +106,6 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ logo_white_url }).eq('id', id)
   }, [])
 
-  // Record a freshly baked grid preview (URL + the signature it was baked at).
   const savePreview = useCallback(async (id: string, preview_url: string, preview_sig: string) => {
     setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, preview_url, preview_sig } : t)))
     await supabase.from('thumbnails').update({ preview_url, preview_sig }).eq('id', id)
@@ -60,16 +113,29 @@ export function useThumbnailsData() {
 
   const deleteThumbnail = useCallback(async (id: string) => {
     setThumbnails((ts) => ts.filter((t) => t.id !== id))
-    const { error } = await supabase.from('thumbnails').delete().eq('id', id)
-    if (error) await refresh() // put it back if the delete was rejected
-  }, [refresh])
+    await supabase.from('thumbnails').delete().eq('id', id)
+  }, [])
 
   // Re-insert a previously deleted thumbnail (for undo).
   const insertThumbnail = useCallback(async (t: Thumbnail) => {
     setThumbnails((ts) => (ts.some((x) => x.id === t.id) ? ts : [...ts, t]))
-    const { error } = await supabase.from('thumbnails').insert(t as never)
-    if (error) await refresh()
-  }, [refresh])
+    await supabase.from('thumbnails').insert(t as never)
+  }, [])
 
-  return { thumbnails, loading, refresh, setAccent, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail }
+  return {
+    thumbnails,
+    providerCounts,
+    loadedProviders,
+    providerLoading,
+    loading,
+    ensureProvider,
+    refresh,
+    setAccent,
+    saveOverrides,
+    saveAnim,
+    saveLogoWhite,
+    savePreview,
+    deleteThumbnail,
+    insertThumbnail,
+  }
 }

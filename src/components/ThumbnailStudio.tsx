@@ -44,7 +44,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -73,7 +73,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [bulkLogo, setBulkLogo] = useState(80)
   // Left sidebar: provider dropdowns + game search.
   const [sidebarSearch, setSidebarSearch] = useState('')
-  const [collapsedProviders, setCollapsedProviders] = useState<Set<string>>(new Set())
+  // Providers whose game list is expanded in the sidebar (lazy-loads on expand).
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
@@ -185,20 +186,30 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   )
   const dirty = editingBranch ? branchDirty : scope === 'global' ? globalDirty : selDirty
 
-  // Sidebar: group games by provider (sorted), each group sorted by name.
+  // Loaded games grouped by provider (each sorted by name). Only providers that
+  // have been fetched appear here; the sidebar lists every provider from the
+  // lightweight index and loads a provider's games when its category opens.
   // MUST stay above the early return below — hooks can't run conditionally.
-  const providerGroups = useMemo(() => {
+  const gamesByProvider = useMemo(() => {
     const m = new Map<string, typeof thumbnails>()
     for (const t of thumbnails) {
       const key = t.provider || '—'
-      const arr = m.get(key) ?? []
-      arr.push(t)
-      m.set(key, arr)
+      const arr = m.get(key)
+      if (arr) arr.push(t)
+      else m.set(key, [t])
     }
-    return [...m.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([k, v]) => [k, v.slice().sort((a, b) => a.name.localeCompare(b.name))] as const)
+    for (const v of m.values()) v.sort((a, b) => a.name.localeCompare(b.name))
+    return m
   }, [thumbnails])
+
+  // Auto-expand the biggest provider once the index loads (it's auto-fetched).
+  const autoExpanded = useRef(false)
+  useEffect(() => {
+    if (autoExpanded.current || providerCounts.length === 0) return
+    autoExpanded.current = true
+    const biggest = providerCounts.slice().sort((a, b) => b.count - a.count)[0]?.provider
+    if (biggest) setExpandedProviders(new Set([biggest]))
+  }, [providerCounts])
 
   if (tLoading || thLoading || !params || !activeParams) {
     return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
@@ -566,17 +577,22 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         </div>
         <div className="flex-1 space-y-1.5 overflow-y-auto p-2">
-          {providerGroups.map(([provider, games]) => {
-            const shown = sidebarQuery ? games.filter((t) => t.name.toLowerCase().includes(sidebarQuery)) : games
+          {providerCounts.map(({ provider, count }) => {
+            const loaded = gamesByProvider.get(provider) ?? []
+            const shown = sidebarQuery ? loaded.filter((t) => t.name.toLowerCase().includes(sidebarQuery)) : loaded
             if (sidebarQuery && shown.length === 0) return null
-            const open = !!sidebarQuery || !collapsedProviders.has(provider)
+            const open = !!sidebarQuery || expandedProviders.has(provider)
             return (
               <div key={provider}>
                 <button
                   onClick={() =>
-                    setCollapsedProviders((s) => {
+                    setExpandedProviders((s) => {
                       const n = new Set(s)
-                      n.has(provider) ? n.delete(provider) : n.add(provider)
+                      if (n.has(provider)) n.delete(provider)
+                      else {
+                        n.add(provider)
+                        ensureProvider(provider) // lazy-load this provider's games
+                      }
                       return n
                     })
                   }
@@ -587,11 +603,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     {provider}
                   </span>
                   <span className="rounded-full bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
-                    {sidebarQuery ? `${shown.length}/${games.length}` : games.length}
+                    {sidebarQuery ? `${shown.length}/${count}` : count}
                   </span>
                 </button>
                 {open && (
                   <div className="mt-0.5 space-y-0.5 pl-1">
+                    {providerLoading === provider && loaded.length === 0 && (
+                      <p className="px-2 py-2 text-[11px] text-zinc-500">Loading…</p>
+                    )}
                     {shown.map((t) => {
                       const hasOv = Object.keys(overrides[t.id] ?? {}).length > 0
                       const pp = paramsForThumb(t)
@@ -642,8 +661,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               </div>
             )
           })}
-          {sidebarQuery && providerGroups.every(([, g]) => !g.some((t) => t.name.toLowerCase().includes(sidebarQuery))) && (
-            <p className="px-2 py-4 text-center text-xs text-zinc-500">No games match “{sidebarSearch}”.</p>
+          {sidebarQuery && !thumbnails.some((t) => t.name.toLowerCase().includes(sidebarQuery)) && (
+            <p className="px-2 py-4 text-center text-xs text-zinc-500">
+              No loaded games match “{sidebarSearch}”. Open a provider to load its games.
+            </p>
           )}
         </div>
         <div className="border-t border-zinc-800 p-2">
@@ -660,7 +681,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       {/* CENTER — canvas / grid */}
       <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0 lg:overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 px-4 py-2.5">
-          <span className="text-sm font-medium">{singleView ? selected?.name : `All thumbnails · ${thumbnails.length}`}</span>
+          <span className="text-sm font-medium">
+            {singleView ? selected?.name : `Thumbnails · ${thumbnails.length} of ${providerCounts.reduce((n, p) => n + p.count, 0)}`}
+          </span>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
             {isDesigner && (
