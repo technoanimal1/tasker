@@ -94,6 +94,17 @@ export function TemplateView() {
   // Provider label styling is product-wide (not per aspect size).
   const setP = (patch: Partial<TemplateParams>) => setParams((p) => (p ? { ...p, ...patch } : p))
 
+  // Copy the current size's KV + logo layout (alignment, size, offsets) onto every
+  // aspect size, so a proportion tuned here can be applied to all sizes at once.
+  const applyLayoutToAll = () =>
+    setParams((p) => {
+      if (!p) return p
+      const cur = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
+      const layouts = { ...(p.layouts ?? {}) }
+      for (const s of FRAME_SIZES) layouts[s.key] = { ...cur }
+      return { ...p, layouts }
+    })
+
   async function saveAll() {
     if (!params) return
     setSaving(true)
@@ -123,7 +134,7 @@ export function TemplateView() {
       </div>
 
       {/* aspect switcher */}
-      <div className="mb-5 flex flex-wrap gap-1.5">
+      <div className="mb-5 flex flex-wrap items-center gap-1.5">
         {FRAME_SIZES.map((s) => (
           <button
             key={s.key}
@@ -135,6 +146,13 @@ export function TemplateView() {
             {s.key}
           </button>
         ))}
+        <button
+          onClick={applyLayoutToAll}
+          title="Copy this size's KV + logo alignment, size and offsets to every aspect size"
+          className="ml-auto rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
+        >
+          Apply KV + logo to all sizes
+        </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
