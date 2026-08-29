@@ -415,6 +415,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     setSheetTopVh(12)
     setMobilePanel('controls')
   }
+  // Open a specific thumbnail's editor (single-view + controls scoped to it).
+  function openEditor(id: string) {
+    setSelectedId(id)
+    if (showScope) setScope('selected')
+    openControls()
+  }
   // Drag the sheet handle to resize/maximize; release snaps to full / 70% / close.
   function onSheetDown(e: React.PointerEvent) {
     sheetDrag.current = { startY: e.clientY, startTop: sheetTopVh }
@@ -757,11 +763,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       return (
                         <div key={t.id} className="group/item relative">
                           <button
-                            onClick={() => {
-                              setSelectedId(t.id)
-                              if (showScope) setScope('selected')
-                              openControls()
-                            }}
+                            onClick={() => openEditor(t.id)}
                             className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
                               t.id === selectedId ? 'bg-zinc-800 ring-1 ring-zinc-700' : 'hover:bg-zinc-800/50'
                             }`}
@@ -972,9 +974,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         toggleSelected(t.id)
                         return
                       }
-                      setSelectedId(t.id)
-                      if (showScope) setScope('selected')
-                      openControls()
+                      openEditor(t.id)
                     }}
                     className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       selectMode && picked
@@ -1016,6 +1016,19 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                           onPick={(mode, key) => recolorThumb(t.id, mode, key)}
                         />
                       </div>
+                    )}
+                    {isDesigner && !selectMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openEditor(t.id)
+                        }}
+                        title={`Edit ${t.name}`}
+                        aria-label={`Edit ${t.name}`}
+                        className="absolute bottom-2 right-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white shadow-md backdrop-blur transition hover:bg-black/80 lg:opacity-0 lg:group-hover:opacity-100"
+                      >
+                        ✎ Edit
+                      </button>
                     )}
                     {isDesigner && !selectMode && (
                       <button
