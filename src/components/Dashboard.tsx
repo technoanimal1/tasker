@@ -37,6 +37,8 @@ export function Dashboard() {
     () => branchesApi.branches.find((b) => b.id === branchId) ?? null,
     [branchesApi.branches, branchId],
   )
+  // The client's uploaded logotype (Brand assets) brands the header when present.
+  const brandLogo = assetsApi.byKind('logo')?.url ?? null
 
   return (
     <div className="min-h-screen">
@@ -44,13 +46,25 @@ export function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5 font-semibold">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-zinc-900 shadow-[0_0_20px_rgba(255,240,80,0.35)]">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="3" y="5" width="14" height="14" rx="3" fill="currentColor" opacity="0.35" />
-                  <rect x="7" y="3" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="2.2" />
-                </svg>
-              </span>
-              <span className="hidden text-[15px] tracking-tight sm:inline">Thumbnail Studio</span>
+              {brandLogo ? (
+                // Client's uploaded logotype, rendered as a white (on-dark) mark
+                // so it reads on the dark header regardless of the file's colour.
+                <img
+                  src={brandLogo}
+                  alt="Logo"
+                  className="h-8 w-auto max-w-[140px] object-contain [filter:brightness(0)_invert(1)]"
+                />
+              ) : (
+                <>
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-zinc-900 shadow-[0_0_20px_rgba(255,240,80,0.35)]">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="3" y="5" width="14" height="14" rx="3" fill="currentColor" opacity="0.35" />
+                      <rect x="7" y="3" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="2.2" />
+                    </svg>
+                  </span>
+                  <span className="hidden text-[15px] tracking-tight sm:inline">Thumbnail Studio</span>
+                </>
+              )}
             </div>
 
             <BranchMenu
