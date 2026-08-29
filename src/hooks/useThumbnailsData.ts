@@ -20,7 +20,16 @@ export function useThumbnailsData() {
   const [providerCounts, setProviderCounts] = useState<ProviderCount[]>([])
   const [loadedProviders, setLoadedProviders] = useState<Set<string>>(new Set())
   const [providerLoading, setProviderLoading] = useState<string | null>(null)
+  const [pageItems, setPageItems] = useState<Thumbnail[]>([]) // current "All" page
+  const [pageLoading, setPageLoading] = useState(false)
   const [loading, setLoading] = useState(true) // initial provider-index load only
+
+  const mergeIn = (items: Thumbnail[]) =>
+    setThumbnails((ts) => {
+      const have = new Set(ts.map((t) => t.id))
+      const add = items.filter((i) => !have.has(i.id))
+      return add.length ? [...ts, ...add] : ts
+    })
 
   // Providers we've already started fetching (claimed synchronously so an
   // expand + auto-load can't double-fetch the same provider).
@@ -51,10 +60,7 @@ export function useThumbnailsData() {
       setProviderLoading(provider)
       try {
         const games = await fetchProvider(provider)
-        setThumbnails((ts) => {
-          const have = new Set(ts.map((t) => t.id))
-          return [...ts, ...games.filter((g) => !have.has(g.id))]
-        })
+        mergeIn(games)
         setLoadedProviders((s) => new Set(s).add(provider))
       } catch {
         claimed.current.delete(provider) // allow a retry on failure
@@ -65,11 +71,29 @@ export function useThumbnailsData() {
     [fetchProvider],
   )
 
+  /** Fetch one page of the whole catalogue (for the "All" view), ordered by
+   *  provider then name. Also merges into `thumbnails` so edits/assets stay in sync. */
+  const loadPage = useCallback(async (pageIndex: number, pageSize = 30) => {
+    setPageLoading(true)
+    const from = pageIndex * pageSize
+    const { data } = await supabase
+      .from('thumbnails')
+      .select('*')
+      .order('provider', { ascending: true })
+      .order('name', { ascending: true })
+      .range(from, from + pageSize - 1)
+    const items = (data as Thumbnail[]) ?? []
+    setPageItems(items)
+    mergeIn(items)
+    setPageLoading(false)
+  }, [])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     claimed.current = new Set()
     setLoadedProviders(new Set())
     setThumbnails([])
+    setPageItems([])
     const { data } = await supabase.rpc('provider_counts')
     const counts = ((data as { provider: string; cnt: number }[]) ?? []).map((r) => ({
       provider: r.provider,
@@ -77,10 +101,7 @@ export function useThumbnailsData() {
     }))
     setProviderCounts(counts)
     setLoading(false)
-    // Auto-load the biggest provider so the grid isn't empty on first paint.
-    const first = counts.slice().sort((a, b) => b.count - a.count)[0]?.provider
-    if (first) ensureProvider(first)
-  }, [ensureProvider])
+  }, [])
 
   useEffect(() => {
     refresh()
@@ -127,6 +148,9 @@ export function useThumbnailsData() {
     providerCounts,
     loadedProviders,
     providerLoading,
+    pageItems,
+    pageLoading,
+    loadPage,
     loading,
     ensureProvider,
     refresh,

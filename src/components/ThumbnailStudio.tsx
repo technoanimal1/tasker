@@ -44,7 +44,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, providerCounts, providerLoading, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -75,6 +75,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [sidebarSearch, setSidebarSearch] = useState('')
   // Providers whose game list is expanded in the sidebar (lazy-loads on expand).
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
+  // Which category the grid shows: a provider name, or null = "All" (paginated).
+  const [activeProvider, setActiveProvider] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 30
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
@@ -202,14 +206,21 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     return m
   }, [thumbnails])
 
-  // Auto-expand the biggest provider once the index loads (it's auto-fetched).
-  const autoExpanded = useRef(false)
+  // Load data for the active view: a provider's games, or the current "All" page.
   useEffect(() => {
-    if (autoExpanded.current || providerCounts.length === 0) return
-    autoExpanded.current = true
-    const biggest = providerCounts.slice().sort((a, b) => b.count - a.count)[0]?.provider
-    if (biggest) setExpandedProviders(new Set([biggest]))
-  }, [providerCounts])
+    if (activeProvider) ensureProvider(activeProvider)
+  }, [activeProvider, ensureProvider])
+  useEffect(() => {
+    if (!activeProvider) loadPage(page, PAGE_SIZE)
+  }, [activeProvider, page, loadPage])
+
+  // Games shown in the grid: a provider's loaded games, or the current All page.
+  const gridItems = useMemo(
+    () => (activeProvider ? thumbnails.filter((t) => t.provider === activeProvider) : pageItems),
+    [activeProvider, thumbnails, pageItems],
+  )
+  const totalCatalog = useMemo(() => providerCounts.reduce((n, p) => n + p.count, 0), [providerCounts])
+  const pageCount = Math.max(1, Math.ceil(totalCatalog / PAGE_SIZE))
 
   if (tLoading || thLoading || !params || !activeParams) {
     return <div className="py-20 text-center text-zinc-500">Loading studio…</div>
@@ -603,6 +614,21 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         </div>
         <div className="flex-1 space-y-1.5 overflow-y-auto p-2">
+          {!sidebarQuery && (
+            <button
+              onClick={() => {
+                setActiveProvider(null)
+                setPage(0)
+                setMobilePanel(null)
+              }}
+              className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
+                activeProvider === null ? 'bg-accent/15 text-accent' : 'text-zinc-300 hover:bg-zinc-800/50'
+              }`}
+            >
+              <span>All providers</span>
+              <span className="rounded-full bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">{totalCatalog}</span>
+            </button>
+          )}
           {providerCounts.map(({ provider, count }) => {
             const loaded = gamesByProvider.get(provider) ?? []
             const shown = sidebarQuery ? loaded.filter((t) => t.name.toLowerCase().includes(sidebarQuery)) : loaded
@@ -611,18 +637,22 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             return (
               <div key={provider}>
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    // Filter the grid to this provider (and load its games).
+                    setActiveProvider(provider)
+                    setPage(0)
+                    ensureProvider(provider)
+                    setMobilePanel(null)
                     setExpandedProviders((s) => {
                       const n = new Set(s)
                       if (n.has(provider)) n.delete(provider)
-                      else {
-                        n.add(provider)
-                        ensureProvider(provider) // lazy-load this provider's games
-                      }
+                      else n.add(provider)
                       return n
                     })
-                  }
-                  className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-zinc-300 transition hover:bg-zinc-800/50"
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
+                    activeProvider === provider ? 'bg-accent/15 text-accent' : 'text-zinc-300 hover:bg-zinc-800/50'
+                  }`}
                 >
                   <span className="flex items-center gap-1.5">
                     <span className={`text-zinc-500 transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
@@ -708,7 +738,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0 lg:overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 px-4 py-2.5">
           <span className="text-sm font-medium">
-            {singleView ? selected?.name : `Thumbnails · ${thumbnails.length} of ${providerCounts.reduce((n, p) => n + p.count, 0)}`}
+            {singleView
+              ? selected?.name
+              : activeProvider
+                ? `${activeProvider} · ${gridItems.length}`
+                : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="hidden text-xs text-zinc-500 sm:inline">{size.label}</span>
@@ -811,7 +845,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             {selectMode && (
               <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-zinc-900/95 p-2 text-xs shadow-lg backdrop-blur">
                 <span className="font-medium text-zinc-100">{selectedIds.size} selected</span>
-                <button onClick={() => setSelectedIds(new Set(thumbnails.map((t) => t.id)))} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">All</button>
+                <button onClick={() => setSelectedIds(new Set(gridItems.map((t) => t.id)))} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">All</button>
                 <button onClick={() => setSelectedIds(new Set())} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">None</button>
                 <span className="mx-1 h-4 w-px bg-zinc-700" />
                 <span className="text-zinc-400">Logo</span>
@@ -829,7 +863,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               className="grid grid-cols-2 gap-3 sm:gap-4 lg:[grid-template-columns:repeat(auto-fill,minmax(var(--gw),1fr))]"
               style={{ '--gw': `${gridW}px` } as React.CSSProperties}
             >
-              {thumbnails.map((t) => {
+              {gridItems.map((t) => {
                 const pp = paramsForThumb(t)
                 if (!pp) return null
                 const active = t.id === selectedId
@@ -907,6 +941,33 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 )
               })}
             </div>
+
+            {gridItems.length === 0 && (
+              <p className="py-16 text-center text-sm text-zinc-500">
+                {pageLoading || (activeProvider && providerLoading === activeProvider) ? 'Loading…' : 'No games here yet.'}
+              </p>
+            )}
+
+            {/* "All" view: paginate the whole catalogue, 30 per page */}
+            {!activeProvider && totalCatalog > PAGE_SIZE && (
+              <div className="mt-5 flex items-center justify-center gap-3 text-xs text-zinc-300">
+                <button
+                  disabled={page === 0 || pageLoading}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  className="rounded-lg border border-zinc-700 px-3 py-1.5 transition hover:bg-zinc-800 disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <span className="tabular-nums text-zinc-400">Page {page + 1} of {pageCount}</span>
+                <button
+                  disabled={page + 1 >= pageCount || pageLoading}
+                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                  className="rounded-lg border border-zinc-700 px-3 py-1.5 transition hover:bg-zinc-800 disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
