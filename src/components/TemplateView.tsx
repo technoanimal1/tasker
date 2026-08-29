@@ -35,6 +35,8 @@ export function TemplateView() {
   const [params, setParams] = useState<TemplateParams | null>(null)
   const [saving, setSaving] = useState(false)
   const [previewIdx, setPreviewIdx] = useState(0)
+  // The provider-label config is locked until you tap Edit (avoids stray changes).
+  const [labelEdit, setLabelEdit] = useState(false)
   // Preview width tracks the viewport so the card fits on mobile (no clipping).
   const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 800))
 
@@ -228,7 +230,29 @@ export function TemplateView() {
             )}
           </Section>
 
-          <Section title="Provider label">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-zinc-300">Provider label</p>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => setLabelEdit((e) => !e)}
+                  className="rounded-md border border-zinc-700 px-2 py-0.5 text-[11px] text-zinc-300 transition hover:bg-zinc-800"
+                >
+                  {labelEdit ? 'Lock' : 'Edit'}
+                </button>
+                <button
+                  onClick={async () => {
+                    await saveAll()
+                    setLabelEdit(false)
+                  }}
+                  disabled={saving || !dirty}
+                  className="rounded-md bg-accent px-2 py-0.5 text-[11px] font-medium text-white transition hover:bg-accent-dark disabled:opacity-40"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+            <div className={labelEdit ? 'space-y-2' : 'pointer-events-none space-y-2 opacity-50'}>
             <Row label="Show">
               <input
                 type="checkbox"
@@ -268,14 +292,19 @@ export function TemplateView() {
               <Slider label="Margin X" min={0} max={60} value={params.providerMarginX} onChange={(v) => setP({ providerMarginX: v })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="Margin Y" min={0} max={60} value={params.providerMarginY} onChange={(v) => setP({ providerMarginY: v })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="Pad X" min={0} max={40} value={params.providerPadX} onChange={(v) => setP({ providerPadX: v })} fmt={(v) => `${Math.round(v)}`} />
-              <Slider label="Pad Y" min={0} max={40} value={params.providerPadY} onChange={(v) => setP({ providerPadY: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Pad top" min={0} max={40} value={params.providerPadY} onChange={(v) => setP({ providerPadY: v })} fmt={(v) => `${Math.round(v)}`} />
+              <Slider label="Pad bottom" min={0} max={40} value={params.providerPadBottom ?? 0} onChange={(v) => setP({ providerPadBottom: v })} fmt={(v) => `${Math.round(v)}`} />
+              <div />
               <Slider label="R ◜" min={0} max={40} value={params.providerRadius.tl} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, tl: v } })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="R ◝" min={0} max={40} value={params.providerRadius.tr} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, tr: v } })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="R ◟" min={0} max={40} value={params.providerRadius.bl} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, bl: v } })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="R ◞" min={0} max={40} value={params.providerRadius.br} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, br: v } })} fmt={(v) => `${Math.round(v)}`} />
             </div>
-            <p className="text-[11px] text-zinc-500">The badge text is each game's provider. Styling here applies to every thumbnail.</p>
-          </Section>
+            <p className="text-[11px] text-zinc-500">
+              {labelEdit ? 'The badge text is each game’s provider. Styling applies to every thumbnail.' : 'Locked — tap Edit to change the provider label.'}
+            </p>
+            </div>
+          </div>
 
           <p className="text-[11px] text-zinc-500">Everything here is saved per aspect size and applies to all thumbnails at that size.</p>
         </aside>

@@ -279,7 +279,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               color: '#ffffff',
               font: `700 ${W * 0.025 * params.providerScale}px "Helvetica Neue", Arial, sans-serif`,
               letterSpacing: W * 0.001,
-              padding: `${params.providerPadY * k}px ${params.providerPadX * k}px 0`,
+              padding: `${params.providerPadY * k}px ${params.providerPadX * k}px ${(params.providerPadBottom ?? 0) * k}px`,
               borderRadius: provRadius,
               whiteSpace: 'nowrap',
               lineHeight: 1.15,

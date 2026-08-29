@@ -165,7 +165,8 @@ export interface TemplateParams {
   providerCase: ProviderCase // normalise the badge text casing (default as-is)
   providerRadius: { tl: number; tr: number; br: number; bl: number } // px @244 ref, per corner
   providerPadX: number // px @244 ref
-  providerPadY: number
+  providerPadY: number // top padding inside the badge, px @244 ref
+  providerPadBottom: number // bottom padding inside the badge, px @244 ref
   providerScale: number // overall badge size multiplier (1 = default)
   providerMarginX: number // distance from the frame's side edge, px @244 ref
   providerMarginY: number // distance from the frame's top/bottom edge, px @244 ref
@@ -221,6 +222,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   providerRadius: { tl: 30, tr: 30, br: 30, bl: 30 },
   providerPadX: 0,
   providerPadY: 0,
+  providerPadBottom: 0,
   providerScale: 1,
   providerMarginX: 10,
   providerMarginY: 10,
@@ -311,7 +313,7 @@ export const DESIGNER_KEYS: (keyof TemplateParams)[] = [
 export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'sizeKey', 'cornerMode',
   'strokeWidth', 'strokePad', 'strokePos',
-  'showProvider', 'providerPos', 'providerName', 'providerCase', 'providerRadius', 'providerPadX', 'providerPadY',
+  'showProvider', 'providerPos', 'providerName', 'providerCase', 'providerRadius', 'providerPadX', 'providerPadY', 'providerPadBottom',
   'providerScale', 'providerMarginX', 'providerMarginY',
   'gradStop1', 'gradStop2', 'gradBottom', 'gradOpacity', 'gradBandPct', 'gradients',
   'logoVariant', 'textLogo', 'fontFamily',
