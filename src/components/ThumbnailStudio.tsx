@@ -115,6 +115,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [sheetDragging, setSheetDragging] = useState(false)
   const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
+  const gridScrollRef = useRef<HTMLDivElement>(null)
+  // Change the "All" catalogue page and jump back to the top of the grid so the
+  // new page is visible (on mobile the page body scrolls; on desktop the grid).
+  function goToPage(next: number) {
+    const clamped = Math.max(0, Math.min(pageCount - 1, next))
+    setPage(clamped)
+    gridScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   // Desktop-width gate. Background preview baking loads full-res Figma layers per
   // tile, which is too heavy on a phone (scrolling a large grid can exhaust
   // memory) — designers bake on desktop; mobile just consumes the baked WebPs.
@@ -980,6 +989,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         ) : (
           <div
+            ref={gridScrollRef}
             className="overflow-visible p-4 pb-24 sm:p-6 lg:flex-1 lg:overflow-auto lg:pb-6"
             style={{
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
@@ -1107,19 +1117,19 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
             {/* "All" view: paginate the whole catalogue, 30 per page */}
             {!gameQuery && !activeProvider && totalCatalog > PAGE_SIZE && (
-              <div className="mt-5 flex items-center justify-center gap-3 text-xs text-zinc-300">
+              <div className="relative z-10 mb-24 mt-5 flex items-center justify-center gap-3 text-xs text-zinc-300 lg:mb-5">
                 <button
                   disabled={page === 0 || pageLoading}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  className="rounded-lg border border-zinc-700 px-3 py-1.5 transition hover:bg-zinc-800 disabled:opacity-40"
+                  onClick={() => goToPage(page - 1)}
+                  className="rounded-lg border border-zinc-700 px-4 py-2.5 transition hover:bg-zinc-800 disabled:opacity-40"
                 >
                   ← Prev
                 </button>
                 <span className="tabular-nums text-zinc-400">Page {page + 1} of {pageCount}</span>
                 <button
                   disabled={page + 1 >= pageCount || pageLoading}
-                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                  className="rounded-lg border border-zinc-700 px-3 py-1.5 transition hover:bg-zinc-800 disabled:opacity-40"
+                  onClick={() => goToPage(page + 1)}
+                  className="rounded-lg border border-zinc-700 px-4 py-2.5 transition hover:bg-zinc-800 disabled:opacity-40"
                 >
                   Next →
                 </button>
