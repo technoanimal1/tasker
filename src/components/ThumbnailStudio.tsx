@@ -551,6 +551,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const selectedParams = selectedParamsBase ? { ...selectedParamsBase, sizeKey: effSizeKey } : null
   // Single canvas only when a specific thumbnail is targeted; otherwise a grid.
   const singleView = !editingBranch && scope === 'selected' && !!selected
+  const headerTitle = singleView
+    ? (selected?.name ?? '')
+    : activeProvider
+      ? `${activeProvider} · ${gridItems.length}`
+      : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
   const sidebarQuery = sidebarSearch.trim().toLowerCase()
@@ -566,7 +571,23 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const rightSheet = `fixed inset-x-0 bottom-0 rounded-t-2xl ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
 
   return (
-    <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)] lg:flex-row">
+    <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)]">
+      {/* Top bar — title/count (left) and export (right), between the app header
+          and the workspace. */}
+      <div className="flex items-center justify-between gap-2 px-1">
+        <span className="truncate text-sm font-medium text-zinc-200">{headerTitle}</span>
+        <button
+          onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
+          disabled={exporting}
+          title={singleView ? 'Export this thumbnail' : 'Export all'}
+          className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-50"
+        >
+          {exporting ? <Spinner size={14} /> : <Download size={16} />}
+          <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
+        </button>
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
       {/* Backdrop behind an open mobile sheet */}
       {mobilePanel && (
         <button
@@ -816,14 +837,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
       {/* CENTER — canvas / grid */}
       <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-xl border border-zinc-800 bg-zinc-950/40 lg:min-h-0 lg:overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 px-4 py-2.5">
-          <span className="text-sm font-medium">
-            {singleView
-              ? selected?.name
-              : activeProvider
-                ? `${activeProvider} · ${gridItems.length}`
-                : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`}
-          </span>
+        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-zinc-800 px-4 py-2.5">
           <div className="flex flex-wrap items-center justify-end gap-1.5">
             <select
               value={effSizeKey}
@@ -888,15 +902,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 WebM
               </option>
             </select>
-            <button
-              onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
-              disabled={exporting}
-              title={singleView ? 'Export this thumbnail' : 'Export all'}
-              className="flex h-8 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-50"
-            >
-              {exporting ? <Spinner size={14} /> : <Download size={16} />}
-              <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
-            </button>
           </div>
         </div>
         {singleView && selected && selectedParams ? (
@@ -1433,6 +1438,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           </div>
         )}
       </aside>
+      </div>
 
       <ExportProgress
         open={exportOpen}
