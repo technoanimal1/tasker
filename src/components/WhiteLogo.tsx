@@ -4,9 +4,9 @@ import type { Thumbnail } from '../lib/thumb'
 
 // White-logo engines. All extract/redraw the wordmark; cost & quality differ.
 const ENGINES = [
-  { id: 'gpt', label: 'ChatGPT · best', note: 'gpt-image-1 · cleanest wordmark, ~a few ¢' },
-  { id: 'ai', label: 'Gemini · fast', note: 'nano-banana · good, cheaper' },
-  { id: 'knockout', label: 'Knockout · free', note: 'alpha→white · only for clean wordmark logos' },
+  { id: 'knockout', label: 'Knockout · free', note: 'alpha→white · transparent, best for clean wordmark logos' },
+  { id: 'ai', label: 'Gemini · fast', note: 'nano-banana + auto background removal · transparent' },
+  { id: 'gpt', label: 'ChatGPT · best', note: 'gpt-image-1 · cleanest, but needs OpenAI credits' },
 ]
 
 export function WhiteLogo({
@@ -18,7 +18,7 @@ export function WhiteLogo({
   saveLogoWhite: (id: string, url: string | null) => Promise<void>
   saveLogoColor: (id: string, url: string | null) => Promise<void>
 }) {
-  const [engine, setEngine] = useState('gpt')
+  const [engine, setEngine] = useState('knockout')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
@@ -51,10 +51,11 @@ export function WhiteLogo({
       const verticalColor = b1.url
       await saveLogoColor(thumb.id, `${verticalColor}?v=${Date.now()}`)
 
-      // 2 — AI whitens the vertical colour logotype (chained via imageUrl).
+      // 2 — whiten the (now transparent) vertical colour logotype deterministically
+      // (alpha→white) so the result stays transparent — no AI background artefacts.
       setVStage('white')
       const step2 = await supabase.functions.invoke('logo-white', {
-        body: { imageUrl: verticalColor, slug: thumb.slug, mode: 'ai' },
+        body: { imageUrl: verticalColor, slug: thumb.slug, mode: 'knockout' },
       })
       let b2: { error?: string; url?: string } | null = step2.data ?? null
       if (step2.error && 'context' in step2.error) {
