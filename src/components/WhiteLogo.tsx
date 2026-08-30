@@ -24,12 +24,18 @@ export function WhiteLogo({
   const [elapsed, setElapsed] = useState(0)
   const [url, setUrl] = useState<string | null>(thumb.logo_white_url ?? null)
   const startRef = useRef(0)
-  // Refine AI flow: re-typeset colour logotype (keep branding) → white. Separate busy/stage.
+  // Refine AI flow: re-typeset colour logotype (keep branding). Produces a DRAFT
+  // (before/after preview) you can re-roll; nothing is saved until you Apply.
   const [vBusy, setVBusy] = useState(false)
-  const [vStage, setVStage] = useState<'color' | 'white' | ''>('')
+  const [applying, setApplying] = useState(false)
   // Optional desired line breaks, e.g. "All Ways / Hottest / Fruits".
   const [lines, setLines] = useState('')
+  // Uncommitted refinement: original (source) vs colour (refined, transparent).
+  const [draft, setDraft] = useState<{ original: string; color: string; stamp: number } | null>(null)
 
+  // Re-typeset the ORIGINAL colour logotype into a cleaner multi-line stack.
+  // Sourced from the original Figma colour node every time so re-rolls never
+  // compound artefacts. Returns a draft for preview — does NOT save.
   async function refine() {
     const fk = thumb.figma_file_key
     const node = thumb.figma_logo_color_node
@@ -40,26 +46,33 @@ export function WhiteLogo({
     setError(null)
     setVBusy(true)
     try {
-      // 1 — AI re-typesets the colour logotype into a cleaner, more readable
-      // multi-line stack, keeping the original branding. Sourced from the
-      // ORIGINAL Figma colour node (so re-refining never compounds artefacts).
-      setVStage('color')
       const step1 = await supabase.functions.invoke('logo-white', {
         body: { fileKey: fk, node, slug: `${thumb.slug}-v`, mode: 'refine', lines: lines.trim() },
       })
-      let b1: { error?: string; url?: string } | null = step1.data ?? null
+      let b1: { error?: string; url?: string; original?: string } | null = step1.data ?? null
       if (step1.error && 'context' in step1.error) {
         try { b1 = await (step1.error as unknown as { context: Response }).context.json() } catch { /* keep */ }
       }
       if (step1.error || !b1?.url) throw new Error(b1?.error || step1.error?.message || 'Logo refinement failed.')
-      const refinedColor = b1.url
-      await saveLogoColor(thumb.id, `${refinedColor}?v=${Date.now()}`)
+      setDraft({ original: b1.original ?? '', color: b1.url, stamp: Date.now() })
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err)
+      setError(/credit/i.test(raw) ? 'AI is out of credits.' : raw)
+    } finally {
+      setVBusy(false)
+    }
+  }
 
-      // 2 — whiten the (now transparent) refined colour logotype deterministically
-      // (alpha→white) so the result stays transparent — no AI background artefacts.
-      setVStage('white')
+  // Commit the current draft: save the refined colour, then make the white
+  // version from it (deterministic alpha→white, so it stays transparent).
+  async function applyRefine() {
+    if (!draft) return
+    setError(null)
+    setApplying(true)
+    try {
+      await saveLogoColor(thumb.id, `${draft.color}?v=${draft.stamp}`)
       const step2 = await supabase.functions.invoke('logo-white', {
-        body: { imageUrl: refinedColor, slug: thumb.slug, mode: 'knockout' },
+        body: { imageUrl: draft.color, slug: thumb.slug, mode: 'knockout' },
       })
       let b2: { error?: string; url?: string } | null = step2.data ?? null
       if (step2.error && 'context' in step2.error) {
@@ -69,12 +82,11 @@ export function WhiteLogo({
       const busted = `${b2.url}?v=${Date.now()}`
       await saveLogoWhite(thumb.id, busted)
       setUrl(busted)
+      setDraft(null)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : String(err)
-      setError(/credit/i.test(raw) ? 'AI is out of credits.' : raw)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setVBusy(false)
-      setVStage('')
+      setApplying(false)
     }
   }
 
@@ -170,27 +182,74 @@ export function WhiteLogo({
       <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 p-2">
         <p className="text-[11px] font-semibold text-zinc-300">Refine layout · AI</p>
         <p className="text-[11px] text-zinc-500">
-          Re-typesets the colour logotype into cleaner, more readable lines (keeps the branding), then makes the white version.
+          Re-typesets the colour logotype into cleaner, more readable lines (keeps the branding). Preview and re-roll, then Apply to also make the white version.
         </p>
         <input
           value={lines}
           onChange={(e) => setLines(e.target.value)}
-          disabled={busy || vBusy}
+          disabled={busy || vBusy || applying}
           placeholder="Line breaks (optional) — e.g. All Ways / Hottest / Fruits"
           className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-accent disabled:opacity-60"
         />
-        <button
-          onClick={refine}
-          disabled={busy || vBusy}
-          title="AI: re-typeset the colour logotype into readable lines (keep branding), then whiten it"
-          className="w-full rounded-lg border border-zinc-700 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
-        >
-          {vBusy
-            ? vStage === 'color'
-              ? 'Refining colour…'
-              : 'Whitening…'
-            : 'Refine logo (AI)'}
-        </button>
+
+        {draft && (
+          <div className="space-y-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
+              <figure className="space-y-1">
+                <figcaption className="text-center text-[10px] font-medium uppercase tracking-wide text-zinc-500">Before</figcaption>
+                <img
+                  src={draft.original}
+                  alt="original logo"
+                  className="h-20 w-full rounded-md border border-zinc-800 object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
+                />
+              </figure>
+              <figure className="space-y-1">
+                <figcaption className="text-center text-[10px] font-medium uppercase tracking-wide text-accent">After</figcaption>
+                <img
+                  src={`${draft.color}?v=${draft.stamp}`}
+                  alt="refined logo"
+                  className="h-20 w-full rounded-md border border-accent/40 object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
+                />
+              </figure>
+            </div>
+            <div className="flex gap-1.5">
+              <button
+                onClick={applyRefine}
+                disabled={applying || vBusy}
+                className="flex-1 rounded-lg bg-accent py-2 text-xs font-semibold text-zinc-900 transition hover:bg-accent-dark disabled:opacity-60"
+              >
+                {applying ? 'Applying…' : 'Apply + make white'}
+              </button>
+              <button
+                onClick={refine}
+                disabled={applying || vBusy}
+                title="Generate another take from the original"
+                className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
+              >
+                {vBusy ? 'Re-rolling…' : 'Re-roll'}
+              </button>
+              <button
+                onClick={() => setDraft(null)}
+                disabled={applying || vBusy}
+                title="Discard this draft"
+                className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-zinc-800 disabled:opacity-60"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!draft && (
+          <button
+            onClick={refine}
+            disabled={busy || vBusy}
+            title="AI: re-typeset the colour logotype into readable lines (keep branding)"
+            className="w-full rounded-lg border border-zinc-700 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
+          >
+            {vBusy ? 'Refining colour…' : 'Refine logo (AI)'}
+          </button>
+        )}
       </div>
 
       {error && <p className="text-[11px] text-red-400">{error}</p>}
