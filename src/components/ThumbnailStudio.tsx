@@ -43,6 +43,7 @@ import {
   ChevronDown,
   Contrast,
   Rows3,
+  ArrowLeft,
 } from 'lucide-react'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
 import { ExportProgress, type ExportJob } from './ExportProgress'
@@ -575,7 +576,19 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       {/* Top bar — title/count (left) and export (right), between the app header
           and the workspace. */}
       <div className="flex items-center justify-between gap-2 px-1">
-        <span className="truncate text-sm font-medium text-zinc-200">{headerTitle}</span>
+        <div className="flex min-w-0 items-center gap-2">
+          {singleView && (
+            <button
+              onClick={() => setScope('global')}
+              title="Back to all thumbnails"
+              aria-label="Back"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <span className="truncate text-sm font-medium text-zinc-200">{headerTitle}</span>
+        </div>
         <button
           onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
           disabled={exporting}
