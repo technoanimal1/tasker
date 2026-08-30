@@ -24,38 +24,42 @@ export function WhiteLogo({
   const [elapsed, setElapsed] = useState(0)
   const [url, setUrl] = useState<string | null>(thumb.logo_white_url ?? null)
   const startRef = useRef(0)
-  // Vertical AI flow: colour restack → white. Separate busy/stage.
+  // Refine AI flow: re-typeset colour logotype (keep branding) → white. Separate busy/stage.
   const [vBusy, setVBusy] = useState(false)
   const [vStage, setVStage] = useState<'color' | 'white' | ''>('')
+  // Optional desired line breaks, e.g. "All Ways / Hottest / Fruits".
+  const [lines, setLines] = useState('')
 
-  async function makeVertical() {
+  async function refine() {
     const fk = thumb.figma_file_key
     const node = thumb.figma_logo_color_node
     if (!fk || !node) {
-      setError('This game has no colour logo to convert.')
+      setError('This game has no colour logo to refine.')
       return
     }
     setError(null)
     setVBusy(true)
     try {
-      // 1 — AI rearranges the colour logotype into a vertical stacked layout.
+      // 1 — AI re-typesets the colour logotype into a cleaner, more readable
+      // multi-line stack, keeping the original branding. Sourced from the
+      // ORIGINAL Figma colour node (so re-refining never compounds artefacts).
       setVStage('color')
       const step1 = await supabase.functions.invoke('logo-white', {
-        body: { fileKey: fk, node, slug: `${thumb.slug}-v`, mode: 'vertical' },
+        body: { fileKey: fk, node, slug: `${thumb.slug}-v`, mode: 'refine', lines: lines.trim() },
       })
       let b1: { error?: string; url?: string } | null = step1.data ?? null
       if (step1.error && 'context' in step1.error) {
         try { b1 = await (step1.error as unknown as { context: Response }).context.json() } catch { /* keep */ }
       }
-      if (step1.error || !b1?.url) throw new Error(b1?.error || step1.error?.message || 'Vertical logo generation failed.')
-      const verticalColor = b1.url
-      await saveLogoColor(thumb.id, `${verticalColor}?v=${Date.now()}`)
+      if (step1.error || !b1?.url) throw new Error(b1?.error || step1.error?.message || 'Logo refinement failed.')
+      const refinedColor = b1.url
+      await saveLogoColor(thumb.id, `${refinedColor}?v=${Date.now()}`)
 
-      // 2 — whiten the (now transparent) vertical colour logotype deterministically
+      // 2 — whiten the (now transparent) refined colour logotype deterministically
       // (alpha→white) so the result stays transparent — no AI background artefacts.
       setVStage('white')
       const step2 = await supabase.functions.invoke('logo-white', {
-        body: { imageUrl: verticalColor, slug: thumb.slug, mode: 'knockout' },
+        body: { imageUrl: refinedColor, slug: thumb.slug, mode: 'knockout' },
       })
       let b2: { error?: string; url?: string } | null = step2.data ?? null
       if (step2.error && 'context' in step2.error) {
@@ -163,18 +167,31 @@ export function WhiteLogo({
         {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : 'Make white logo'}
       </button>
 
-      <button
-        onClick={makeVertical}
-        disabled={busy || vBusy}
-        title="AI: restack the logotype vertically (colour), then whiten it"
-        className="w-full rounded-lg border border-zinc-700 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
-      >
-        {vBusy
-          ? vStage === 'color'
-            ? 'Making it vertical…'
-            : 'Whitening…'
-          : 'Make vertical logotype (AI)'}
-      </button>
+      <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 p-2">
+        <p className="text-[11px] font-semibold text-zinc-300">Refine layout · AI</p>
+        <p className="text-[11px] text-zinc-500">
+          Re-typesets the colour logotype into cleaner, more readable lines (keeps the branding), then makes the white version.
+        </p>
+        <input
+          value={lines}
+          onChange={(e) => setLines(e.target.value)}
+          disabled={busy || vBusy}
+          placeholder="Line breaks (optional) — e.g. All Ways / Hottest / Fruits"
+          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-accent disabled:opacity-60"
+        />
+        <button
+          onClick={refine}
+          disabled={busy || vBusy}
+          title="AI: re-typeset the colour logotype into readable lines (keep branding), then whiten it"
+          className="w-full rounded-lg border border-zinc-700 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
+        >
+          {vBusy
+            ? vStage === 'color'
+              ? 'Refining colour…'
+              : 'Whitening…'
+            : 'Refine logo (AI)'}
+        </button>
+      </div>
 
       {error && <p className="text-[11px] text-red-400">{error}</p>}
       {!error && !busy && (
