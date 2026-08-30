@@ -112,6 +112,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
   const [sheetTopVh, setSheetTopVh] = useState(30)
+  // Collapse the pinned mobile preview once the controls list is scrolled, so the
+  // controls get the room (freed height) and the preview stays a small reference.
+  const [ctrlScrolled, setCtrlScrolled] = useState(false)
   const [sheetDragging, setSheetDragging] = useState(false)
   const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
@@ -1158,9 +1161,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             canvas already shows the live preview). */}
         {selected && selectedParams && (
           <div
-            className="shrink-0 border-b border-zinc-800 lg:hidden"
+            className="shrink-0 overflow-hidden border-b border-zinc-800 transition-[height] duration-200 ease-out lg:hidden"
             style={{
-              height: '38vh',
+              height: ctrlScrolled ? '13vh' : '23vh',
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
               backgroundSize: '22px 22px',
             }}
@@ -1205,7 +1208,13 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           )}
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto p-3">
+        <div
+          className="flex-1 space-y-4 overflow-y-auto p-3"
+          onScroll={(e) => {
+            const top = (e.currentTarget as HTMLElement).scrollTop
+            setCtrlScrolled((s) => (s ? top > 4 : top > 24)) // hysteresis: collapse quickly, restore only near the top
+          }}
+        >
           {lockedForClient && (
             <div className="rounded-lg border border-zinc-800 bg-zinc-800/30 p-3 text-xs text-zinc-400">
               You have client access. Pick your branch from the top bar to change the frame design and choose colour or white logotypes.
