@@ -66,7 +66,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, saveLogoColor, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, searchGames, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, saveLogoColor, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -103,6 +103,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [providerPickerOpen, setProviderPickerOpen] = useState(false) // mobile 70% sheet
   // View-only aspect override for the grid/preview (doesn't change saved params).
   const [viewSize, setViewSize] = useState<string | null>(null)
+  // Top-bar catalogue-wide game search (server-side, debounced).
+  const [gameSearch, setGameSearch] = useState('')
+  const [searchResults, setSearchResults] = useState<Thumbnail[]>([])
+  const [searching, setSearching] = useState(false)
   const PAGE_SIZE = 30
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
@@ -248,10 +252,33 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     if (!activeProvider) loadPage(page, PAGE_SIZE)
   }, [activeProvider, page, loadPage])
 
-  // Games shown in the grid: a provider's loaded games, or the current All page.
+  // Top-bar game search: debounce, then query the whole catalogue by name.
+  const gameQuery = gameSearch.trim()
+  useEffect(() => {
+    if (!gameQuery) {
+      setSearchResults([])
+      setSearching(false)
+      return
+    }
+    setSearching(true)
+    const id = setTimeout(async () => {
+      const items = await searchGames(gameQuery)
+      setSearchResults(items)
+      setSearching(false)
+    }, 300)
+    return () => clearTimeout(id)
+  }, [gameQuery, searchGames])
+
+  // Games shown in the grid: search hits (when searching), else a provider's
+  // loaded games, or the current All page.
   const gridItems = useMemo(
-    () => (activeProvider ? thumbnails.filter((t) => t.provider === activeProvider) : pageItems),
-    [activeProvider, thumbnails, pageItems],
+    () =>
+      gameQuery
+        ? searchResults
+        : activeProvider
+          ? thumbnails.filter((t) => t.provider === activeProvider)
+          : pageItems,
+    [gameQuery, searchResults, activeProvider, thumbnails, pageItems],
   )
   const totalCatalog = useMemo(() => providerCounts.reduce((n, p) => n + p.count, 0), [providerCounts])
   const pageCount = Math.max(1, Math.ceil(totalCatalog / PAGE_SIZE))
@@ -553,9 +580,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const singleView = !editingBranch && scope === 'selected' && !!selected
   const headerTitle = singleView
     ? (selected?.name ?? '')
-    : activeProvider
-      ? `${activeProvider} · ${gridItems.length}`
-      : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`
+    : gameQuery
+      ? `Search · ${gridItems.length}`
+      : activeProvider
+        ? `${activeProvider} · ${gridItems.length}`
+        : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
   const sidebarQuery = sidebarSearch.trim().toLowerCase()
@@ -572,10 +601,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)]">
-      {/* Top bar — title/count (left) and export (right), between the app header
-          and the workspace. */}
-      <div className="flex items-center justify-between gap-2 px-1">
-        <div className="flex min-w-0 items-center gap-2">
+      {/* Top bar — title/count + game search (left) and format + export (right),
+          between the app header and the workspace. */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           {singleView && (
             <button
               onClick={() => setScope('global')}
@@ -586,17 +615,51 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <ArrowLeft size={16} />
             </button>
           )}
-          <span className="truncate text-sm font-medium text-zinc-200">{headerTitle}</span>
+          <span className="hidden shrink-0 truncate text-sm font-medium text-zinc-200 sm:inline">{headerTitle}</span>
+          {!singleView && (
+            <div className="relative min-w-0 flex-1 sm:max-w-xs">
+              <svg className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <input
+                value={gameSearch}
+                onChange={(e) => setGameSearch(e.target.value)}
+                placeholder="Search all games…"
+                className="h-9 w-full rounded-lg border border-zinc-700 bg-zinc-900 pl-8 pr-8 text-xs text-zinc-200 outline-none placeholder:text-zinc-500 focus:border-accent"
+              />
+              {searching ? (
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2"><Spinner size={13} /></span>
+              ) : gameSearch ? (
+                <button onClick={() => setGameSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-zinc-500 hover:text-zinc-300">✕</button>
+              ) : null}
+            </div>
+          )}
         </div>
-        <button
-          onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
-          disabled={exporting}
-          title={singleView ? 'Export this thumbnail' : 'Export all'}
-          className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-50"
-        >
-          {exporting ? <Spinner size={14} /> : <Download size={16} />}
-          <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <select
+            value={format}
+            onChange={(e) => setFormat(e.target.value as ExportFormat)}
+            className="h-9 rounded-lg border border-zinc-700 bg-zinc-900 px-2 text-xs text-zinc-200 outline-none focus:border-accent"
+            title="Export format"
+          >
+            <option value="png">PNG</option>
+            <option value="webp">WebP</option>
+            <option value="avif">AVIF</option>
+            <option value="anim" disabled={!canExportAnim}>
+              WebM
+            </option>
+          </select>
+          <button
+            onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
+            disabled={exporting}
+            title={singleView ? 'Export this thumbnail' : 'Export all'}
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-50"
+          >
+            {exporting ? <Spinner size={14} /> : <Download size={16} />}
+            <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
+          </button>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
@@ -901,19 +964,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <ListChecks size={16} />
               </button>
             )}
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as ExportFormat)}
-              className="h-8 rounded-lg border border-zinc-700 bg-zinc-800 px-2 text-xs outline-none focus:border-zinc-500"
-              title="Export format"
-            >
-              <option value="png">PNG</option>
-              <option value="webp">WebP</option>
-              <option value="avif">AVIF</option>
-              <option value="anim" disabled={!canExportAnim}>
-                WebM
-              </option>
-            </select>
           </div>
         </div>
         {singleView && selected && selectedParams ? (
@@ -1047,14 +1097,16 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </div>
 
             {gridItems.length === 0 &&
-              (pageLoading || (activeProvider && providerLoading === activeProvider) ? (
-                <LoadingScreen label="Loading games…" className="py-16" />
+              (searching || pageLoading || (activeProvider && providerLoading === activeProvider) ? (
+                <LoadingScreen label={gameQuery ? 'Searching…' : 'Loading games…'} className="py-16" />
+              ) : gameQuery ? (
+                <p className="py-16 text-center text-sm text-zinc-500">No games match “{gameSearch}”.</p>
               ) : (
                 <p className="py-16 text-center text-sm text-zinc-500">No games here yet.</p>
               ))}
 
             {/* "All" view: paginate the whole catalogue, 30 per page */}
-            {!activeProvider && totalCatalog > PAGE_SIZE && (
+            {!gameQuery && !activeProvider && totalCatalog > PAGE_SIZE && (
               <div className="mt-5 flex items-center justify-center gap-3 text-xs text-zinc-300">
                 <button
                   disabled={page === 0 || pageLoading}

@@ -88,6 +88,21 @@ export function useThumbnailsData() {
     setPageLoading(false)
   }, [])
 
+  /** Search games by name across the whole catalogue (server-side). */
+  const searchGames = useCallback(async (q: string): Promise<Thumbnail[]> => {
+    const term = q.trim()
+    if (!term) return []
+    const { data } = await supabase
+      .from('thumbnails')
+      .select('*')
+      .ilike('name', `%${term}%`)
+      .order('name', { ascending: true })
+      .limit(60)
+    const items = (data as Thumbnail[]) ?? []
+    mergeIn(items)
+    return items
+  }, [])
+
   const refresh = useCallback(async () => {
     setLoading(true)
     claimed.current = new Set()
@@ -166,6 +181,7 @@ export function useThumbnailsData() {
     pageItems,
     pageLoading,
     loadPage,
+    searchGames,
     loading,
     ensureProvider,
     refresh,
