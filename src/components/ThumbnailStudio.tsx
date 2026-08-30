@@ -112,9 +112,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
   const [sheetTopVh, setSheetTopVh] = useState(30)
-  // Collapse the pinned mobile preview once the controls list is scrolled, so the
-  // controls get the room (freed height) and the preview stays a small reference.
-  const [ctrlScrolled, setCtrlScrolled] = useState(false)
   const [sheetDragging, setSheetDragging] = useState(false)
   const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
@@ -678,17 +675,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       {/* Mobile: bottom-fixed provider selector + colour/white logo switcher */}
       {!singleView && !mobilePanel && !providerPickerOpen && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-2 px-3 lg:hidden"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex items-center justify-center gap-2 px-3 lg:hidden"
           style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
         >
           <button
             onClick={() => setProviderPickerOpen(true)}
-            className="flex min-w-0 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2.5 text-xs font-semibold text-zinc-200 shadow-xl backdrop-blur"
+            className="pointer-events-auto flex min-w-0 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2.5 text-xs font-semibold text-zinc-200 shadow-xl backdrop-blur"
           >
             <span className="max-w-[38vw] truncate">{activeProvider ?? 'All providers'}</span>
             <ChevronDown size={14} className="text-zinc-500" />
           </button>
-          <div className="flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
+          <div className="pointer-events-auto flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/95 p-1 text-xs shadow-xl backdrop-blur">
             {(['color', 'white'] as const).map((v) => (
               <button
                 key={v}
@@ -1161,9 +1158,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             canvas already shows the live preview). */}
         {selected && selectedParams && (
           <div
-            className="shrink-0 overflow-hidden border-b border-zinc-800 transition-[height] duration-200 ease-out lg:hidden"
+            className="shrink-0 overflow-hidden border-b border-zinc-800 lg:hidden"
             style={{
-              height: ctrlScrolled ? '13vh' : '23vh',
+              height: '23vh',
               backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)',
               backgroundSize: '22px 22px',
             }}
@@ -1208,13 +1205,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           )}
         </div>
 
-        <div
-          className="flex-1 space-y-4 overflow-y-auto p-3"
-          onScroll={(e) => {
-            const top = (e.currentTarget as HTMLElement).scrollTop
-            setCtrlScrolled((s) => (s ? top > 4 : top > 24)) // hysteresis: collapse quickly, restore only near the top
-          }}
-        >
+        <div className="flex-1 space-y-4 overflow-y-auto p-3">
           {lockedForClient && (
             <div className="rounded-lg border border-zinc-800 bg-zinc-800/30 p-3 text-xs text-zinc-400">
               You have client access. Pick your branch from the top bar to change the frame design and choose colour or white logotypes.
