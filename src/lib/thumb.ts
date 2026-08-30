@@ -263,8 +263,10 @@ export interface Thumbnail {
   figma_kv_node: string | null
   figma_logo_color_node: string | null
   figma_logo_white_node: string | null
-  /** Server-derived white logo (alpha→white knockout), if generated. */
+  /** Server-derived white logo (alpha→white knockout / AI), if generated. */
   logo_white_url?: string | null
+  /** AI-generated colour logotype override (e.g. a vertical restack), if any. */
+  logo_color_url?: string | null
   /** Partial params applied on top of the global template for this thumbnail. */
   overrides: ParamOverride | null
   /** AI-generated key-visual animation (fal.ai), if any. */

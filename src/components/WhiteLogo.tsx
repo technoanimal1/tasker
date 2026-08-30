@@ -12,9 +12,11 @@ const ENGINES = [
 export function WhiteLogo({
   thumb,
   saveLogoWhite,
+  saveLogoColor,
 }: {
   thumb: Thumbnail
   saveLogoWhite: (id: string, url: string | null) => Promise<void>
+  saveLogoColor: (id: string, url: string | null) => Promise<void>
 }) {
   const [engine, setEngine] = useState('gpt')
   const [busy, setBusy] = useState(false)
@@ -22,6 +24,54 @@ export function WhiteLogo({
   const [elapsed, setElapsed] = useState(0)
   const [url, setUrl] = useState<string | null>(thumb.logo_white_url ?? null)
   const startRef = useRef(0)
+  // Vertical AI flow: colour restack → white. Separate busy/stage.
+  const [vBusy, setVBusy] = useState(false)
+  const [vStage, setVStage] = useState<'color' | 'white' | ''>('')
+
+  async function makeVertical() {
+    const fk = thumb.figma_file_key
+    const node = thumb.figma_logo_color_node
+    if (!fk || !node) {
+      setError('This game has no colour logo to convert.')
+      return
+    }
+    setError(null)
+    setVBusy(true)
+    try {
+      // 1 — AI rearranges the colour logotype into a vertical stacked layout.
+      setVStage('color')
+      const step1 = await supabase.functions.invoke('logo-white', {
+        body: { fileKey: fk, node, slug: `${thumb.slug}-v`, mode: 'vertical' },
+      })
+      let b1: { error?: string; url?: string } | null = step1.data ?? null
+      if (step1.error && 'context' in step1.error) {
+        try { b1 = await (step1.error as unknown as { context: Response }).context.json() } catch { /* keep */ }
+      }
+      if (step1.error || !b1?.url) throw new Error(b1?.error || step1.error?.message || 'Vertical logo generation failed.')
+      const verticalColor = b1.url
+      await saveLogoColor(thumb.id, `${verticalColor}?v=${Date.now()}`)
+
+      // 2 — AI whitens the vertical colour logotype (chained via imageUrl).
+      setVStage('white')
+      const step2 = await supabase.functions.invoke('logo-white', {
+        body: { imageUrl: verticalColor, slug: thumb.slug, mode: 'ai' },
+      })
+      let b2: { error?: string; url?: string } | null = step2.data ?? null
+      if (step2.error && 'context' in step2.error) {
+        try { b2 = await (step2.error as unknown as { context: Response }).context.json() } catch { /* keep */ }
+      }
+      if (step2.error || !b2?.url) throw new Error(b2?.error || step2.error?.message || 'White step failed.')
+      const busted = `${b2.url}?v=${Date.now()}`
+      await saveLogoWhite(thumb.id, busted)
+      setUrl(busted)
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err)
+      setError(/credit/i.test(raw) ? 'AI is out of credits.' : raw)
+    } finally {
+      setVBusy(false)
+      setVStage('')
+    }
+  }
 
   useEffect(() => {
     setUrl(thumb.logo_white_url ?? null)
@@ -106,10 +156,23 @@ export function WhiteLogo({
 
       <button
         onClick={generate}
-        disabled={busy}
+        disabled={busy || vBusy}
         className="w-full rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-60"
       >
         {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : 'Make white logo'}
+      </button>
+
+      <button
+        onClick={makeVertical}
+        disabled={busy || vBusy}
+        title="AI: restack the logotype vertically (colour), then whiten it"
+        className="w-full rounded-lg border border-zinc-700 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
+      >
+        {vBusy
+          ? vStage === 'color'
+            ? 'Making it vertical…'
+            : 'Whitening…'
+          : 'Make vertical logotype (AI)'}
       </button>
 
       {error && <p className="text-[11px] text-red-400">{error}</p>}

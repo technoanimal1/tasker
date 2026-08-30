@@ -137,6 +137,11 @@ export function useThumbnailsData() {
     await supabase.from('thumbnails').update({ logo_white_url }).eq('id', id)
   }, [])
 
+  const saveLogoColor = useCallback(async (id: string, logo_color_url: string | null) => {
+    setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, logo_color_url } : t)))
+    await supabase.from('thumbnails').update({ logo_color_url }).eq('id', id)
+  }, [])
+
   const savePreview = useCallback(async (id: string, preview_url: string, preview_sig: string) => {
     setThumbnails((ts) => ts.map((t) => (t.id === id ? { ...t, preview_url, preview_sig } : t)))
     await supabase.from('thumbnails').update({ preview_url, preview_sig }).eq('id', id)
@@ -169,6 +174,7 @@ export function useThumbnailsData() {
     saveAnim,
     saveAnimAlpha,
     saveLogoWhite,
+    saveLogoColor,
     savePreview,
     deleteThumbnail,
     insertThumbnail,

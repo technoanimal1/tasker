@@ -90,8 +90,8 @@ async function loadAssets(thumb: Thumbnail, params: TemplateParams): Promise<Ass
   const logoU = params.textLogo
     ? null
     : params.logoVariant === 'white'
-      ? assetUrl(thumb.logo_white_path) ?? proxy(thumb.figma_logo_white_node)
-      : assetUrl(thumb.logo_color_path) ?? proxy(thumb.figma_logo_color_node)
+      ? assetUrl(thumb.logo_white_path) ?? thumb.logo_white_url ?? proxy(thumb.figma_logo_white_node)
+      : thumb.logo_color_url ?? assetUrl(thumb.logo_color_path) ?? proxy(thumb.figma_logo_color_node)
   const [bg, kv, logo, kvVideo] = await Promise.all([
     bgU ? loadImage(bgU).catch(() => null) : null,
     kvU ? loadImage(kvU).catch(() => null) : null,

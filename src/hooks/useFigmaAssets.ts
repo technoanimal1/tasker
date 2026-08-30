@@ -113,7 +113,8 @@ export function useFigmaAssets(_thumbnails: Thumbnail[], scale = 2) {
       return {
         bg: assetUrl(t.bg_path) ?? u(t.figma_bg_node),
         kv: assetUrl(t.kv_path) ?? u(t.figma_kv_node),
-        logoColor: assetUrl(t.logo_color_path) ?? u(t.figma_logo_color_node),
+        // Prefer an AI colour override (e.g. vertical restack), then hosted, then Figma.
+        logoColor: t.logo_color_url ?? assetUrl(t.logo_color_path) ?? u(t.figma_logo_color_node),
         // White logo: hosted copy → Figma white node → server-derived white URL.
         // No client knockout fallback (a busy/plate logo becomes a white blob).
         logoWhite: assetUrl(t.logo_white_path) ?? u(t.figma_logo_white_node) ?? t.logo_white_url ?? undefined,

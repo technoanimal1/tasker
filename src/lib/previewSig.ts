@@ -27,6 +27,7 @@ export function previewSig(params: TemplateParams, thumb: Thumbnail, showFrame: 
     thumb.logo_color_path ?? null,
     thumb.logo_white_path ?? null,
     thumb.logo_white_url ?? null,
+    thumb.logo_color_url ?? null,
     thumb.name,
     thumb.anim_video_url ?? null,
   ])

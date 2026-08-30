@@ -42,7 +42,6 @@ import {
   Trash2,
   ChevronDown,
   Contrast,
-  Rows3,
   ArrowLeft,
 } from 'lucide-react'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
@@ -67,7 +66,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, saveLogoColor, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -1293,20 +1292,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <Row label="Text logo">
                 <input type="checkbox" checked={p.textLogo} onChange={(e) => set('textLogo', e.target.checked)} />
               </Row>
-              {/* One tap: stacked white word-per-line text logotype (readable). */}
-              <button
-                onClick={() => {
-                  set('textLogo', true)
-                  set('textAllCaps', true)
-                  set('textFillLines', true)
-                  set('textMaxLines', 4)
-                  set('textAlign', 'center')
-                  set('textColorMode', 'white')
-                }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
-              >
-                <Rows3 size={14} /> Vertical white logotype
-              </button>
               {p.textLogo && (
                 <>
                   <Row label="Font">
@@ -1429,7 +1414,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
           {/* AI white-logo remake — available for every game (regenerate even when
               a Figma white variant exists). */}
-          {isDesigner && selected && <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} />}
+          {isDesigner && selected && <WhiteLogo thumb={selected} saveLogoWhite={saveLogoWhite} saveLogoColor={saveLogoColor} />}
           {isDesigner && selected && <GenerativeMotion thumb={selected} saveAnim={saveAnim} saveAnimAlpha={saveAnimAlpha} />}
 
           {/* Provider label styling moved to the Template controller — it's a
