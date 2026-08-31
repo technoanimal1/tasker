@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ALIGN9, type Align9, type SizeLayout } from '../lib/thumb'
 
 /**
@@ -8,6 +9,13 @@ import { ALIGN9, type Align9, type SizeLayout } from '../lib/thumb'
  * storage target differs (template per size vs. per-thumbnail override) — the
  * caller wires `onLayout` / `onAutoCenter` to its own setter.
  */
+
+/** Percent-style value: shown as "40%", typed as plain "40", stored as 0.4. */
+const pct = {
+  fmt: (v: number) => `${Math.round(v * 100)}%`,
+  edit: (v: number) => String(Math.round(v * 100)),
+  parse: (t: string) => Number(t.replace('%', '').trim()) / 100,
+}
 
 export function KvControls({
   lay,
@@ -25,10 +33,10 @@ export function KvControls({
       <Row label="Position">
         <AlignGrid value={lay.kvAlign} onChange={(a) => onLayout({ kvAlign: a })} />
       </Row>
-      <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => onLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+      <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => onLayout({ kvScale: v })} {...pct} />
       <div className="grid grid-cols-2 gap-2">
-        <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => onLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-        <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => onLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+        <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => onLayout({ kvDX: v })} {...pct} />
+        <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => onLayout({ kvDY: v })} {...pct} />
       </div>
       <Row label="Center on artwork">
         <input type="checkbox" checked={autoCenter} onChange={(e) => onAutoCenter(e.target.checked)} className="h-4 w-4 accent-accent" />
@@ -44,10 +52,10 @@ export function LogoControls({ lay, onLayout }: { lay: SizeLayout; onLayout: (pa
       <Row label="Fine (9-point)">
         <AlignGrid value={lay.logoAlign} onChange={(a) => onLayout({ logoAlign: a })} />
       </Row>
-      <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => onLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+      <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => onLayout({ logoScale: v })} {...pct} />
       <div className="grid grid-cols-2 gap-2">
-        <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => onLayout({ logoDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-        <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => onLayout({ logoDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+        <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => onLayout({ logoDX: v })} {...pct} />
+        <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => onLayout({ logoDY: v })} {...pct} />
       </div>
     </>
   )
@@ -124,6 +132,8 @@ export function Slider({
   value,
   onChange,
   fmt,
+  edit,
+  parse,
 }: {
   label: string
   min: number
@@ -132,15 +142,32 @@ export function Slider({
   value: number
   onChange: (v: number) => void
   fmt: (v: number) => string
+  /** Formats the value for typing (no unit suffix). Defaults to the raw number. */
+  edit?: (v: number) => string
+  /** Parses typed text back to a stored value. Defaults to Number(). */
+  parse?: (t: string) => number
 }) {
+  // While the field is focused it holds raw text so you can type freely; the
+  // formatted value comes back on commit.
+  const [draft, setDraft] = useState<string | null>(null)
   const frac = Math.max(0, Math.min(1, (value - min) / (max - min)))
+
+  const commit = (raw: string) => {
+    setDraft(null)
+    const n = parse ? parse(raw) : Number(raw)
+    if (!Number.isFinite(n)) return // unparseable → keep the previous value
+    onChange(Math.max(min, Math.min(max, n)))
+  }
+
   return (
-    <label className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
+    // A div, not a label: a label would forward stray clicks into the text field.
+    <div className="relative flex h-9 select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
       <span className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
-      <span className="relative z-10 text-xs text-zinc-300">{label}</span>
-      <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
+      <span className="pointer-events-none relative z-10 text-xs text-zinc-300">{label}</span>
+      {/* full-width invisible range: drag anywhere on the row */}
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}
@@ -148,6 +175,28 @@ export function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
       />
-    </label>
+      {/* the value, typeable — sits above the range so clicks land here */}
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={`${label} value`}
+        value={draft ?? fmt(value)}
+        onFocus={(e) => {
+          const el = e.currentTarget
+          setDraft(edit ? edit(value) : String(value))
+          requestAnimationFrame(() => el.select())
+        }}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={(e) => commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+          else if (e.key === 'Escape') {
+            setDraft(null)
+            e.currentTarget.blur()
+          }
+        }}
+        className="relative z-30 w-14 cursor-text rounded bg-transparent px-1 text-right text-xs tabular-nums text-zinc-100 outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-accent"
+      />
+    </div>
   )
 }
