@@ -18,8 +18,8 @@
     --fg: #f2f5ec;
     --muted: #9aa68c;
     --muted-faint: #6d785f;
-    --lime: #c6f52b;
-    --lime-dark: #9cc71b;
+    --lime: #edf007;
+    --lime-dark: #b8ba05;
     --lime-ink: #101403;
     --radius: 12px;
     --max-w: 1200px;
@@ -47,17 +47,8 @@
     border-bottom: 1px solid var(--border);
   }
   .header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 0; }
-  .logo { display: flex; align-items: center; gap: 0.55rem; font-weight: 800; font-size: 1.15rem; letter-spacing: 0.02em; }
-  .logo .mark {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: conic-gradient(var(--lime) 0 75%, var(--lime-dark) 75% 100%);
-    position: relative; flex: none;
-  }
-  .logo .mark::after {
-    content: ""; position: absolute; inset: 7px; border-radius: 50%;
-    background: var(--bg);
-  }
-  .logo em { font-style: normal; color: var(--lime); }
+  .logo { display: flex; align-items: center; }
+  .logo img { height: 28px; width: auto; }
   nav.main { display: flex; gap: 0.35rem; }
   nav.main a {
     padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.9rem; font-weight: 500; color: var(--muted);
@@ -135,7 +126,7 @@
   }
   .thumb:hover { transform: translateY(-3px); }
   .thumb.active { border-color: var(--lime); box-shadow: 0 0 0 1px var(--lime); }
-  .thumb img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+  .thumb img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; }
 
   /* ---------- sections ---------- */
   section { padding: 3.5rem 0; border-top: 1px solid var(--border); }
@@ -166,7 +157,7 @@
 
 <header>
   <div class="wrap header-row">
-    <a class="logo" href="#" aria-label="10LIMES Home"><span class="mark" aria-hidden="true"></span>10<em>LIMES</em></a>
+    <a class="logo" href="#" aria-label="10LIMES Home"><img src="logo.svg" alt="10LIMES"></a>
     <nav class="main" aria-label="Main">
       <a href="#games" class="active">Games</a>
       <a href="#features">Features</a>
@@ -272,6 +263,12 @@
   // ------------------------------------------------------------------
   const BASE = 'https://games.duel.aviator.studio/';
   const GAMES = [
+    // Featured titles (branded thumbnails) first.
+    { name: 'Blackjack', slug: 'blackjack', url: BASE + 'blackjack', thumb: 'thumbs/blackjack.svg' },
+    { name: 'Duel',      slug: 'duel',      url: BASE + 'duel',      thumb: 'thumbs/duel.svg' },
+    { name: 'Goat Hunt', slug: 'goat-hunt', url: BASE + 'goat-hunt', thumb: 'thumbs/goathunt.svg' },
+    { name: 'Hi Lo',     slug: 'hilo',      url: BASE + 'hilo',      thumb: 'thumbs/hilo.svg' },
+    // Remaining titles with grey placeholder thumbnails.
     { name: 'Dice',      slug: 'dice',      url: BASE + 'dice',      thumb: 'thumbs/dice.svg' },
     { name: 'Crash',     slug: 'crash',     url: BASE + 'crash',     thumb: 'thumbs/crash.svg' },
     { name: 'Mines',     slug: 'mines',     url: BASE + 'mines',     thumb: 'thumbs/mines.svg' },
@@ -279,10 +276,8 @@
     { name: 'Limbo',     slug: 'limbo',     url: BASE + 'limbo',     thumb: 'thumbs/limbo.svg' },
     { name: 'Keno',      slug: 'keno',      url: BASE + 'keno',      thumb: 'thumbs/keno.svg' },
     { name: 'Wheel',     slug: 'wheel',     url: BASE + 'wheel',     thumb: 'thumbs/wheel.svg' },
-    { name: 'Hilo',      slug: 'hilo',      url: BASE + 'hilo',      thumb: 'thumbs/hilo.svg' },
     { name: 'Towers',    slug: 'towers',    url: BASE + 'towers',    thumb: 'thumbs/towers.svg' },
     { name: 'Coin Flip', slug: 'coinflip',  url: BASE + 'coinflip',  thumb: 'thumbs/coinflip.svg' },
-    { name: 'Blackjack', slug: 'blackjack', url: BASE + 'blackjack', thumb: 'thumbs/blackjack.svg' },
     { name: 'Roulette',  slug: 'roulette',  url: BASE + 'roulette',  thumb: 'thumbs/roulette.svg' },
   ];
 

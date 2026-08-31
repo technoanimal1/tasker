@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <defs><clipPath id="r"><rect width="900" height="1200" rx="44"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="900" height="1200" fill="#282828"/>
+    <polygon points="840,0 900,0 900,60" fill="#EDF007"/>
+    <polygon points="710,0 780,0 900,120 900,190" fill="#EDF007"/>
+    <polygon points="0,1140 0,1200 60,1200" fill="#EDF007"/>
+    <polygon points="0,1010 0,1080 120,1200 190,1200" fill="#EDF007"/>
+    
+  <text x="450" y="350" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="112" fill="#fff">GOAT HUNT</text>
+  <g transform="translate(800,540) rotate(-35)">
+    <rect x="-16" y="-110" width="32" height="220" rx="16" fill="#9a9a9a"/>
+    <ellipse cx="0" cy="-120" rx="58" ry="34" fill="#8b8b8b"/>
+    <ellipse cx="0" cy="130" rx="72" ry="42" fill="#8b8b8b"/>
+    <circle cx="0" cy="20" r="38" fill="#EDF007"/>
+  </g>
+  <path d="M370,710 C355,610 385,560 425,572 C455,582 448,660 442,712 Z" fill="#F2DCA9"/>
+  <path d="M530,712 C524,660 517,582 547,572 C587,560 617,610 602,710 Z" fill="#F2DCA9"/>
+  <ellipse cx="262" cy="870" rx="80" ry="42" fill="#EDF007" transform="rotate(18 262 870)"/>
+  <ellipse cx="698" cy="870" rx="80" ry="42" fill="#EDF007" transform="rotate(-18 698 870)"/>
+  <path d="M250,1200 C260,1060 380,1010 480,1010 C580,1010 700,1060 710,1200 Z" fill="#8f8f8f"/>
+  <path d="M330,1200 C340,1090 420,1060 480,1060 C540,1060 620,1090 630,1200 Z" fill="#6f6f6f"/>
+  <rect x="300" y="690" width="360" height="340" rx="64" fill="#EDF007"/>
+  <rect x="342" y="732" width="276" height="256" rx="34" fill="#161616"/>
+  <rect x="398" y="820" width="52" height="16" rx="4" fill="#8FE3C9"/>
+  <rect x="398" y="836" width="16" height="16" fill="#8FE3C9"/>
+  <rect x="512" y="820" width="52" height="16" rx="4" fill="#8FE3C9"/>
+  <rect x="548" y="836" width="16" height="16" fill="#8FE3C9"/>
+  <rect x="422" y="912" width="116" height="22" rx="6" fill="#8FE3C9"/>
+  </g>
+</svg>

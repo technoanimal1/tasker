@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="130" viewBox="0 0 640 130">
+  <text x="-8" y="114" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="150" fill="#EDF007">1</text>
+  <ellipse cx="192" cy="66" rx="98" ry="62" fill="#EDF007"/>
+  <g transform="translate(192,66)">
+    <ellipse rx="60" ry="43" fill="#111"/>
+    <g transform="rotate(0)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g><g transform="rotate(60)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g><g transform="rotate(120)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g><g transform="rotate(180)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g><g transform="rotate(240)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g><g transform="rotate(300)"><ellipse cx="27" cy="0" rx="18" ry="9" fill="#EDF007"/></g>
+    <circle r="7" fill="#EDF007"/>
+  </g>
+  <text x="302" y="114" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="128" textLength="338" lengthAdjust="spacingAndGlyphs" fill="#EDF007">LIMES</text>
+</svg>

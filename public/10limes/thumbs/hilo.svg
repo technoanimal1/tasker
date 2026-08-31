@@ -1,18 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="hsl(190,60%,14%)"/>
-      <stop offset="1" stop-color="hsl(190,70%,7%)"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6">
-      <stop offset="0" stop-color="hsl(190,95%,60%)" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="hsl(190,95%,60%)" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect width="300" height="400" fill="url(#bg)"/>
-  <rect width="300" height="400" fill="url(#glow)"/>
-  <circle cx="150" cy="168" r="64" fill="none" stroke="hsl(190,95%,62%)" stroke-width="3" opacity="0.9"/>
-  <text x="150" y="192" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" fill="hsl(190,95%,68%)">H</text>
-  <text x="150" y="300" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" fill="#f4f6ef">HILO</text>
-  <text x="150" y="330" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="600" letter-spacing="3" fill="hsl(190,60%,70%)">10LIMES ORIGINALS</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <defs><clipPath id="r"><rect width="900" height="1200" rx="44"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="900" height="1200" fill="#282828"/>
+    <polygon points="840,0 900,0 900,60" fill="#EDF007"/>
+    <polygon points="710,0 780,0 900,120 900,190" fill="#EDF007"/>
+    <polygon points="0,1140 0,1200 60,1200" fill="#EDF007"/>
+    <polygon points="0,1010 0,1080 120,1200 190,1200" fill="#EDF007"/>
+    
+  <text x="450" y="350" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="110" fill="#fff">HI LO</text>
+  <polygon points="795,462 735,522 855,522" fill="#EDF007"/>
+  <rect x="735" y="538" width="120" height="16" rx="8" fill="#EDF007"/>
+  <rect x="105" y="888" width="120" height="16" rx="8" fill="#E11D48"/>
+  <polygon points="105,920 225,920 165,980" fill="#E11D48"/>
+  <g>
+    <rect x="240" y="600" width="420" height="680" rx="30" fill="#fff" stroke="#c9c9c9" stroke-width="7"/>
+    <text x="450" y="960" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="320" fill="#E11D48">2</text>
+    <text x="450" y="1120" text-anchor="middle" font-family="Arial" font-size="130" fill="#E11D48">&#9830;</text>
+  </g>
+  </g>
 </svg>
