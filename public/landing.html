@@ -1204,7 +1204,7 @@
         gap: 16px;
       }
       .shelf > * {
-        flex: 0 1 calc(25% - 12px);
+        flex: 0 1 clamp(220px, 25%, 280px);
       }
       @media (max-width: 1000px) {
         .shelf > * {
@@ -1263,12 +1263,16 @@
       }
 
       /* Live composite: the shared layers the renderer stacks. */
+      /* Background fills the frame, zoomed by the template's bg scale. */
       .tile > .lay-bg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: center;
+        transform: scale(var(--bg-scale, 1));
+        transform-origin: center;
       }
       .tile > .lay-kv,
       .tile > .lay-logo {
@@ -1597,37 +1601,21 @@
         <div class="wrap">
           <div class="section-head reveal" style="max-width: 700px">
             <div class="eyebrow">The output</div>
-            <h2>Seven games. One template.</h2>
+            <h2>What the studio ships.</h2>
             <p>
-              Straight out of the studio — no mock-ups. Every tile is the same layout: the background,
-              the game's key visual, its white logotype and the provider badge over a light band tinted
-              from the game's accent colour. Only the artwork and the colour change per title.
+              Straight out of the editor — no mock-up. The background, the key visual, the white
+              logotype and the provider badge on the shared template, over a light band tinted from
+              the game's accent colour. Every other title in the catalogue inherits the same layout.
             </p>
           </div>
 
           <div class="shelf reveal">
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #6C4FE8">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/0c089fee-01ec-4be8-ae29-5f2768a1c862.webp?v=v1_11ecz4u"
-                  alt="Gates of Olympus thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="eager"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">Gates of Olympus<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
-
             <figure style="margin: 0">
               <div class="tile shot" style="--accent: #FF4FA3">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y"
                   alt="Sweet Bonanza thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="eager"
                   decoding="async"
                   width="480"
                   height="640"
@@ -1635,86 +1623,11 @@
               </div>
               <figcaption class="tile-cap">Sweet Bonanza<span>PRAGMATIC · 3:4</span></figcaption>
             </figure>
-
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #9B30FF">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/8723355a-9a95-443a-816b-697d7b30f525.webp?v=v1_ru5eth"
-                  alt="Starlight Princess thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="eager"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">Starlight Princess<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
-
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #E8A33D">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/13b22600-c0c0-4ee4-8795-26343e25472a.webp?v=v1_jxl70i"
-                  alt="Wolf Gold thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="eager"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">Wolf Gold<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
-
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #2FA4E7">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/11cbbc64-f77a-49ba-8ddd-5cc71166b84d.webp?v=v1_1lrjruw"
-                  alt="Big Bass Bonanza thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="lazy"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">Big Bass Bonanza<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
-
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #F0C020">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/26191150-8f3e-42ef-bb4b-873b82994e40.webp?v=v1_2cy06h"
-                  alt="The Dog House thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="lazy"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">The Dog House<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
-
-            <figure style="margin: 0">
-              <div class="tile shot" style="--accent: #E23A2E">
-                <img
-                  class="baked"
-                  src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/a5f31ea9-9cb6-4f92-b933-eaa8912daf29.webp?v=v1_18vwh2p"
-                  alt="8 Dragons thumbnail — key visual, logotype and provider badge on the shared template"
-                  loading="lazy"
-                  decoding="async"
-                  width="480"
-                  height="640"
-                />
-              </div>
-              <figcaption class="tile-cap">8 Dragons<span>PRAGMATIC · 3:4</span></figcaption>
-            </figure>
           </div>
 
           <p class="shelf-note">
-            Seven of 6,900+ games in the catalogue · rendered by the live template, baked to WebP ·
-            each frame's stroke and light band take that game's stored accent colour
+            Sweet Bonanza, one of 6,900+ games in the catalogue · rendered by the live template and
+            baked to WebP · the stroke and light band take the game's stored accent colour
           </p>
         </div>
       </section>
@@ -1906,7 +1819,7 @@
             <div class="eyebrow">Frames</div>
             <h2>Every cut the lobby asks for</h2>
             <p>
-              One game — Gates of Olympus — through five of the studio's frame sizes, composited from
+              One game — Sweet Bonanza — through four of the studio's frame sizes, composited from
               the same three layers. The template holds a layout per size: portrait stacks the key
               visual over the logotype, landscape splits it key-visual-left and logo-right. A new size
               is a layout you set once, not a redraw per game.
@@ -2031,21 +1944,17 @@
 
       const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
       const GAMES = [
-        { name: 'Gates of Olympus', slug: 'gates-of-olympus', id: '0c089fee-01ec-4be8-ae29-5f2768a1c862', sig: 'v1_11ecz4u', accent: '#6C4FE8' },
         { name: 'Sweet Bonanza', slug: 'sweet-bonanza', id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y', accent: '#FF4FA3' },
-        { name: 'Starlight Princess', slug: 'starlight-princess', id: '8723355a-9a95-443a-816b-697d7b30f525', sig: 'v1_ru5eth', accent: '#9B30FF' },
-        { name: 'Wolf Gold', slug: 'wolf-gold', id: '13b22600-c0c0-4ee4-8795-26343e25472a', sig: 'v1_jxl70i', accent: '#E8A33D' },
-        { name: 'Big Bass Bonanza', slug: 'big-bass-bonanza', id: '11cbbc64-f77a-49ba-8ddd-5cc71166b84d', sig: 'v1_1lrjruw', accent: '#2FA4E7' },
-        { name: 'The Dog House', slug: 'the-dog-house', id: '26191150-8f3e-42ef-bb4b-873b82994e40', sig: 'v1_2cy06h', accent: '#F0C020' },
-        { name: '8 Dragons', slug: '8-dragons', id: 'a5f31ea9-9cb6-4f92-b933-eaa8912daf29', sig: 'v1_18vwh2p', accent: '#E23A2E' },
       ]
+      // Background zoom, as params.bgScale does it in the app.
+      const BG_SCALE = 1.2
+
       // The studio's own frame sizes (FRAME_SIZES in src/lib/thumb.ts).
       const SIZES = [
         { key: '3:4', w: 900, h: 1200 },
         { key: '2:3', w: 800, h: 1200 },
         { key: '47:66', w: 940, h: 1320 },
         { key: '16:9', w: 1280, h: 720 },
-        { key: '3:2', w: 1200, h: 800 },
       ]
       // A slice of the dark palette (src/lib/palettes.ts).
       const SWATCHES = ['#6C4FE8', '#FF4FA3', '#9B30FF', '#E8A33D', '#2FA4E7', '#F0C020', '#E23A2E', '#12C2C2', '#7ED321']
@@ -2056,13 +1965,11 @@
         '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
         '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
         '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
-        '3:2': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
       }
       // Light-band gradient per size (params.gradients, else the base values).
       const GRAD = {
         default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
-        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 49 },
-        '3:2': { dir: 'right', s1: 41, s2: 80, bottom: 100, band: 50 },
+        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 63.7 }, // template 49 +30%
       }
       const LOGO_ASPECT_K = 2.2 // thumb.ts — a width-bound logo fits 2.2·scale·W
 
@@ -2232,6 +2139,7 @@
         el.frame.style.maxWidth = land ? '360px' : '250px'
         el.tile.classList.toggle('land', land)
         el.tile.style.setProperty('--accent', accent())
+        el.tile.style.setProperty('--bg-scale', String(BG_SCALE))
 
         if (el.bg.dataset.game !== g.id) {
           el.bg.src = base + '/bg.jpg'
@@ -2310,7 +2218,9 @@
         el.sizeBar.appendChild(b)
       })
 
+      if (GAMES.length < 2) el.strip.hidden = true
       GAMES.forEach((g, i) => {
+        if (GAMES.length < 2) return
         const b = document.createElement('button')
         b.type = 'button'
         b.className = 'film'
@@ -2517,7 +2427,8 @@
           c.width = s.w
           c.height = s.h
           const ctx = c.getContext('2d')
-          drawFit(ctx, bg, { x: 0, y: 0, w: 1, h: 1 }, s.w, s.h, 'center', true)
+          const bgBox = { x: (1 - BG_SCALE) / 2, y: (1 - BG_SCALE) / 2, w: BG_SCALE, h: BG_SCALE }
+          drawFit(ctx, bg, bgBox, s.w, s.h, 'center', true)
 
           // Light band — the same stops the live frame paints.
           const gd = GRAD[s.key] || GRAD.default
@@ -2639,6 +2550,7 @@
           const tile = document.createElement('div')
           tile.className = 'tile live mini' + (land ? ' land' : '')
           tile.style.setProperty('--accent', g.accent)
+          tile.style.setProperty('--bg-scale', String(BG_SCALE))
           tile.style.setProperty('--ar', s.w + ' / ' + s.h)
           tile.style.width = widths[s.key] + 'px'
           const bg = new Image()
@@ -2695,7 +2607,7 @@
 
       paintSizeRow()
       render()
-      note('Drag the key visual, switch the game, change the cut — the template stays put.')
+      note('Drag the key visual, resize it, change the cut — the template layout stays put.')
     })()
     </script>
   </body>

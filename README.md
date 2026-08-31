@@ -83,8 +83,8 @@ for logos) and centred on the 9-point anchor — driven by the template's real
 per-size layouts.
 
 The hero editor is **live** — visitors drag the key visual, grab a corner to
-resize it, nudge with the arrow keys, switch between seven games, flip through
-five frame sizes (each keeping its own layout, as in the app), recolour the
+resize it, nudge with the arrow keys, flip through four frame sizes
+(each keeping its own layout, as in the app), recolour the
 frame from the palette, toggle the provider badge and the white logotype, and
 Export PNG redraws the frame to a canvas at its true pixel size. It shows real
 work rather than mock-ups: the game shelf loads seven baked WebP
