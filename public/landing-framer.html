@@ -1,0 +1,2348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How thumbs.store works — one template, 6,000+ thumbnails</title>
+    <meta
+      name="description"
+      content="The system behind the thumbs.store library: one template drives every game thumbnail across every aspect size. See the layers, try the live editor, and watch the whole catalogue follow one layout."
+    />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- The site's typefaces, from framerusercontent — same as the main site. -->
+    <style>
+      @font-face { font-family: "PP Mori SemiBold"; src: url("https://framerusercontent.com/assets/T93398VnrgrUA71qcf61Yy5qrc.woff2"); font-display: swap; font-style: normal; font-weight: 600 }
+      @font-face { font-family: "PP Mori Regular"; src: url("https://framerusercontent.com/assets/AE9QGl3EikgcPbta4IZVlvWEZZo.woff2"); font-display: swap; font-style: normal; font-weight: 400 }
+      @font-face { font-family: "PP Right Grotesk Wide Medium"; src: url("https://framerusercontent.com/assets/MfNZZ4KOxCSKFiD4ia28iJnlOEY.woff2"); font-display: swap; font-style: normal; font-weight: 500 }
+      @font-face { font-family: "PP NeueBit Bold"; src: url("https://framerusercontent.com/assets/LhlnRGZ9aD8mHk26ghaljbgKEcs.woff2"); font-display: swap; font-style: normal; font-weight: 700 }
+    </style>
+
+    <style>
+      :root {
+        --yellow: #fef150;
+        --page: #000000;
+        --panel: #161616;
+        --card: #171717;
+        --well: #0c0c0c;
+        --line: rgb(255 255 255 / 0.08);
+        --text: #ffffff;
+        --muted: #999999;
+        --dim: #7d7d7d;
+        --body: 'PP Mori Regular', 'PP Mori Regular Placeholder', system-ui, sans-serif;
+        --semi: 'PP Mori SemiBold', 'PP Mori SemiBold Placeholder', system-ui, sans-serif;
+        --display: 'PP Right Grotesk Wide Medium', 'PP Right Grotesk Wide Medium Placeholder', system-ui, sans-serif;
+        --bit: 'PP NeueBit Bold', 'PP NeueBit Bold Placeholder', ui-monospace, monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: var(--body);
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p, figure { margin: 0; }
+      :focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; border-radius: 6px; }
+      ::selection { background: var(--yellow); color: #050505; }
+
+      /* ---- page column: cards stacked on black, like the main site ---- */
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 92px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .card {
+        position: relative;
+        background: var(--card);
+        border-radius: 24px;
+        padding: 50px 48px;
+        overflow: hidden;
+      }
+
+      /* ---- shared type ---- */
+      .eyebrow {
+        font-family: var(--bit);
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-align: center;
+        color: var(--yellow);
+        text-transform: uppercase;
+      }
+      .h2 {
+        font-family: var(--display);
+        font-size: 40px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1.1em;
+        text-align: center;
+        color: #fff;
+        text-wrap: balance;
+      }
+      .lede {
+        max-width: 680px;
+        margin: 0 auto;
+        text-align: center;
+        color: var(--muted);
+        line-height: 1.6em;
+      }
+      .center-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      /* ---- buttons: the site's two variants ---- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 18px;
+        border-radius: 6px;
+        border: 0;
+        font-family: var(--bit);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-y { background: var(--yellow); color: #050505; }
+      .btn-y:hover { filter: brightness(1.08); }
+      .btn-o {
+        border: 1px solid var(--yellow);
+        color: var(--yellow);
+        background: rgb(38 38 38 / 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+      .btn-o:hover { background: rgb(60 60 60 / 0.6); }
+
+      /* ---- nav ---- */
+      .navwrap {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 60;
+        padding: 12px 16px 0;
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+      }
+      nav {
+        pointer-events: auto;
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: #000;
+        border-radius: 20px;
+        padding: 12px 24px;
+      }
+      .wordmark {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        font-family: var(--display);
+        font-size: 24px;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+      .wordmark i {
+        font-family: var(--bit);
+        font-style: normal;
+        font-size: 12px;
+        color: var(--yellow);
+        letter-spacing: 0.04em;
+      }
+      .nav-cta { display: flex; gap: 8px; }
+
+      /* ---- hero ---- */
+      .hero {
+        background: var(--panel);
+        border-radius: 30px;
+        padding: 64px 56px;
+        display: flex;
+        align-items: center;
+        gap: 48px;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -260px;
+        right: -120px;
+        width: 720px;
+        height: 560px;
+        background: radial-gradient(ellipse at center, rgb(254 241 80 / 0.14), transparent 65%);
+        pointer-events: none;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+        mask-image: radial-gradient(60% 80% at 70% 40%, #000 20%, transparent 80%);
+        pointer-events: none;
+      }
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0;
+      }
+      .hero-kicker {
+        font-family: var(--semi);
+        font-weight: 600;
+        color: var(--yellow);
+        max-width: 480px;
+      }
+      .hero h1 {
+        font-family: var(--display);
+        font-size: 50px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1.05em;
+        color: #fff;
+      }
+      .hero-lede { color: #fff; max-width: 560px; }
+      .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+      /* floating tile cluster */
+      .hero-visual {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 360px;
+        height: 400px;
+      }
+      .hero-visual .tilebox { position: absolute; }
+      .hv-back {
+        width: 210px;
+        left: 150px;
+        top: 30px;
+        transform: rotate(9deg);
+        filter: brightness(0.75);
+        animation: hfloat 7s ease-in-out infinite;
+      }
+      .hv-front {
+        width: 240px;
+        left: 0;
+        top: 60px;
+        transform: rotate(-7deg);
+        animation: hfloat 7s ease-in-out 1.2s infinite;
+      }
+      @keyframes hfloat {
+        0%, 100% { translate: 0 0; }
+        50% { translate: 0 -12px; }
+      }
+
+      /* ---- composite tile plumbing (shared with the editor) ---- */
+      .tilebox { position: relative; }
+      .tsx .tile > .baked {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .tsx .tile.shot { border: 0 !important; }
+
+      /* ---- marquee strip ---- */
+      .marquee {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 0;
+        overflow: hidden;
+      }
+      .marquee .track {
+        display: flex;
+        width: max-content;
+        animation: mslide 36s linear infinite;
+      }
+      .marquee .grp {
+        display: flex;
+        align-items: center;
+        gap: 44px;
+        padding: 16px 22px 14px;
+        white-space: nowrap;
+      }
+      .marquee span {
+        font-family: var(--bit);
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--yellow);
+      }
+      .marquee span:nth-child(even) { color: #fff; }
+      @keyframes mslide { to { transform: translateX(-50%); } }
+
+      /* ---- problem grid ---- */
+      .cols4 {
+        display: flex;
+        gap: 64px;
+        margin-top: 44px;
+      }
+      .pcol {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+      }
+      .pcol .ico { width: 77px; height: 80px; flex: none; }
+      .pcol h3 {
+        font-family: var(--semi);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        color: #fff;
+      }
+      .pcol p { font-size: 14px; line-height: 24px; color: #b3b3b3; }
+      .pcol .tcol { display: flex; flex-direction: column; gap: 8px; }
+
+      /* ---- how it works steps ---- */
+      .steps {
+        display: flex;
+        gap: 40px;
+        margin-top: 40px;
+      }
+      .step {
+        flex: 1 1 0;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #0c0c0c;
+        padding: 26px 24px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .step:hover { transform: translateY(-4px); border-color: rgb(254 241 80 / 0.4); }
+      .step .num {
+        font-family: var(--bit);
+        font-size: 34px;
+        font-weight: 700;
+        color: var(--yellow);
+        line-height: 1;
+      }
+      .step h3 { font-family: var(--semi); font-size: 17px; font-weight: 600; color: #fff; }
+      .step p { font-size: 14px; line-height: 24px; color: #b3b3b3; }
+
+      /* ---- size row ---- */
+      .cutrow {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 28px;
+        margin-top: 44px;
+        flex-wrap: wrap;
+      }
+      .cut { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+      .cut .tilebox { transition: transform 0.25s ease; }
+      .cut:hover .tilebox { transform: translateY(-6px) scale(1.03); }
+      .cut b {
+        font-family: var(--bit);
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.03em;
+      }
+      .cut span { font-size: 12px; color: var(--dim); }
+
+      /* ---- anatomy / exploded layers ---- */
+      section.anatomy { overflow: visible; }
+      .anatomy-grid {
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        margin-top: 24px;
+      }
+      .anatomy-stage {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        justify-content: center;
+        perspective: 1300px;
+        padding: 60px 0;
+        cursor: pointer;
+      }
+      .anatomy-stage .tilebox {
+        width: 250px;
+        aspect-ratio: 3 / 4;
+        transform-style: preserve-3d;
+        transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .anatomy-stage .tile {
+        transform-style: preserve-3d;
+        transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+      }
+      .anatomy-stage .tile > * {
+        transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.6s ease;
+      }
+      .anatomy.on .anatomy-stage .tilebox { transform: rotateX(56deg) rotateZ(-34deg); }
+      .anatomy.on .anatomy-stage .tile {
+        overflow: visible;
+        background: transparent;
+        border-color: transparent !important;
+      }
+      .anatomy.on .anatomy-stage .lay-bg { transform: scale(var(--bg-scale, 1)) translateZ(0); border-radius: 16px; }
+      .anatomy.on .anatomy-stage .t-band { transform: translateZ(52px); }
+      .anatomy.on .anatomy-stage .t-glow { transform: translateX(-50%) translateZ(66px); }
+      .anatomy.on .anatomy-stage .t-bloom { transform: translateX(-50%) translateZ(80px); }
+      .anatomy.on .anatomy-stage .lay-kv { transform: translateZ(115px); }
+      .anatomy.on .anatomy-stage .lay-logo { transform: translateZ(155px); }
+      .anatomy.on .anatomy-stage .t-prov { transform: translateX(-50%) translateZ(190px); }
+      .ltag {
+        position: absolute;
+        left: 103%;
+        font-family: var(--bit);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: var(--yellow);
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease 0.35s, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .ltag::before { content: '—— '; color: rgb(254 241 80 / 0.5); }
+      .anatomy.on .ltag { opacity: 1; }
+      .anatomy-list {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .anatomy-list .row { display: flex; gap: 14px; align-items: baseline; }
+      .anatomy-list .k {
+        font-family: var(--bit);
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--yellow);
+        flex: 0 0 128px;
+        letter-spacing: 0.03em;
+      }
+      .anatomy-list p { font-size: 14px; line-height: 22px; color: #b3b3b3; }
+      .anatomy-hint {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--dim);
+      }
+
+      /* ---- output ---- */
+      .output-grid {
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        margin-top: 24px;
+      }
+      .output-grid .tilebox {
+        flex: 0 0 260px;
+        aspect-ratio: 3 / 4;
+        transition: transform 0.3s ease;
+      }
+      .output-grid .tilebox:hover { transform: translateY(-6px) rotate(-1deg); }
+      .output-copy { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+      .output-copy .h2 { text-align: left; }
+      .output-copy p { color: var(--muted); line-height: 1.6em; max-width: 520px; }
+      .output-copy ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+      .output-copy li { display: flex; gap: 10px; font-size: 14px; color: #b3b3b3; }
+      .output-copy li::before { content: '→'; color: var(--yellow); font-family: var(--bit); }
+
+      /* ---- CTA + footer ---- */
+      .cta-card { text-align: center; padding: 64px 48px; }
+      .cta-card::before {
+        content: '';
+        position: absolute;
+        top: -200px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 640px;
+        height: 380px;
+        background: radial-gradient(ellipse at center, rgb(254 241 80 / 0.13), transparent 65%);
+        pointer-events: none;
+      }
+      .cta-card .center-stack { position: relative; }
+      .cta-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 18px 24px 26px;
+        color: var(--dim);
+        font-size: 13px;
+      }
+      footer .links { display: flex; gap: 20px; }
+      footer a:hover { color: #fff; }
+
+      /* ---- reveal on scroll ---- */
+      .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+
+      /* ---- breakpoints (the site's: 1200 / 810 / below) ---- */
+      @media (max-width: 1199.98px) {
+        .hero { flex-direction: column; padding: 48px 32px; text-align: center; }
+        .hero-copy { align-items: center; }
+        .hero-cta { justify-content: center; }
+        .hero h1 { font-size: 44px; }
+        .hero-kicker { max-width: 620px; }
+        .hero-visual { flex: none; width: 360px; max-width: 100%; height: 380px; }
+        .cols4 { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
+        .steps { flex-direction: column; }
+        .anatomy-grid, .output-grid { flex-direction: column; }
+        .output-copy .h2 { text-align: center; }
+        .output-copy { align-items: center; text-align: center; }
+        .output-copy li { text-align: left; }
+      }
+      @media (max-width: 809.98px) {
+        main { padding: 84px 8px 8px; gap: 8px; }
+        .card { padding: 40px 20px; border-radius: 24px; }
+        .hero { padding: 44px 20px; }
+        .hero h1 { font-size: 36px; }
+        .h2 { font-size: 31px; line-height: 1.2em; }
+        .eyebrow { font-size: 17px; }
+        .cols4 { grid-template-columns: 1fr; gap: 36px; }
+        .pcol { align-items: center; text-align: center; }
+        .nav-cta .btn-o { display: none; }
+        .hero-visual { height: 330px; width: 300px; }
+        .hv-front { width: 200px; left: 0; }
+        .hv-back { width: 175px; left: 120px; }
+        .anatomy-stage .tilebox { width: 200px; }
+        .ltag { display: none; }
+        .marquee span { font-size: 18px; }
+        .output-grid .tilebox { flex: none; width: 220px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .reveal { opacity: 1; transform: none; }
+      }
+    </style>
+    <style>
+      #ts-editor {
+        /* Site tokens — the yellow reads the page's own variable when the
+           widget is inlined, and falls back to its value inside an iframe. */
+        --ts-brand: var(--token-0af6a8ba-d2b3-46fd-bb59-920b51fdd118, #fef150);
+        --ts-page: var(--token-419394a1-565d-4952-8ba3-b4f1eb92339c, #050505);
+        --ts-panel: #171717;
+        --ts-bg: #0c0c0c;
+        --ts-line: rgb(255 255 255 / 0.08);
+        --ts-line-soft: rgb(255 255 255 / 0.06);
+        --ts-text: #ffffff;
+        --ts-muted: #999999;
+        --ts-dim: #7d7d7d;
+        --ts-radius: 24px;
+
+        /* Type stack, as the site sets it. */
+        --ts-body: 'PP Mori Regular', 'PP Mori Regular Placeholder', system-ui, sans-serif;
+        --ts-semi: 'PP Mori SemiBold', 'PP Mori SemiBold Placeholder', system-ui, sans-serif;
+        --ts-display: 'PP Right Grotesk Wide Medium', 'PP Right Grotesk Wide Medium Placeholder', system-ui, sans-serif;
+        --ts-mono: 'PP NeueBit Bold', 'PP NeueBit Bold Placeholder', ui-monospace, monospace;
+
+        container-type: inline-size;
+        container-name: ts;
+        width: 100%;
+        box-sizing: border-box;
+        color: var(--ts-text);
+        font-family: var(--ts-body);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      #ts-editor *,
+      #ts-editor *::before,
+      #ts-editor *::after {
+        box-sizing: border-box;
+      }
+      #ts-editor :focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+
+      #ts-editor .ts-shell {
+        border: 1px solid var(--ts-line);
+        border-radius: var(--ts-radius);
+        background: #0c0c0c;
+        overflow: hidden;
+      }
+
+      /* ---- title bar ---- */
+      #ts-editor .ts-bar {
+        background: #171717;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .ts-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      #ts-editor .ts-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #2a2f37;
+      }
+      #ts-editor .ts-tabs {
+        display: flex;
+        gap: 3px;
+        font-size: 12px;
+        color: var(--ts-dim);
+        overflow: hidden;
+      }
+      #ts-editor .ts-tabs span {
+        padding: 4px 10px;
+        border-radius: 7px;
+        white-space: nowrap;
+      }
+      #ts-editor .ts-tabs span[data-on] {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-live {
+        margin-left: auto;
+        flex: none;
+        font-family: var(--ts-mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #050505;
+        background: var(--ts-brand);
+        border-radius: 6px;
+        padding: 2px 10px;
+        white-space: nowrap;
+      }
+
+      /* ---- body grid ---- */
+      #ts-editor .ts-body {
+        display: grid;
+        grid-template-columns: minmax(148px, 178px) minmax(0, 1fr) minmax(168px, 206px);
+      }
+      #ts-editor .ts-rail {
+        border-right: 1px solid var(--ts-line-soft);
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .ts-label {
+        font-family: var(--ts-mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ts-brand);
+        margin: 6px 4px 2px;
+      }
+      #ts-editor .layer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        background: none;
+        font-family: var(--ts-body);
+        font-size: 13px;
+        color: var(--ts-muted);
+        text-align: left;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .layer i {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background: #2b313a;
+        flex: none;
+      }
+      #ts-editor .layer:hover {
+        background: rgb(255 255 255 / 0.05);
+      }
+      #ts-editor .layer[data-on] {
+        background: rgb(254 241 80 / 0.1);
+        border-color: rgb(254 241 80 / 0.35);
+        color: var(--ts-text);
+      }
+      #ts-editor .layer[data-on] i {
+        background: var(--ts-brand);
+      }
+
+      #ts-editor .ts-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 2px 4px;
+      }
+      #ts-editor .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1px solid rgb(255 255 255 / 0.18);
+        padding: 0;
+        cursor: pointer;
+      }
+      #ts-editor .swatch[aria-pressed='true'] {
+        box-shadow: 0 0 0 2px var(--ts-panel), 0 0 0 3.5px var(--ts-brand);
+      }
+
+      /* ---- canvas ---- */
+      #ts-editor .ts-canvas {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        place-items: start center;
+        min-width: 0;
+        background-color: #0c0c0c;
+        /* A height of its own — the frame is fitted inside it, so the canvas
+           must not be sized by the frame in turn. */
+        height: clamp(320px, 62cqi, 560px);
+        padding: 20px 20px 58px;
+        background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+      #ts-editor .ts-frame {
+        position: relative;
+        aspect-ratio: var(--ar, 3 / 4);
+        max-width: 100%;
+        height: auto;
+        justify-self: center;
+        touch-action: none;
+        cursor: grab;
+        filter: drop-shadow(0 18px 36px rgb(0 0 0 / 0.8));
+      }
+      #ts-editor .ts-frame.dragging {
+        cursor: grabbing;
+      }
+      #ts-editor .ts-frame:focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 12px;
+      }
+
+      /* Frame chrome — Control Area frame: radius 16/244 and stroke 2.5/244
+         of the frame width (set in px by the script), light band on its edge,
+         colour glow + white overlay bloom, provider tab. */
+      .tsx .tile {
+        position: absolute;
+        inset: 0;
+        border-radius: 15px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #0a0c11;
+        border: 1px solid var(--accent, #ff4fa3);
+        container-type: inline-size;
+      }
+      .tsx .tile > .lay-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transform: scale(var(--bg-scale, 1));
+        transform-origin: center;
+      }
+      .tsx .tile > .lay-kv,
+      .tsx .tile > .lay-logo {
+        position: absolute;
+        object-fit: contain;
+      }
+      .tsx .tile > .lay-logo {
+        z-index: 2;
+      }
+      .tsx .t-band {
+        position: absolute;
+        z-index: 1;
+      }
+      .tsx .t-glow {
+        position: absolute;
+        left: 50%;
+        bottom: -5%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 34%;
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(2px);
+      }
+      .tsx .t-bloom {
+        position: absolute;
+        left: 50%;
+        bottom: -12.3%;
+        transform: translateX(-50%);
+        width: 81.1%;
+        height: 27.5%;
+        border-radius: 50%;
+        z-index: 1;
+        mix-blend-mode: overlay;
+        background: radial-gradient(closest-side, #ffffff, rgba(255, 255, 255, 0) 70%);
+      }
+      .tsx .t-prov {
+        position: absolute;
+        left: 50%;
+        bottom: 0.3%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45em 1.1em 0.55em;
+        border-radius: 3.3cqw 3.3cqw 0 0;
+        background: var(--accent);
+        font-size: 4cqw;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      /* Selection box + handles */
+      #ts-editor .ts-sel {
+        position: absolute;
+        border: 1.5px solid rgb(255 240 80 / 0.85);
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 6;
+      }
+      #ts-editor .ts-sel[data-fixed] .handle {
+        display: none;
+      }
+      #ts-editor .handle {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        background: var(--ts-brand);
+        box-shadow: 0 0 0 2px #0a0b0d;
+        pointer-events: auto;
+      }
+      #ts-editor .handle.tl { left: -5px; top: -5px; cursor: nwse-resize; }
+      #ts-editor .handle.tr { right: -5px; top: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.bl { left: -5px; bottom: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.br { right: -5px; bottom: -5px; cursor: nwse-resize; }
+
+      #ts-editor .ts-sizebar {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 26px;
+        display: flex;
+        gap: 3px;
+        max-width: calc(100% - 24px);
+        overflow-x: auto;
+        background: rgb(10 11 13 / 0.75);
+        border: 1px solid var(--ts-line);
+        border-radius: 999px;
+        padding: 3px;
+        scrollbar-width: none;
+      }
+      #ts-editor .ts-sizebar::-webkit-scrollbar {
+        display: none;
+      }
+      #ts-editor .size-btn {
+        border: 0;
+        background: none;
+        border-radius: 999px;
+        padding: 3px 11px;
+        font-family: var(--ts-mono);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ts-muted);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .size-btn[aria-pressed='true'] {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 7px;
+        margin: 0;
+        text-align: center;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+
+      /* ---- properties ---- */
+      #ts-editor .ts-props {
+        border-left: 1px solid var(--ts-line-soft);
+        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      #ts-editor .prop {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .prop label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+      #ts-editor .prop label b {
+        font-family: var(--ts-semi);
+        color: var(--ts-muted);
+        font-weight: 600;
+      }
+      #ts-editor .prop:not([data-dim]) label b {
+        color: var(--ts-brand);
+      }
+      #ts-editor input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--ts-brand) 0 var(--fill, 50%),
+          #22262d var(--fill, 50%) 100%
+        );
+        cursor: pointer;
+      }
+      #ts-editor input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+      }
+      #ts-editor input[type='range']::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 999px;
+        background: #fff;
+      }
+      #ts-editor .switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ts-muted);
+        cursor: pointer;
+      }
+      #ts-editor .switch input {
+        accent-color: var(--ts-brand);
+        width: 14px;
+        height: 14px;
+      }
+      #ts-editor .ts-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      #ts-editor .field {
+        border: 1px solid var(--ts-line);
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 11.5px;
+        color: var(--ts-muted);
+        background: rgb(255 255 255 / 0.02);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #ts-editor .field b {
+        display: block;
+        font-size: 9px;
+        color: var(--ts-dim);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+      }
+      #ts-editor .ts-actions {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #ts-editor .ts-reset {
+        white-space: nowrap;
+        border: 1px solid var(--ts-brand);
+        border-radius: 6px;
+        height: 40px;
+        background: rgb(38 38 38 / 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        font-family: var(--ts-mono);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--ts-brand);
+        cursor: pointer;
+      }
+      #ts-editor .ts-reset:hover {
+        background: rgb(60 60 60 / 0.6);
+      }
+      #ts-editor .ts-export {
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 40px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--ts-brand);
+        color: #050505;
+        font-family: var(--ts-mono);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      #ts-editor .ts-export:hover {
+        filter: brightness(1.08);
+      }
+
+      /* ---- filmstrip + status ---- */
+      #ts-editor .ts-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 10px 12px;
+        border-top: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .film {
+        flex: 0 0 auto;
+        width: 54px;
+        aspect-ratio: 3 / 4;
+        border-radius: 7px;
+        overflow: hidden;
+        border: 1.5px solid transparent;
+        background: #14171c;
+        padding: 0;
+        opacity: 0.62;
+        cursor: pointer;
+      }
+      #ts-editor .film img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #ts-editor .film[aria-pressed='true'] {
+        opacity: 1;
+        border-color: var(--ts-brand);
+      }
+      #ts-editor .ts-note {
+        min-height: 18px;
+        margin: 0;
+        padding: 11px 12px 13px;
+        border-top: 1px solid var(--ts-line-soft);
+        background: #171717;
+        font-size: 13px;
+        color: var(--ts-muted);
+        text-align: center;
+      }
+
+      /* ===== responsive: driven by the widget's own width ===== */
+
+      /* Tablet and down — one column: rail becomes a chip row above the
+         canvas, properties move underneath in two columns. */
+      @container ts (max-width: 860px) {
+        #ts-editor .ts-body {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #ts-editor .ts-rail {
+          border-right: 0;
+          border-bottom: 1px solid var(--ts-line-soft);
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 10px 12px;
+          scrollbar-width: none;
+        }
+        #ts-editor .ts-rail::-webkit-scrollbar {
+          display: none;
+        }
+        #ts-editor .ts-label {
+          display: none;
+        }
+        #ts-editor .ts-swatches {
+          padding-left: 4px;
+          border-left: 1px solid var(--ts-line-soft);
+        }
+        #ts-editor .ts-layers {
+          display: flex;
+          gap: 6px;
+          flex: none;
+        }
+        #ts-editor .layer {
+          width: auto;
+        }
+        #ts-editor .ts-swatches {
+          flex-wrap: nowrap;
+          flex: none;
+        }
+        #ts-editor .ts-props {
+          border-left: 0;
+          border-top: 1px solid var(--ts-line-soft);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px 16px;
+          align-items: end;
+        }
+        #ts-editor .ts-actions {
+          grid-column: 1 / -1;
+          flex-direction: row;
+        }
+        #ts-editor .ts-actions > * {
+          flex: 1;
+        }
+        #ts-editor .ts-fields {
+          grid-column: 1 / -1;
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      /* Phone — single-column controls, tighter chrome, no hint line. */
+      @container ts (max-width: 460px) {
+        #ts-editor .ts-export,
+        #ts-editor .ts-reset {
+          font-size: 16px;
+        }
+        #ts-editor .size-btn {
+          font-size: 15px;
+          padding: 3px 9px;
+        }
+        #ts-editor .ts-canvas {
+          padding: 14px 14px 52px;
+          height: clamp(300px, 96cqi, 420px);
+        }
+        #ts-editor .ts-props {
+          grid-template-columns: 1fr;
+        }
+        #ts-editor .ts-fields {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        #ts-editor .ts-hint {
+          display: none;
+        }
+        #ts-editor .ts-tabs span:nth-child(n + 3) {
+          display: none;
+        }
+        #ts-editor .ts-live {
+          display: none;
+        }
+        #ts-editor .ts-shell {
+          border-radius: 12px;
+        }
+      }
+
+      /* Fallback for engines without container queries: same two breakpoints,
+         measured against the viewport instead of the widget. */
+      @supports not (container-type: inline-size) {
+        @media (max-width: 860px) {
+          #ts-editor .ts-body { grid-template-columns: minmax(0, 1fr); }
+          #ts-editor .ts-rail { border-right: 0; border-bottom: 1px solid var(--ts-line-soft); flex-direction: row; align-items: center; gap: 8px; overflow-x: auto; padding: 10px 12px; }
+          #ts-editor .ts-label { display: none; }
+          #ts-editor .ts-layers { display: flex; gap: 6px; flex: none; }
+          #ts-editor .layer { width: auto; }
+          #ts-editor .ts-swatches { flex-wrap: nowrap; flex: none; }
+          #ts-editor .ts-canvas { height: 420px; }
+          #ts-editor .ts-props { border-left: 0; border-top: 1px solid var(--ts-line-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; align-items: end; }
+          #ts-editor .ts-actions { grid-column: 1 / -1; flex-direction: row; }
+          #ts-editor .ts-fields { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 460px) {
+          #ts-editor .ts-props { grid-template-columns: 1fr; }
+          #ts-editor .ts-canvas { height: 360px; padding: 14px 14px 52px; }
+          #ts-editor .ts-hint, #ts-editor .ts-live { display: none; }
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #ts-editor * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="navwrap">
+      <nav>
+        <a class="wordmark" href="https://www.thumbs.store/">THUMBS<i>.STORE</i></a>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
+          <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+        </div>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ============================== HERO ============================== -->
+      <section class="card hero">
+        <div class="hero-copy">
+          <p class="hero-kicker">The system behind the 6,000-thumbnail library — for operators who want to see how it actually works.</p>
+          <h1>Every thumbnail, drawn by one template.</h1>
+          <p class="hero-lede">
+            thumbs.store isn’t a folder of images. It’s a rendering system: three shared layers per
+            game, one layout per aspect, and 6,000+ titles that inherit it. Change the template once
+            — the whole catalogue follows.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-y" href="#editor">Try the editor</a>
+            <a class="btn btn-o" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+          </div>
+        </div>
+        <div class="hero-visual tsx" aria-hidden="true">
+          <div class="tilebox hv-back" style="aspect-ratio: 3 / 4">
+            <div class="tile live" data-composite data-id="0c089fee-01ec-4be8-ae29-5f2768a1c862" data-accent="#6C4FE8" data-size="3:4">
+              <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+              <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+              <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+              <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              <div class="t-prov">PRAGMATIC</div>
+            </div>
+          </div>
+          <div class="tilebox hv-front" style="aspect-ratio: 3 / 4">
+            <div class="tile shot" style="--accent: #FF4FA3">
+              <img class="baked" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" decoding="async" width="480" height="640" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ MARQUEE ============================= -->
+      <div class="marquee" aria-hidden="true">
+        <div class="track">
+          <div class="grp">
+            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+          <div class="grp">
+            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================ PROBLEM ============================= -->
+      <section class="card reveal">
+        <h2 class="h2">Hand-made thumbnails don’t scale.</h2>
+        <div class="cols4">
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <rect x="20" y="30" width="30" height="28" rx="6" fill="#FEF150" opacity="0.35" />
+              <rect x="26" y="25" width="30" height="28" rx="6" fill="#FEF150" opacity="0.6" />
+              <rect x="32" y="20" width="30" height="28" rx="6" fill="#FEF150" />
+            </svg>
+            <div class="tcol">
+              <h3>One-off files</h3>
+              <p>Every new game and every new size becomes another file to redraw, rename and eventually lose.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <rect x="18" y="24" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" opacity="0.4" />
+              <rect x="34" y="20" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" />
+            </svg>
+            <div class="tcol">
+              <h3>Layout drift</h3>
+              <p>Logos and key visuals slide out of place from game to game — the lobby stops reading as one product.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <circle cx="38.5" cy="40" r="17" stroke="#FEF150" stroke-width="3" opacity="0.4" />
+              <path d="M38.5 30v10l7 6" stroke="#FEF150" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Slow launches</h3>
+              <p>New titles sit in a design queue waiting for artwork instead of going live the day you get them.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <path d="M24 30h20M34 30v22" stroke="#FEF150" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+              <path d="M46 40l10 12M56 40L46 52" stroke="#FEF150" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Brand breakage</h3>
+              <p>Generic typography replaces the game’s original art — and the recognition players buy with dies with it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================== HOW IT WORKS ========================== -->
+      <section class="card reveal" id="how">
+        <div class="center-stack">
+          <p class="eyebrow">How it works</p>
+          <h2 class="h2">One template. The whole catalogue.</h2>
+          <p class="lede">
+            The layout isn’t drawn into any file — it’s data. Anchors, scales, the light band, the
+            provider tab: stored once per aspect, applied to every game at render time.
+          </p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="num">01</span>
+            <h3>Set the template once</h3>
+            <p>Where the key visual sits, how large the logotype runs, where the light band falls — decided once, per aspect size, by a designer.</p>
+          </div>
+          <div class="step">
+            <span class="num">02</span>
+            <h3>Drop in a game</h3>
+            <p>Background, key visual, white logotype. Three layers per title — the template places them, and nothing is redrawn by hand.</p>
+          </div>
+          <div class="step">
+            <span class="num">03</span>
+            <h3>Serve every cut</h3>
+            <p>Portrait stacks, landscape splits key-visual-left and logo-right. A new size is one layout to set — not 6,000 files to redraw.</p>
+          </div>
+        </div>
+        <div class="cutrow tsx" aria-label="One game rendered at four aspect sizes">
+          <div class="cut">
+            <div class="tilebox" style="width: 132px; aspect-ratio: 3 / 4">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 3:4 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>3:4</b><span>900 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 118px; aspect-ratio: 2 / 3">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="2:3">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 2:3 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>2:3</b><span>800 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 126px; aspect-ratio: 47 / 66">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="47:66">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 47:66 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>47:66</b><span>940 × 1320</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 232px; aspect-ratio: 16 / 9">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="16:9">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 16:9 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>16:9</b><span>1280 × 720</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ ANATOMY ============================= -->
+      <section class="card reveal anatomy" id="anatomy">
+        <div class="center-stack">
+          <p class="eyebrow">The anatomy</p>
+          <h2 class="h2">Six layers. Zero hand-drawing.</h2>
+          <p class="lede">
+            Tap the tile to pull it apart. Everything below the artwork — the band, the glow, the
+            tab, the stroke — is the frame, and the frame is the same for all 6,000 games.
+          </p>
+        </div>
+        <div class="anatomy-grid tsx">
+          <div class="anatomy-stage" id="anatomyStage" role="button" tabindex="0" aria-label="Toggle the exploded layer view">
+            <div class="tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div>
+                <div class="t-glow"></div>
+                <div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza key visual" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <span class="ltag" style="top: 84%; transform: translateZ(0)">Background</span>
+                <span class="ltag" style="top: 66%; transform: translateZ(52px)">Light band</span>
+                <span class="ltag" style="top: 30%; transform: translateZ(115px)">Key visual</span>
+                <span class="ltag" style="top: 55%; transform: translateZ(155px)">Logotype</span>
+                <span class="ltag" style="top: 93%; transform: translateZ(190px)">Provider tab</span>
+              </div>
+            </div>
+          </div>
+          <div class="anatomy-list">
+            <div class="row"><span class="k">Background</span><p>The game’s own scene, filling the frame at 120% so every cut stays covered.</p></div>
+            <div class="row"><span class="k">Key visual</span><p>A clean cutout with its own transparent padding, anchored and scaled by the template — never stretched.</p></div>
+            <div class="row"><span class="k">Light band</span><p>A seamless gradient in the game’s accent colour, eased in so there’s no visible edge.</p></div>
+            <div class="row"><span class="k">Glow + bloom</span><p>A colour glow and a white overlay bloom lift the lower third, exactly like the renderer.</p></div>
+            <div class="row"><span class="k">Logotype</span><p>The original game logotype, white where the art needs it — original branding, not typography.</p></div>
+            <div class="row"><span class="k">Provider tab</span><p>The provider’s name on a tab in the frame colour, flush to the bottom edge.</p></div>
+            <p class="anatomy-hint">Click the tile to stack it back together.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ EDITOR ============================== -->
+      <section class="card reveal" id="editor">
+        <div class="center-stack" style="margin-bottom: 28px">
+          <p class="eyebrow">Try it live</p>
+          <h2 class="h2">Don’t take our word for it. Move it.</h2>
+          <p class="lede">
+            This is the real template with the real layers, running in your browser. Drag the key
+            visual, resize it from a corner, switch the cut, recolour the frame — then export a PNG
+            at full resolution.
+          </p>
+        </div>
+        <div id="ts-editor" class="tsx">
+        <div class="ts-shell">
+          <div class="ts-bar">
+            <div class="ts-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="ts-tabs">
+              <span data-on>Thumbnails</span><span>Template</span><span>Frames</span><span>Brand assets</span>
+            </div>
+            <span class="ts-live">live · try it</span>
+          </div>
+
+          <div class="ts-body">
+            <aside class="ts-rail">
+              <div class="ts-label ts-label-layers" id="ts-layersLabel">Layers</div>
+              <div class="ts-layers" role="radiogroup" aria-labelledby="ts-layersLabel">
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="bg"><i></i> Background</button>
+                <button class="layer" type="button" role="radio" aria-checked="true" data-layer="kv" data-on><i></i> Key visual</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="logo"><i></i> Game logotype</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="band"><i></i> Light band</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="prov"><i></i> Provider badge</button>
+              </div>
+              <div class="ts-label" id="ts-paletteLabel">Frame colour</div>
+              <div class="ts-swatches" id="ts-swatches" role="group" aria-labelledby="ts-paletteLabel"></div>
+            </aside>
+
+            <div class="ts-canvas" id="ts-canvas">
+              <div
+                class="ts-frame"
+                id="ts-frame"
+                tabindex="0"
+                role="application"
+                aria-label="Thumbnail canvas — drag the selected layer, arrow keys nudge it, corner handles resize it"
+              >
+                <div class="tile" id="ts-tile">
+                  <img class="lay-bg" id="ts-layBg" alt="" decoding="async" />
+                  <div class="t-band" id="ts-layBand"></div>
+                  <div class="t-glow" id="ts-layGlow"></div>
+                  <div class="t-bloom" id="ts-layBloom"></div>
+                  <img class="lay-kv" id="ts-layKv" alt="The game's key visual" decoding="async" />
+                  <img class="lay-logo" id="ts-layLogo" alt="" decoding="async" />
+                  <div class="t-prov" id="ts-layProv">PRAGMATIC</div>
+                </div>
+                <div class="ts-sel" id="ts-sel">
+                  <span class="handle tl" data-h="tl"></span>
+                  <span class="handle tr" data-h="tr"></span>
+                  <span class="handle bl" data-h="bl"></span>
+                  <span class="handle br" data-h="br"></span>
+                </div>
+              </div>
+              <div class="ts-sizebar" id="ts-sizeBar" role="group" aria-label="Frame size"></div>
+              <p class="ts-hint">Drag to move · corner to resize · arrow keys to nudge</p>
+            </div>
+
+            <aside class="ts-props">
+              <div class="prop" data-for="kv">
+                <label for="ts-kvScale">Key visual scale <b id="ts-kvScaleVal">122%</b></label>
+                <input id="ts-kvScale" type="range" min="40" max="220" step="1" value="122" />
+              </div>
+              <div class="prop" data-for="logo">
+                <label for="ts-logoScale">Logo scale <b id="ts-logoScaleVal">38%</b></label>
+                <input id="ts-logoScale" type="range" min="10" max="120" step="1" value="38" />
+              </div>
+              <div class="prop" data-for="band">
+                <label for="ts-bandOpacity">Band opacity <b id="ts-bandVal">100%</b></label>
+                <input id="ts-bandOpacity" type="range" min="0" max="100" step="1" value="100" />
+              </div>
+              <label class="switch"><input type="checkbox" id="ts-provOn" checked /> <span>Provider badge</span></label>
+              <label class="switch"><input type="checkbox" id="ts-whiteOn" checked /> <span>White logotype</span></label>
+              <div class="ts-fields">
+                <div class="field"><b>X</b><span id="ts-fX">0</span></div>
+                <div class="field"><b>Y</b><span id="ts-fY">0</span></div>
+                <div class="field"><b>W</b><span id="ts-fW">0</span></div>
+                <div class="field"><b>H</b><span id="ts-fH">0</span></div>
+              </div>
+              <div class="ts-actions">
+                <button class="ts-reset" type="button" id="ts-resetBtn">Reset</button>
+                <button class="ts-export" type="button" id="ts-exportBtn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Export PNG
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div class="ts-strip" id="ts-filmstrip" role="group" aria-label="Pick a game"></div>
+          <p class="ts-note" id="ts-labNote" role="status">Loading the editor…</p>
+        </div>
+      </div>
+      </section>
+
+      <!-- ============================ OUTPUT ============================== -->
+      <section class="card reveal">
+        <div class="output-grid tsx">
+          <div class="tilebox">
+            <div class="tile shot" style="--accent: #FF4FA3">
+              <img class="baked" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="Sweet Bonanza thumbnail as served by thumbs.store" loading="lazy" decoding="async" width="480" height="640" />
+            </div>
+          </div>
+          <div class="output-copy">
+            <h2 class="h2">What actually ships.</h2>
+            <p>
+              Straight out of the renderer — not a mock-up. Every tile in the library is this same
+              anatomy with that game’s three layers dropped in.
+            </p>
+            <ul>
+              <li>Rendered by the live template, baked to WebP</li>
+              <li>Stroke, band and tab tinted from the game’s stored accent colour</li>
+              <li>Original provider branding — no substituted typography</li>
+              <li>Every aspect size cut from the same layout</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== CTA =============================== -->
+      <section class="card cta-card reveal">
+        <div class="center-stack">
+          <h2 class="h2">Get instant access to 6,000+ compliant casino thumbnails</h2>
+          <p class="lede">Solve the thumbnail problem once and for all — and forget about brand misuse forever.</p>
+          <div class="cta-row">
+            <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>© <span id="year">2026</span> thumbs.store · By Cubicle</span>
+        <div class="links">
+          <a href="https://www.thumbs.store/">thumbs.store</a>
+          <a href="https://www.thumbs.store/apply">Apply</a>
+          <a href="https://cal.com/cubicle">Book a demo</a>
+        </div>
+      </footer>
+    </main>
+
+<script>
+    ;(() => {
+      // Page builders drop embeds in odd orders: this script may run before the
+      // markup exists, or after the document is already parsed. Wait for the
+      // root either way, and give up loudly rather than leaving an empty shell.
+      function boot() {
+        const root = document.getElementById('ts-editor')
+        if (root) return start(root)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot, { once: true })
+          return
+        }
+        let tries = 0
+        const t = setInterval(() => {
+          const r = document.getElementById('ts-editor')
+          if (r) {
+            clearInterval(t)
+            start(r)
+          } else if (++tries > 40) {
+            clearInterval(t)
+            console.error('[ts-editor] markup not found — is the #ts-editor block on the page?')
+          }
+        }, 50)
+      }
+      boot()
+
+      function start(lab) {
+      const $ = (id) => document.getElementById('ts-' + id)
+
+      const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
+      const GAMES = [
+        { name: 'Sweet Bonanza', slug: 'sweet-bonanza', id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y', accent: '#FF4FA3' },
+      ]
+      // Background zoom, as params.bgScale does it in the app.
+      const BG_SCALE = 1.2
+
+      // The studio's own frame sizes (FRAME_SIZES in src/lib/thumb.ts).
+      const SIZES = [
+        { key: '3:4', w: 900, h: 1200 },
+        { key: '2:3', w: 800, h: 1200 },
+        { key: '47:66', w: 940, h: 1320 },
+        { key: '16:9', w: 1280, h: 720 },
+      ]
+      // A slice of the dark palette (src/lib/palettes.ts).
+      const SWATCHES = ['#6C4FE8', '#FF4FA3', '#9B30FF', '#E8A33D', '#2FA4E7', '#F0C020', '#E23A2E', '#12C2C2', '#7ED321']
+      // The live template's per-size layouts (thumb_templates.params.layouts):
+      // a 9-point anchor, a scale on the layer's contain-fit, and a fine offset.
+      const TEMPLATE = {
+        '3:4': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.38, logoDX: 0, logoDY: 0.04 },
+        '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
+        '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
+        '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
+      }
+      // Light-band gradient per size (params.gradients, else the base values).
+      const GRAD = {
+        default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
+        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 63.7 }, // template 49 +30%
+      }
+      const LOGO_ASPECT_K = 2.2 // thumb.ts — a width-bound logo fits 2.2·scale·W
+
+      const el = {
+        frame: $('frame'), tile: $('tile'), bg: $('layBg'), band: $('layBand'), kv: $('layKv'),
+        logo: $('layLogo'), prov: $('layProv'), sel: $('sel'), sizeBar: $('sizeBar'),
+        glow: $('layGlow'), bloom: $('layBloom'),
+        strip: $('filmstrip'), swatches: $('swatches'), note: $('labNote'), canvas: $('canvas'),
+        kvScale: $('kvScale'), logoScale: $('logoScale'), bandOpacity: $('bandOpacity'),
+        kvScaleVal: $('kvScaleVal'), logoScaleVal: $('logoScaleVal'), bandVal: $('bandVal'),
+        provOn: $('provOn'), whiteOn: $('whiteOn'),
+        fX: $('fX'), fY: $('fY'), fW: $('fW'), fH: $('fH'),
+      }
+      const layerBtns = Array.from(lab.querySelectorAll('button.layer[data-layer]'))
+
+      const state = { g: 0, size: '3:4', accent: null, band: 1, prov: true, white: true, layer: 'kv', layouts: {} }
+
+      // The contain-fit needs the image's natural size, so re-place on load.
+      ;[el.kv, el.logo, el.bg].forEach((img) => img.addEventListener('load', () => render()))
+
+      const game = () => GAMES[state.g]
+      const sizeDef = () => SIZES.find((s) => s.key === state.size) || SIZES[0]
+      const landscape = () => sizeDef().w / sizeDef().h > 1.2
+      const accent = () => state.accent || game().accent
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+
+      function layout() {
+        if (!state.layouts[state.size]) {
+          const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+          state.layouts[state.size] = {
+            kv: { s: t.kvScale, dx: t.kvDX, dy: t.kvDY },
+            logo: { s: t.logoScale, dx: t.logoDX, dy: t.logoDY },
+          }
+        }
+        return state.layouts[state.size]
+      }
+
+      /** Contain-fit of an image in the frame, as frame fractions (baseFit). */
+      function fitOf(img, ar) {
+        const nw = img && img.naturalWidth ? img.naturalWidth : 1000
+        const nh = img && img.naturalHeight ? img.naturalHeight : 1000
+        // Work in frame units where width = 1 and height = 1/ar.
+        const H = 1 / ar
+        const f = Math.min(1 / nw, H / nh)
+        return { w: nw * f, h: (nh * f) / H }
+      }
+
+      /** Box for a layer, in frame fractions: the layer's contain-fit scaled by
+       *  k, centred on the template's 9-point anchor plus its offset. */
+      function boxOf(key) {
+        if (key === 'bg') return { x: 0, y: 0, w: 1, h: 1 }
+        if (key === 'band') {
+          const g = GRAD[state.size] || GRAD.default
+          return g.dir === 'right'
+            ? { x: 1 - g.band / 100, y: 0, w: g.band / 100, h: 1 }
+            : { x: 0, y: 1 - g.band / 100, w: 1, h: g.band / 100 }
+        }
+        if (key === 'prov') {
+          const f = el.frame.getBoundingClientRect()
+          const p = el.prov.getBoundingClientRect()
+          if (!f.width) return { x: 0.35, y: 0.9, w: 0.3, h: 0.07 }
+          return { x: (p.left - f.left) / f.width, y: (p.top - f.top) / f.height, w: p.width / f.width, h: p.height / f.height }
+        }
+        const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+        const st = layout()[key]
+        const s = sizeDef()
+        const align = key === 'kv' ? t.kvAlign : t.logoAlign
+        const fit = fitOf(key === 'kv' ? el.kv : el.logo, s.w / s.h)
+        const k = key === 'kv' ? st.s : st.s * LOGO_ASPECT_K
+        const w = fit.w * k
+        const h = fit.h * k
+        const col = align[1]
+        const row = align[0]
+        const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) + st.dx
+        const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) + st.dy
+        return { x: cx - w / 2, y: cy - h / 2, w, h }
+      }
+
+      const pct = (n) => (n * 100).toFixed(2) + '%'
+
+      function rgbaOf(hex, a) {
+        const v = String(hex).replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      /** bandStops() from thumb.ts: a smootherstep fade in, the semantic→blur
+       *  crossover, then a fade out — so the band has no visible seam. */
+      function bandCss(hex, g, opacity) {
+        const semA = 0.6 * opacity
+        const blurA = 1 * opacity
+        const lo = Math.min(g.s1, g.s2) / 100
+        const hi = Math.max(g.s1, g.s2) / 100
+        const bot = Math.max(hi, g.bottom / 100)
+        const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+        const out = []
+        for (let i = 0; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, semA * smooth(t)) + ' ' + (lo * t * 100).toFixed(2) + '%')
+        }
+        out.push(rgbaOf(hex, blurA) + ' ' + (hi * 100).toFixed(2) + '%')
+        out.push(rgbaOf(hex, blurA) + ' ' + (bot * 100).toFixed(2) + '%')
+        for (let i = 1; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, blurA * smooth(1 - t)) + ' ' + ((bot + (1 - bot) * t) * 100).toFixed(2) + '%')
+        }
+        return 'linear-gradient(to ' + g.dir + ', ' + out.join(', ') + ')'
+      }
+
+      /** Size the frame to the space the canvas actually has, in both axes,
+       *  so the whole widget stays responsive to its container — not to the
+       *  viewport, and not to a hard-coded width. */
+      function fitFrame() {
+        const s = sizeDef()
+        const box = el.canvas.getBoundingClientRect()
+        if (!box.width) return
+        const cs = getComputedStyle(el.canvas)
+        const availW = box.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+        // Measure against the size bar itself rather than assuming the padding
+        // clears it, so the frame always sits above the controls at any width.
+        const bar = el.sizeBar.getBoundingClientRect()
+        const floor = bar.height ? bar.top - 10 : box.bottom - parseFloat(cs.paddingBottom)
+        const availH = floor - (box.top + parseFloat(cs.paddingTop))
+        const ar = s.w / s.h
+        const w = Math.max(120, Math.min(availW, availH * ar))
+        if (Math.abs(parseFloat(el.frame.style.width || '0') - w) > 0.5) el.frame.style.width = w + 'px'
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        let raf = 0
+        const ro = new ResizeObserver(() => {
+          cancelAnimationFrame(raf)
+          raf = requestAnimationFrame(() => {
+            fitFrame()
+            applyMetrics()
+          })
+        })
+        ro.observe(el.canvas)
+      }
+      window.addEventListener('orientationchange', () => setTimeout(render, 120))
+
+      /** Corner radius 16/244 and stroke 2.5/244 of the frame width, in px —
+       *  percentages would make the corner elliptical on a non-square frame. */
+      function applyMetrics() {
+        document.querySelectorAll('.tsx .tile').forEach((t) => {
+          const w = t.offsetWidth
+          if (!w) return
+          t.style.borderRadius = Math.max(3, (16 / 244) * w) + 'px'
+          if (!t.classList.contains('shot')) t.style.borderWidth = Math.max(1, (2.5 / 244) * w) + 'px'
+        })
+      }
+      window.addEventListener('resize', () => {
+        fitFrame()
+        applyMetrics()
+      })
+
+      /** Paint the frame chrome — band on its edge, colour glow, white bloom. */
+      function paintChrome(nodes, sizeKey, hex, opacity) {
+        const g = GRAD[sizeKey] || GRAD.default
+        const band = nodes.band
+        if (band) {
+          band.style.cssText = ''
+          band.style.position = 'absolute'
+          if (g.dir === 'right') {
+            band.style.top = '0'
+            band.style.bottom = '0'
+            band.style.right = '0'
+            band.style.width = g.band + '%'
+          } else {
+            band.style.left = '0'
+            band.style.right = '0'
+            band.style.bottom = '0'
+            band.style.height = g.band + '%'
+          }
+          band.style.zIndex = '1'
+          band.style.background = bandCss(hex, g, opacity)
+        }
+        if (nodes.glow) {
+          nodes.glow.style.background =
+            'radial-gradient(closest-side, ' + rgbaOf(hex, 0.85 * opacity) + ', ' + rgbaOf(hex, 0) + ' 72%)'
+        }
+        if (nodes.bloom) nodes.bloom.style.opacity = String(opacity)
+      }
+
+      function place(node, box, objPos) {
+        node.style.left = pct(box.x)
+        node.style.top = pct(box.y)
+        node.style.width = pct(box.w)
+        node.style.height = pct(box.h)
+        node.style.bottom = 'auto'
+        node.style.right = 'auto'
+        node.style.objectPosition = objPos
+      }
+
+      function render() {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        const base = SB + '/assets/' + g.id
+
+        el.frame.style.setProperty('--ar', s.w + ' / ' + s.h)
+        fitFrame()
+        el.tile.classList.toggle('land', land)
+        el.tile.style.setProperty('--accent', accent())
+        el.tile.style.setProperty('--bg-scale', String(BG_SCALE))
+
+        if (el.bg.dataset.game !== g.id) {
+          el.bg.src = base + '/bg.jpg'
+          el.kv.src = base + '/kv.png'
+          el.bg.dataset.game = g.id
+          el.kv.alt = g.name + ' key visual on the editor canvas'
+        }
+        const logoSrc = base + (state.white ? '/logoWhite.png' : '/logoColor.png')
+        if (el.logo.getAttribute('src') !== logoSrc) el.logo.src = logoSrc
+
+        place(el.kv, boxOf('kv'), 'center center')
+        place(el.logo, boxOf('logo'), 'center center')
+        paintChrome({ band: el.band, glow: el.glow, bloom: el.bloom }, state.size, accent(), state.band)
+        el.prov.hidden = !state.prov
+
+        const sel = boxOf(state.layer)
+        el.sel.style.left = pct(sel.x)
+        el.sel.style.top = pct(sel.y)
+        el.sel.style.width = pct(sel.w)
+        el.sel.style.height = pct(sel.h)
+        const movable = state.layer === 'kv' || state.layer === 'logo'
+        if (movable) el.sel.removeAttribute('data-fixed')
+        else el.sel.setAttribute('data-fixed', '')
+
+        layerBtns.forEach((b) => {
+          const on = b.dataset.layer === state.layer
+          b.toggleAttribute('data-on', on)
+          b.setAttribute('aria-checked', String(on))
+        })
+        lab.querySelectorAll('.prop[data-for]').forEach((p) => {
+          if (p.dataset.for !== state.layer) p.setAttribute('data-dim', '')
+          else p.removeAttribute('data-dim')
+        })
+
+        const lay = layout()
+        setRange(el.kvScale, Math.round(lay.kv.s * 100), el.kvScaleVal, '%')
+        setRange(el.logoScale, Math.round(lay.logo.s * 100), el.logoScaleVal, '%')
+        setRange(el.bandOpacity, Math.round(state.band * 100), el.bandVal, '%')
+
+        el.fX.textContent = Math.round(sel.x * s.w)
+        el.fY.textContent = Math.round(sel.y * s.h)
+        el.fW.textContent = Math.round(sel.w * s.w)
+        el.fH.textContent = Math.round(sel.h * s.h)
+
+        lab.querySelectorAll('.size-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.size === state.size)))
+        lab.querySelectorAll('.film').forEach((b, i) => b.setAttribute('aria-pressed', String(i === state.g)))
+        lab.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color === accent())))
+        applyMetrics()
+      }
+
+      function setRange(input, value, out, suffix) {
+        input.value = String(value)
+        const min = Number(input.min)
+        const max = Number(input.max)
+        input.style.setProperty('--fill', ((value - min) / (max - min)) * 100 + '%')
+        if (out) out.textContent = value + suffix
+      }
+
+      function note(msg) {
+        el.note.textContent = msg || ''
+      }
+
+      // ── controls ────────────────────────────────────────────────────────
+      SIZES.forEach((s) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'size-btn'
+        b.dataset.size = s.key
+        b.textContent = s.key
+        b.title = s.w + ' × ' + s.h
+        b.addEventListener('click', () => {
+          state.size = s.key
+          render()
+          note('Frame size ' + s.key + ' — ' + s.w + ' × ' + s.h + '. Each size keeps its own layout.')
+        })
+        el.sizeBar.appendChild(b)
+      })
+
+      if (GAMES.length < 2) el.strip.hidden = true
+      GAMES.forEach((g, i) => {
+        if (GAMES.length < 2) return
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'film'
+        b.title = g.name
+        b.setAttribute('aria-label', g.name)
+        const img = document.createElement('img')
+        img.src = SB + '/previews/' + g.id + '.webp?v=' + g.sig
+        img.alt = ''
+        img.loading = 'lazy'
+        img.decoding = 'async'
+        b.appendChild(img)
+        b.addEventListener('click', () => {
+          state.g = i
+          state.accent = null
+          render()
+          note(g.name + ' — same template, same layout. Only the assets and the colour changed.')
+        })
+        el.strip.appendChild(b)
+      })
+
+      SWATCHES.forEach((c) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'swatch'
+        b.dataset.color = c
+        b.style.background = c
+        b.title = c
+        b.setAttribute('aria-label', 'Frame colour ' + c)
+        b.addEventListener('click', () => {
+          state.accent = c
+          render()
+        })
+        el.swatches.appendChild(b)
+      })
+
+      layerBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          state.layer = b.dataset.layer
+          render()
+        })
+      })
+
+      el.kvScale.addEventListener('input', () => {
+        state.layer = 'kv'
+        layout().kv.s = Number(el.kvScale.value) / 100
+        render()
+      })
+      el.logoScale.addEventListener('input', () => {
+        state.layer = 'logo'
+        layout().logo.s = Number(el.logoScale.value) / 100
+        render()
+      })
+      el.bandOpacity.addEventListener('input', () => {
+        state.layer = 'band'
+        state.band = Number(el.bandOpacity.value) / 100
+        render()
+      })
+      el.provOn.addEventListener('change', () => {
+        state.prov = el.provOn.checked
+        render()
+      })
+      el.whiteOn.addEventListener('change', () => {
+        state.white = el.whiteOn.checked
+        render()
+      })
+      $('resetBtn').addEventListener('click', () => {
+        delete state.layouts[state.size]
+        state.band = 1
+        render()
+        note('Back to the template layout for ' + state.size + '.')
+      })
+
+      // ── drag / resize ───────────────────────────────────────────────────
+      let drag = null
+
+      function hitLayer(fx, fy) {
+        const inBox = (b) => fx >= b.x && fx <= b.x + b.w && fy >= b.y && fy <= b.y + b.h
+        if (inBox(boxOf('logo'))) return 'logo'
+        if (inBox(boxOf('kv'))) return 'kv'
+        return 'bg'
+      }
+
+      el.frame.addEventListener('pointerdown', (e) => {
+        const r = el.frame.getBoundingClientRect()
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const handle = e.target.closest && e.target.closest('.handle')
+
+        if (handle && (state.layer === 'kv' || state.layer === 'logo')) {
+          const b = boxOf(state.layer)
+          const cx = b.x + b.w / 2
+          const cy = b.y + b.h / 2
+          drag = {
+            mode: 'scale',
+            key: state.layer,
+            startDist: Math.hypot((fx - cx) * r.width, (fy - cy) * r.height) || 1,
+            startScale: layout()[state.layer].s,
+            cx,
+            cy,
+            r,
+          }
+        } else {
+          const key = hitLayer(fx, fy)
+          if (key !== state.layer) {
+            state.layer = key
+            render()
+          }
+          if (key !== 'kv' && key !== 'logo') return
+          drag = { mode: 'move', key, x: fx, y: fy, r }
+          el.frame.classList.add('dragging')
+        }
+        el.frame.setPointerCapture(e.pointerId)
+        e.preventDefault()
+      })
+
+      el.frame.addEventListener('pointermove', (e) => {
+        if (!drag) return
+        const r = drag.r
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const st = layout()[drag.key]
+        if (drag.mode === 'move') {
+          st.dx = clamp(st.dx + (fx - drag.x), -0.6, 0.6)
+          st.dy = clamp(st.dy + (fy - drag.y), -0.6, 0.6)
+          drag.x = fx
+          drag.y = fy
+        } else {
+          const dist = Math.hypot((fx - drag.cx) * r.width, (fy - drag.cy) * r.height)
+          st.s = clamp((drag.startScale * dist) / drag.startDist, 0.1, 2.2)
+        }
+        render()
+      })
+
+      const endDrag = (e) => {
+        if (!drag) return
+        drag = null
+        el.frame.classList.remove('dragging')
+        if (e && e.pointerId != null && el.frame.hasPointerCapture(e.pointerId)) el.frame.releasePointerCapture(e.pointerId)
+      }
+      el.frame.addEventListener('pointerup', endDrag)
+      el.frame.addEventListener('pointercancel', endDrag)
+
+      el.frame.addEventListener('keydown', (e) => {
+        const step = e.shiftKey ? 0.02 : 0.005
+        const key = state.layer
+        if (key !== 'kv' && key !== 'logo') return
+        const st = layout()[key]
+        const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }
+        if (moves[e.key]) {
+          st.dx = clamp(st.dx + moves[e.key][0], -0.6, 0.6)
+          st.dy = clamp(st.dy + moves[e.key][1], -0.6, 0.6)
+          e.preventDefault()
+          render()
+        } else if (e.key === '+' || e.key === '=' || e.key === '-') {
+          st.s = clamp(st.s + (e.key === '-' ? -0.05 : 0.05), 0.1, 2.2)
+          e.preventDefault()
+          render()
+        }
+      })
+
+      // ── export ──────────────────────────────────────────────────────────
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image()
+          img.crossOrigin = 'anonymous'
+          img.onload = () => resolve(img)
+          img.onerror = reject
+          img.src = src
+        })
+      }
+
+      function drawFit(ctx, img, box, W, H, anchor, cover) {
+        const bw = box.w * W
+        const bh = box.h * H
+        const scale = cover ? Math.max(bw / img.width, bh / img.height) : Math.min(bw / img.width, bh / img.height)
+        const w = img.width * scale
+        const h = img.height * scale
+        const x = box.x * W + (bw - w) / 2
+        let y = box.y * H + (bh - h) / 2
+        if (anchor === 'top') y = box.y * H
+        if (anchor === 'bottom') y = box.y * H + (bh - h)
+        ctx.drawImage(img, x, y, w, h)
+      }
+
+      function rgba(hex, a) {
+        const v = hex.replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      $('exportBtn').addEventListener('click', async () => {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        note('Rendering ' + s.w + ' × ' + s.h + '…')
+        try {
+          const base = SB + '/assets/' + g.id
+          const [bg, kv, logo] = await Promise.all([
+            loadImage(base + '/bg.jpg'),
+            loadImage(base + '/kv.png'),
+            loadImage(base + (state.white ? '/logoWhite.png' : '/logoColor.png')),
+          ])
+          const c = document.createElement('canvas')
+          c.width = s.w
+          c.height = s.h
+          const ctx = c.getContext('2d')
+          const bgBox = { x: (1 - BG_SCALE) / 2, y: (1 - BG_SCALE) / 2, w: BG_SCALE, h: BG_SCALE }
+          drawFit(ctx, bg, bgBox, s.w, s.h, 'center', true)
+
+          // Light band — the same stops the live frame paints.
+          const gd = GRAD[s.key] || GRAD.default
+          if (state.band > 0) {
+            const b = boxOf('band')
+            const x0 = b.x * s.w
+            const y0 = b.y * s.h
+            const bw = b.w * s.w
+            const bh = b.h * s.h
+            const grad = gd.dir === 'right' ? ctx.createLinearGradient(x0, 0, x0 + bw, 0) : ctx.createLinearGradient(0, y0, 0, y0 + bh)
+            const semA = 0.6 * state.band
+            const blurA = state.band
+            const lo = Math.min(gd.s1, gd.s2) / 100
+            const hi = Math.max(gd.s1, gd.s2) / 100
+            const bot = Math.max(hi, gd.bottom / 100)
+            const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+            for (let i = 0; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(lo * t, rgba(accent(), semA * smooth(t)))
+            }
+            grad.addColorStop(hi, rgba(accent(), blurA))
+            grad.addColorStop(bot, rgba(accent(), blurA))
+            for (let i = 1; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(Math.min(1, bot + (1 - bot) * t), rgba(accent(), blurA * smooth(1 - t)))
+            }
+            ctx.fillStyle = grad
+            ctx.fillRect(x0, y0, bw, bh)
+          }
+
+          // The two bottom glows: colour ellipse, then the white overlay bloom.
+          const ellipse = (cy, rw, rh, inner, outer, blend, alpha) => {
+            ctx.save()
+            if (blend) ctx.globalCompositeOperation = blend
+            ctx.globalAlpha = alpha == null ? 1 : alpha
+            ctx.translate(s.w / 2, cy)
+            ctx.scale(rw, rh)
+            const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+            rg.addColorStop(0, inner)
+            rg.addColorStop(0.72, outer)
+            ctx.fillStyle = rg
+            ctx.fillRect(-1, -1, 2, 2)
+            ctx.restore()
+          }
+          ellipse(s.h * 0.88, s.w * 0.45, s.h * 0.17, rgba(accent(), 0.85 * state.band), rgba(accent(), 0))
+          ellipse(s.h * 0.985, s.w * 0.4055, s.h * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay', state.band)
+
+          drawFit(ctx, kv, boxOf('kv'), s.w, s.h, 'center', false)
+          drawFit(ctx, logo, boxOf('logo'), s.w, s.h, 'center', false)
+
+          // Provider badge — the template's bottom tab (radius 8/8/0/0 @244).
+          if (state.prov) {
+            const fs = Math.round(s.w * 0.032)
+            ctx.font = '600 ' + fs + 'px system-ui, sans-serif'
+            const label = 'PRAGMATIC'
+            const tw = ctx.measureText(label).width
+            const padX = fs * 1.15
+            const bw = tw + padX * 2
+            const bh = fs * 2
+            const bx = (s.w - bw) / 2
+            const by = s.h - bh - s.h * 0.003
+            const rr = (8 / 244) * s.w
+            ctx.fillStyle = accent()
+            ctx.beginPath()
+            ctx.moveTo(bx, by + bh)
+            ctx.lineTo(bx, by + rr)
+            ctx.arcTo(bx, by, bx + rr, by, rr)
+            ctx.lineTo(bx + bw - rr, by)
+            ctx.arcTo(bx + bw, by, bx + bw, by + rr, rr)
+            ctx.lineTo(bx + bw, by + bh)
+            ctx.closePath()
+            ctx.fill()
+            ctx.fillStyle = '#ffffff'
+            ctx.textBaseline = 'middle'
+            ctx.textAlign = 'center'
+            ctx.fillText(label, s.w / 2, by + bh / 2 + 1)
+            ctx.textAlign = 'left'
+          }
+
+          // Frame: 2.5/244 stroke on a 16/244 corner radius, outside the art.
+          const lw = (2.5 / 244) * s.w
+          const rad = (16 / 244) * s.w
+          ctx.strokeStyle = accent()
+          ctx.lineWidth = lw
+          ctx.beginPath()
+          if (ctx.roundRect) ctx.roundRect(lw / 2, lw / 2, s.w - lw, s.h - lw, rad)
+          else ctx.rect(lw / 2, lw / 2, s.w - lw, s.h - lw)
+          ctx.stroke()
+
+          const blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('no blob'))), 'image/png'))
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = g.slug + '-' + s.key.replace(':', 'x') + '.png'
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          setTimeout(() => URL.revokeObjectURL(url), 4000)
+          note('Exported ' + g.name + ' at ' + s.w + ' × ' + s.h + ' — same draw code as the app.')
+        } catch (err) {
+          note('Couldn’t render here (the asset host blocked a cross-origin read). Export works inside the editor.')
+        }
+      })
+
+      /** Paint a static tile from the same template: layers by data-id, the
+       *  cut by data-size, the frame colour by data-accent. */
+      function paintComposite(tile) {
+        const id = tile.dataset.id
+        const sizeKey = tile.dataset.size || '3:4'
+        const hex = tile.dataset.accent || '#FF4FA3'
+        const sz = SIZES.find((x) => x.key === sizeKey) || SIZES[0]
+        const t = TEMPLATE[sizeKey] || TEMPLATE['3:4']
+        const base = SB + '/assets/' + id
+        const q = (c) => tile.querySelector(c)
+        const bg = q('.lay-bg')
+        const kv = q('.lay-kv')
+        const logo = q('.lay-logo')
+        tile.style.setProperty('--accent', hex)
+        tile.style.setProperty('--bg-scale', String(BG_SCALE))
+        const put = () => {
+          const ar = sz.w / sz.h
+          const fit = (img, k) => {
+            const nw = img.naturalWidth || 1000
+            const nh = img.naturalHeight || 1000
+            const H = 1 / ar
+            const f = Math.min(1 / nw, H / nh)
+            return { w: nw * f * k, h: (nh * f) / H * k }
+          }
+          const anchor = (al, dx, dy, b) => {
+            const cx = (al[1] === 'l' ? 0.27 : al[1] === 'r' ? 0.73 : 0.5) + dx
+            const cy = (al[0] === 't' ? 0.32 : al[0] === 'b' ? 0.68 : 0.5) + dy
+            return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
+          }
+          place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)), 'center center')
+          place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)), 'center center')
+          paintChrome({ band: q('.t-band'), glow: q('.t-glow'), bloom: q('.t-bloom') }, sizeKey, hex, 1)
+          applyMetrics()
+        }
+        kv.addEventListener('load', put)
+        logo.addEventListener('load', put)
+        bg.src = base + '/bg.jpg'
+        kv.src = base + '/kv.png'
+        logo.src = base + '/logoWhite.png'
+        put()
+      }
+      document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
+
+      render()
+      requestAnimationFrame(() => {
+        fitFrame()
+        applyMetrics()
+      })
+      setTimeout(() => {
+        fitFrame()
+        applyMetrics()
+      }, 400)
+      note('Drag the key visual, resize it, change the cut — the template layout stays put.')
+      }
+    })()
+    </script>
+    <script>
+      // Reveal-on-scroll; degrades to visible without IntersectionObserver.
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const items = document.querySelectorAll('.reveal')
+      if (reduced || !('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('in'))
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add('in')
+                io.unobserve(e.target)
+              }
+            })
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.1 },
+        )
+        items.forEach((el) => io.observe(el))
+      }
+
+      // Anatomy: auto-explode when it scrolls into view; click or Enter toggles.
+      const anatomy = document.querySelector('.anatomy')
+      const stage = document.getElementById('anatomyStage')
+      if (anatomy && stage) {
+        const toggle = () => anatomy.classList.toggle('on')
+        stage.addEventListener('click', toggle)
+        stage.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            toggle()
+          }
+        })
+        if ('IntersectionObserver' in window) {
+          const ai = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  setTimeout(() => anatomy.classList.add('on'), 450)
+                  ai.disconnect()
+                }
+              })
+            },
+            { threshold: 0.35 },
+          )
+          ai.observe(anatomy)
+        } else {
+          anatomy.classList.add('on')
+        }
+      }
+
+      document.getElementById('year').textContent = String(new Date().getFullYear())
+    </script>
+  </body>
+</html>

@@ -82,6 +82,12 @@ the app's own model — each layer's contain-fit scaled by `k` (`logoScale × 2.
 for logos) and centred on the 9-point anchor — driven by the template's real
 per-size layouts.
 
+[`public/landing-framer.html`](public/landing-framer.html) is a complete
+side-landing in the thumbs.store Framer design system: hero with floating real
+tiles, marquee strip, problem grid, how-it-works with the live four-cut row, a
+3D exploded "anatomy" of the thumbnail layers (click to toggle), the live
+editor, the shipped-output card and CTA — all self-contained, no build step.
+
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and
 [`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
