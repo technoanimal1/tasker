@@ -73,6 +73,14 @@ A standalone marketing page lives at [`public/landing.html`](public/landing.html
 at `/landing.html` in dev and in the deployed build; the CTAs point back at `/`
 (the app).
 
+It shows real work rather than mock-ups: the game shelf loads seven baked WebP
+previews from the public `previews` bucket, and the editor canvas and the frame-size
+row composite the raw layers (`bg.jpg` / `kv.png` / `logoWhite.png`) from the public
+`assets` bucket, laid out the way `defaultLayout()` does — portrait stacks the key
+visual over the logotype, landscape splits KV-left / logo-right. Each frame's stroke
+and light band use that game's stored `accent_color`. Re-baking a preview changes its
+`preview_sig`, which is in the URL, so swap the `?v=` string when you refresh one.
+
 ## Scripts
 
 - `npm run dev` — dev server
