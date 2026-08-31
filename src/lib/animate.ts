@@ -169,6 +169,11 @@ export interface Particle {
   rot: number // radians
   opacity: number // 0..1
   hue: number // degrees, for embers/confetti
+  /** Signed face factor for a 3D coin: cos(spin). |flip| squashes the disc,
+   *  its sign says which face you're looking at. */
+  flip: number
+  /** Secondary tumble axis, so a coin isn't a flat spinning disc. */
+  tilt: number
 }
 
 /** Particles that read best drawn additively (embers, sparkles). */
@@ -196,9 +201,17 @@ const edgeFade = (t: number) => Math.max(0, Math.min(1, t / 0.1, (1 - t) / 0.1))
  */
 export function fxParticles(layer: FxLayer, phase: number): Particle[] {
   if (!layer || layer.fx === 'none') return []
-  const k = Math.max(0, Math.min(2, layer.intensity))
-  const n = Math.max(0, Math.min(200, Math.round(layer.count)))
+  const k = Math.max(0, Math.min(2, layer.intensity ?? 1))
+  const n = Math.max(0, Math.min(300, Math.round(layer.count ?? 26)))
   const cycles = Math.max(1, Math.round(layer.cycles || 1))
+  const sizeMul = Math.max(0.1, layer.size ?? 1)
+  const speed = Math.max(0.15, layer.speed ?? 1)
+  const drift = Math.max(0, layer.drift ?? 1)
+  const tumble = Math.max(0, layer.tumble ?? 1)
+  // Faster = a longer path covered in the same period. Start further outside
+  // the frame and end further past it, which raises the velocity while the
+  // period (and therefore the seamless loop) is untouched.
+  const pad = 0.2 * speed
   const out: Particle[] = []
   for (let i = 0; i < n; i++) {
     const r1 = rnd(i, 1)
@@ -208,58 +221,69 @@ export function fxParticles(layer: FxLayer, phase: number): Particle[] {
     const t = frac(phase * cycles + r1) // this particle's own 0..1 progress
     switch (layer.fx) {
       case 'coins': {
-        // tossed coins falling and tumbling, with a little lateral sway
-        const sway = 0.04 * k * Math.sin((t * 4 + r2 * 6.283) * Math.PI)
+        // 3D coin shower: falls, sways, and tumbles about two axes
+        const sway = 0.045 * drift * k * Math.sin((t * 4 + r2 * 6.283) * Math.PI)
+        const spin = r4 * 6.283 + t * (6 + 10 * r3) * tumble
         out.push({
           kind: 'coin',
           x: 0.04 + r2 * 0.92 + sway,
-          y: -0.15 + t * 1.3,
-          size: 0.05 + 0.05 * r3,
-          rot: r4 * 6.283 + t * (6 + 10 * r3),
+          y: -pad + t * (1 + 2 * pad),
+          size: (0.05 + 0.05 * r3) * sizeMul,
+          rot: spin * 0.18, // slow in-plane roll, separate from the face flip
           opacity: edgeFade(t),
           hue: 45,
+          flip: Math.cos(spin),
+          tilt: Math.cos(spin * 0.37 + r2 * 6.283),
         })
         break
       }
       case 'fire': {
-        // embers rising from the lower edge, shrinking and cooling as they go
-        const drift = 0.07 * k * Math.sin((t * 3 + r2 * 6.283) * Math.PI)
+        // embers rising, shrinking and cooling as they go
+        const swayF = 0.07 * drift * k * Math.sin((t * 3 + r2 * 6.283) * Math.PI)
         out.push({
           kind: 'ember',
-          x: 0.06 + r2 * 0.88 + drift,
-          y: 1.06 - t * (0.55 + 0.5 * r3),
-          size: (0.012 + 0.022 * r3) * (1 - 0.55 * t),
+          x: 0.06 + r2 * 0.88 + swayF,
+          y: 1.06 - t * (0.55 + 0.5 * r3) * speed,
+          size: (0.012 + 0.022 * r3) * sizeMul * (1 - 0.55 * t),
           rot: 0,
           opacity: edgeFade(t) * (1 - 0.65 * t) * Math.min(1, k),
-          hue: 18 + 34 * r4, // deep orange → yellow
+          hue: 18 + 34 * r4,
+          flip: 1,
+          tilt: 0,
         })
         break
       }
       case 'sparkle': {
-        // twinkling glints at fixed spots, each on its own blink cycle
-        const tw = 0.5 - 0.5 * Math.cos(frac(phase * cycles * (1 + Math.floor(r3 * 3)) + r1) * 6.283)
+        // twinkling glints; the blink frequency stays a whole number of cycles
+        const f = 1 + Math.floor(r3 * 3)
+        const tw = 0.5 - 0.5 * Math.cos(frac(phase * cycles * f + r1) * 6.283)
         out.push({
           kind: 'spark',
           x: 0.05 + r2 * 0.9,
           y: 0.05 + r3 * 0.9,
-          size: (0.018 + 0.03 * r4) * (0.5 + 0.5 * tw),
+          size: (0.018 + 0.03 * r4) * sizeMul * (0.5 + 0.5 * tw),
           rot: r4 * Math.PI,
           opacity: tw * Math.min(1, k),
           hue: 48,
+          flip: 1,
+          tilt: 0,
         })
         break
       }
       default: {
         // confetti: tumbling coloured chips
-        const sway = 0.06 * k * Math.sin((t * 5 + r2 * 6.283) * Math.PI)
+        const swayC = 0.065 * drift * k * Math.sin((t * 5 + r2 * 6.283) * Math.PI)
+        const spinC = r4 * 6.283 + t * (8 + 12 * r3) * tumble
         out.push({
           kind: 'confetti',
-          x: 0.04 + r2 * 0.92 + sway,
-          y: -0.15 + t * 1.3,
-          size: 0.018 + 0.024 * r3,
-          rot: r4 * 6.283 + t * (8 + 12 * r3),
+          x: 0.04 + r2 * 0.92 + swayC,
+          y: -pad + t * (1 + 2 * pad),
+          size: (0.018 + 0.024 * r3) * sizeMul,
+          rot: spinC,
           opacity: edgeFade(t),
           hue: Math.floor(r4 * 360),
+          flip: Math.cos(spinC * 0.7),
+          tilt: 0,
         })
         break
       }

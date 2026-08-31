@@ -9,6 +9,7 @@ import {
   TEXT_LOGO_PRESET,
   FX_SLOTS,
   FX_KINDS,
+  fxControls,
   FX_OFF,
   FX_SLOT_LABEL,
   MO_KINDS,
@@ -1578,15 +1579,36 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                             </button>
                           ))}
                         </div>
-                        {fxL.fx !== 'none' && (
-                          <>
-                            <Slider label="Amount" min={0} max={200} step={1} value={fxL.count} onChange={(v) => setFx({ count: v })} fmt={(v) => `${Math.round(v)}`} />
-                            <div className="grid grid-cols-2 gap-2">
-                              <Slider label="Strength" min={0} max={2} step={0.05} value={fxL.intensity} onChange={(v) => setFx({ intensity: v })} {...pct} />
-                              <Slider label="Rate" min={1} max={4} step={1} value={fxL.cycles} onChange={(v) => setFx({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
-                            </div>
-                          </>
-                        )}
+                        {fxL.fx !== 'none' && (() => {
+                          const c = fxControls(fxL.fx)
+                          return (
+                            <>
+                              <Slider label="Amount" min={0} max={300} step={1} value={fxL.count} onChange={(v) => setFx({ count: v })} fmt={(v) => `${Math.round(v)}`} />
+                              <div className="grid grid-cols-2 gap-2">
+                                <Slider label="Size" min={0.2} max={4} step={0.05} value={fxL.size ?? 1} onChange={(v) => setFx({ size: v })} {...pct} />
+                                <Slider label="Opacity" min={0} max={2} step={0.05} value={fxL.intensity} onChange={(v) => setFx({ intensity: v })} {...pct} />
+                              </div>
+                              {c.speed && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Slider
+                                    label={fxL.fx === 'fire' ? 'Rise' : 'Fall'}
+                                    min={0.2}
+                                    max={3}
+                                    step={0.05}
+                                    value={fxL.speed ?? 1}
+                                    onChange={(v) => setFx({ speed: v })}
+                                    {...pct}
+                                  />
+                                  {c.drift && <Slider label="Drift" min={0} max={3} step={0.05} value={fxL.drift ?? 1} onChange={(v) => setFx({ drift: v })} {...pct} />}
+                                </div>
+                              )}
+                              <div className="grid grid-cols-2 gap-2">
+                                {c.tumble && <Slider label="Tumble" min={0} max={3} step={0.05} value={fxL.tumble ?? 1} onChange={(v) => setFx({ tumble: v })} {...pct} />}
+                                <Slider label="Cycle" min={1} max={4} step={1} value={fxL.cycles} onChange={(v) => setFx({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
                     )
                   })}

@@ -88,17 +88,42 @@ function drawParticle(ctx: CanvasRenderingContext2D, p: Particle, unit: number, 
   ctx.translate(cx, cy)
   switch (p.kind) {
     case 'coin': {
-      // width squashed by |cos| to read as a tumbling coin
-      ctx.scale(Math.max(0.12, Math.abs(Math.cos(p.rot))), 1)
-      const g = ctx.createRadialGradient(-d * 0.15, -d * 0.2, d * 0.05, 0, 0, d / 2)
-      g.addColorStop(0, '#fff3b0')
-      g.addColorStop(0.38, '#ffd54a')
-      g.addColorStop(0.72, '#e8a911')
-      g.addColorStop(1, '#c8891b')
+      // 3D coin: the disc squashes by |flip| as it turns edge-on, the face
+      // swaps on the reverse, and a bright rim reads as the milled edge.
+      const f = Math.max(0.06, Math.abs(p.flip))
+      const edgeOn = 1 - Math.abs(p.flip)
+      const front = p.flip >= 0
+      ctx.rotate(p.rot)
+      ctx.scale(f, 1 - 0.12 * Math.abs(p.tilt))
+      const g = ctx.createRadialGradient(
+        front ? -d * 0.16 : d * 0.16,
+        front ? -d * 0.22 : d * 0.22,
+        d * 0.05,
+        0,
+        0,
+        d / 2,
+      )
+      if (front) {
+        g.addColorStop(0, '#fff6c8')
+        g.addColorStop(0.4, '#ffd54a')
+        g.addColorStop(0.74, '#e8a911')
+        g.addColorStop(1, '#b97d15')
+      } else {
+        g.addColorStop(0, '#f2d485')
+        g.addColorStop(0.42, '#e0b431')
+        g.addColorStop(0.76, '#bf8b12')
+        g.addColorStop(1, '#8f6210')
+      }
       ctx.fillStyle = g
       ctx.beginPath()
       ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
       ctx.fill()
+      // milled edge, brighter the more edge-on the coin is
+      ctx.lineWidth = (d * 0.07) / f // undo the squash so the rim keeps its width
+      ctx.strokeStyle = `rgba(255,244,190,${0.35 + 0.5 * edgeOn})`
+      ctx.beginPath()
+      ctx.arc(0, 0, d / 2 - d * 0.035, 0, Math.PI * 2)
+      ctx.stroke()
       break
     }
     case 'ember': {

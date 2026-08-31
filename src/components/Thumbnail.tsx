@@ -450,15 +450,24 @@ function particleStyle(p: Particle, unit: number, W: number, H: number): CSSProp
     opacity: p.opacity,
   }
   switch (p.kind) {
-    case 'coin':
+    case 'coin': {
+      // A 3D-ish coin: the disc squashes by |flip| as it turns edge-on, the
+      // face gradient swaps when you see the reverse, and a bright inset rim
+      // reads as the coin's milled edge catching the light.
+      const f = Math.abs(p.flip)
+      const edgeOn = 1 - f // 1 when fully edge-on
+      const front = p.flip >= 0
       return {
         ...base,
         borderRadius: '50%',
-        // squashing the width by |cos| reads as a tumbling coin
-        transform: `scaleX(${Math.max(0.12, Math.abs(Math.cos(p.rot)))})`,
-        background: 'radial-gradient(circle at 35% 30%, #fff3b0 0%, #ffd54a 38%, #e8a911 72%, #c8891b 100%)',
-        boxShadow: `0 0 ${d * 0.35}px rgba(255,196,60,0.65)`,
+        transform: `rotate(${p.rot}rad) scaleX(${Math.max(0.06, f)}) scaleY(${1 - 0.12 * Math.abs(p.tilt)})`,
+        background: front
+          ? 'radial-gradient(circle at 34% 28%, #fff6c8 0%, #ffd54a 40%, #e8a911 74%, #b97d15 100%)'
+          : 'radial-gradient(circle at 66% 72%, #f2d485 0%, #e0b431 42%, #bf8b12 76%, #8f6210 100%)',
+        // inset ring = the coin's thickness; brightens as it turns edge-on
+        boxShadow: `inset 0 0 0 ${d * 0.07}px rgba(255,244,190,${0.35 + 0.5 * edgeOn}), 0 0 ${d * (0.3 + 0.3 * edgeOn)}px rgba(255,196,60,${0.45 + 0.35 * edgeOn})`,
       }
+    }
     case 'ember':
       return {
         ...base,

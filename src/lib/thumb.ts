@@ -286,12 +286,33 @@ export const FX_KINDS: FxKind[] = ['none', 'coins', 'fire', 'sparkle', 'confetti
 
 export interface FxLayer {
   fx: FxKind
-  intensity: number // 0..2
-  count: number // particle density
+  count: number // amount of particles
+  intensity: number // 0..2 — opacity / strength
+  size: number // size multiplier
+  /** Travel distance per cycle: more distance in the same period = faster. */
+  speed: number
+  drift: number // lateral sway amount
+  tumble: number // rotation rate
   /** Whole loops per animation loop. Integer so the loop stays seamless. */
   cycles: number
 }
-export const FX_OFF: FxLayer = { fx: 'none', intensity: 1, count: 26, cycles: 1 }
+export const FX_OFF: FxLayer = {
+  fx: 'none',
+  count: 26,
+  intensity: 1,
+  size: 1,
+  speed: 1,
+  drift: 1,
+  tumble: 1,
+  cycles: 1,
+}
+
+/** Which controls actually do something for a given effect. */
+export function fxControls(fx: FxKind): { speed: boolean; drift: boolean; tumble: boolean } {
+  if (fx === 'sparkle') return { speed: false, drift: false, tumble: false }
+  if (fx === 'fire') return { speed: true, drift: true, tumble: false }
+  return { speed: true, drift: true, tumble: true }
+}
 
 /** The three depths an effect can sit at. */
 export interface AnimFx {
@@ -501,7 +522,7 @@ export function withDefaults(p: Partial<TemplateParams> | null | undefined): Tem
   const legacy = p?.animPreset as string | undefined
   const migrated: Partial<AnimFx> =
     !p?.animFx && legacy && FX_KINDS.includes(legacy as FxKind) && legacy !== 'none'
-      ? { logo: { fx: legacy as FxKind, intensity: p?.animIntensity ?? 1, count: p?.animCount ?? 26, cycles: 1 } }
+      ? { logo: { ...FX_OFF, fx: legacy as FxKind, intensity: p?.animIntensity ?? 1, count: p?.animCount ?? 26 } }
       : {}
   const srcFx = { ...(p?.animFx ?? {}), ...migrated } as Partial<AnimFx>
   const animFx: AnimFx = {
