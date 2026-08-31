@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0c0f0a">
+<title>10LIMES | White-Label Original Games for Online Casinos</title>
+<meta name="description" content="10LIMES builds white-label original casino games. Fully branded, provably fair instant games that integrate in days and ship automatically.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f0a;
+    --surface: #141810;
+    --surface-2: #1c2216;
+    --border: #262e1e;
+    --fg: #f2f5ec;
+    --muted: #9aa68c;
+    --muted-faint: #6d785f;
+    --lime: #c6f52b;
+    --lime-dark: #9cc71b;
+    --lime-ink: #101403;
+    --radius: 12px;
+    --max-w: 1200px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  .wrap { width: min(100% - 2rem, var(--max-w)); margin-inline: auto; }
+
+  /* ---------- header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 0; }
+  .logo { display: flex; align-items: center; gap: 0.55rem; font-weight: 800; font-size: 1.15rem; letter-spacing: 0.02em; }
+  .logo .mark {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: conic-gradient(var(--lime) 0 75%, var(--lime-dark) 75% 100%);
+    position: relative; flex: none;
+  }
+  .logo .mark::after {
+    content: ""; position: absolute; inset: 7px; border-radius: 50%;
+    background: var(--bg);
+  }
+  .logo em { font-style: normal; color: var(--lime); }
+  nav.main { display: flex; gap: 0.35rem; }
+  nav.main a {
+    padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.9rem; font-weight: 500; color: var(--muted);
+  }
+  nav.main a:hover, nav.main a.active { background: var(--surface-2); color: var(--fg); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+    border-radius: 999px; padding: 0.55rem 1.1rem;
+    font-size: 0.92rem; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--lime); color: var(--lime-ink); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-ghost { border-color: var(--border); color: var(--fg); background: transparent; }
+  .btn-ghost:hover { background: var(--surface); }
+  @media (max-width: 720px) { nav.main { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 4.5rem 0 2.5rem; }
+  .hero-grid { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; align-items: flex-start; }
+  h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; max-width: 40rem; }
+  h1 .dim { color: var(--muted); }
+  .hero-copy { max-width: 26rem; color: var(--muted); font-size: 1.02rem; }
+  .hero-actions { display: flex; gap: 0.6rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  /* ---------- demo panel ---------- */
+  .demo-shell {
+    margin-top: 2.5rem;
+    background: linear-gradient(135deg, #232b18, #161c10);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 6px);
+    padding: clamp(0.6rem, 2vw, 1.25rem);
+  }
+  .browser {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+  .browser-bar {
+    display: flex; align-items: center; justify-content: center; position: relative;
+    height: 40px; border-bottom: 1px solid var(--border); padding: 0 0.8rem;
+  }
+  .browser-dots { position: absolute; left: 0.9rem; display: flex; gap: 6px; }
+  .browser-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+  #demo-title { font-size: 0.8rem; color: var(--muted); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .browser-frame { position: relative; aspect-ratio: 16 / 9; background: #0a0c07; }
+  @media (max-width: 720px) { .browser-frame { aspect-ratio: 3 / 4; } }
+  .browser-frame iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #0a0c07;
+  }
+  .frame-hint {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    color: var(--muted-faint); font-size: 0.85rem; pointer-events: none;
+  }
+
+  /* ---------- thumbnails ---------- */
+  .thumbs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2.8rem 0 1rem; flex-wrap: wrap; }
+  .thumbs-head p { margin: 0; color: var(--muted); }
+  .thumbs-head small { color: var(--muted-faint); }
+  .thumbs {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(8.5rem, 1fr);
+    gap: 0.9rem; overflow-x: auto; padding-bottom: 0.5rem;
+    scroll-snap-type: x proximity; scrollbar-width: none;
+  }
+  .thumbs::-webkit-scrollbar { display: none; }
+  @media (min-width: 1024px) { .thumbs { grid-auto-columns: calc((100% - 4.5rem) / 6); } }
+  .thumb {
+    scroll-snap-align: start;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; padding: 0; background: var(--surface); cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .thumb:hover { transform: translateY(-3px); }
+  .thumb.active { border-color: var(--lime); box-shadow: 0 0 0 1px var(--lime); }
+  .thumb img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+
+  /* ---------- sections ---------- */
+  section { padding: 3.5rem 0; border-top: 1px solid var(--border); }
+  .section-head { text-align: center; margin-bottom: 2.2rem; }
+  h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; }
+  h2 .dim { color: var(--muted); }
+  .section-head .sub { margin: 0.6rem 0 0; color: var(--muted); }
+
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+  .card h3 { margin: 0 0 0.45rem; font-size: 1rem; font-weight: 600; }
+  .card h3 .num { color: var(--lime); margin-right: 0.4rem; font-weight: 800; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  /* ---------- cta / footer ---------- */
+  .cta { text-align: center; }
+  .cta .btn { margin-top: 1.5rem; }
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 0; }
+  .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.85rem; }
+  .footer-row nav { display: flex; gap: 1.2rem; }
+  .footer-row nav a:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 0.22em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a class="logo" href="#" aria-label="10LIMES Home"><span class="mark" aria-hidden="true"></span>10<em>LIMES</em></a>
+    <nav class="main" aria-label="Main">
+      <a href="#games" class="active">Games</a>
+      <a href="#features">Features</a>
+      <a href="#integrate">Integrate</a>
+    </nav>
+    <div style="display:flex; gap:0.6rem;">
+      <a class="btn btn-ghost" href="#integrate">Docs</a>
+      <a class="btn btn-primary" href="#contact">Get Started</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero" id="games">
+    <div class="hero-grid">
+      <h1>Instant games that become yours.<br>
+        <span class="dim">Provably fair. Fully branded. Live in days.</span></h1>
+      <p class="hero-copy">Leading online casinos choose 10LIMES for white-label originals that match
+        your brand, with new titles shipping automatically.</p>
+    </div>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#contact">Get Started</a>
+      <a class="btn btn-ghost" href="#features">Why 10LIMES</a>
+    </div>
+
+    <div class="demo-shell">
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div id="demo-title">Loading demo…</div>
+        </div>
+        <div class="browser-frame">
+          <div class="frame-hint" id="frame-hint">Loading live demo…</div>
+          <iframe id="demo-frame" title="Game demo" loading="eager"
+                  allow="autoplay; encrypted-media; fullscreen"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="thumbs-head">
+      <p>Play the originals live — click any title to load its demo.</p>
+      <small>Placeholder artwork — final thumbnails coming.</small>
+    </div>
+    <div class="thumbs" id="thumbs" role="list" aria-label="10LIMES game demos"></div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Everything ships ready.<br><span class="dim">Built for operators from day one.</span></h2>
+      </div>
+      <div class="cards">
+        <div class="card"><h3>White-Label Theming</h3><p>Colours, typography, and backgrounds. Every game ships looking like it was built in-house.</p></div>
+        <div class="card"><h3>Configurable RTP</h3><p>Set house edge per game. Fine-tune risk and revenue to match your market.</p></div>
+        <div class="card"><h3>Provably Fair</h3><p>Every round cryptographically verifiable. Players can check any outcome, any time.</p></div>
+        <div class="card"><h3>Autobet</h3><p>Built-in autobet with stop conditions and win/loss limits, ready out of the box.</p></div>
+        <div class="card"><h3>Multi-Language</h3><p>Localised out of the box for every title. Ship games in your players' language from day one.</p></div>
+        <div class="card"><h3>Continuous Delivery</h3><p>Every new title ships to your integration automatically and invisibly. No rework, no extra setup.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="integrate">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Integrate once. Ship every title.<br><span class="dim">Aggregator or direct API. Live in days.</span></h2>
+      </div>
+      <div class="cards">
+        <div class="card"><h3><span class="num">1</span>Connect</h3><p>Plug into your aggregator or our direct API. Most operators are live within a week.</p></div>
+        <div class="card"><h3><span class="num">2</span>Configure</h3><p>Set RTP, bet limits, and exposure per game. Apply your brand so every title feels native at launch.</p></div>
+        <div class="card"><h3><span class="num">3</span>Go Live</h3><p>White-label by default. No 10LIMES branding anywhere. New games ship to you automatically.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="cta">
+    <div class="wrap">
+      <h2>Instant games that never feel generic.</h2>
+      <a class="btn btn-primary" href="mailto:hello@10limes.com">Get Started</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <p>&copy; 2026 10LIMES</p>
+    <nav aria-label="Footer">
+      <a href="#games">Games</a>
+      <a href="#features">Features</a>
+      <a href="#integrate">Integrate</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // ------------------------------------------------------------------
+  // Demo games. Each entry: display name, thumbnail file, and demo URL.
+  // Demo URLs point at https://games.duel.aviator.studio/ — adjust the
+  // `url` values here if a game lives at a different path on that host.
+  // Thumbnails are placeholders in ./thumbs/ — replace the SVG files
+  // (same filenames) or point `thumb` at new images to swap them later.
+  // ------------------------------------------------------------------
+  const BASE = 'https://games.duel.aviator.studio/';
+  const GAMES = [
+    { name: 'Dice',      slug: 'dice',      url: BASE + 'dice',      thumb: 'thumbs/dice.svg' },
+    { name: 'Crash',     slug: 'crash',     url: BASE + 'crash',     thumb: 'thumbs/crash.svg' },
+    { name: 'Mines',     slug: 'mines',     url: BASE + 'mines',     thumb: 'thumbs/mines.svg' },
+    { name: 'Plinko',    slug: 'plinko',    url: BASE + 'plinko',    thumb: 'thumbs/plinko.svg' },
+    { name: 'Limbo',     slug: 'limbo',     url: BASE + 'limbo',     thumb: 'thumbs/limbo.svg' },
+    { name: 'Keno',      slug: 'keno',      url: BASE + 'keno',      thumb: 'thumbs/keno.svg' },
+    { name: 'Wheel',     slug: 'wheel',     url: BASE + 'wheel',     thumb: 'thumbs/wheel.svg' },
+    { name: 'Hilo',      slug: 'hilo',      url: BASE + 'hilo',      thumb: 'thumbs/hilo.svg' },
+    { name: 'Towers',    slug: 'towers',    url: BASE + 'towers',    thumb: 'thumbs/towers.svg' },
+    { name: 'Coin Flip', slug: 'coinflip',  url: BASE + 'coinflip',  thumb: 'thumbs/coinflip.svg' },
+    { name: 'Blackjack', slug: 'blackjack', url: BASE + 'blackjack', thumb: 'thumbs/blackjack.svg' },
+    { name: 'Roulette',  slug: 'roulette',  url: BASE + 'roulette',  thumb: 'thumbs/roulette.svg' },
+  ];
+
+  const frame = document.getElementById('demo-frame');
+  const title = document.getElementById('demo-title');
+  const hint = document.getElementById('frame-hint');
+  const strip = document.getElementById('thumbs');
+
+  function loadGame(game, button) {
+    hint.style.display = 'grid';
+    hint.textContent = 'Loading ' + game.name + '…';
+    title.textContent = game.name + ' — 10LIMES Originals demo';
+    frame.title = game.name + ' demo';
+    frame.src = game.url;
+    strip.querySelectorAll('.thumb').forEach(b => b.classList.remove('active'));
+    if (button) button.classList.add('active');
+  }
+
+  frame.addEventListener('load', () => { if (frame.src) hint.style.display = 'none'; });
+
+  GAMES.forEach((game, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'thumb';
+    btn.setAttribute('role', 'listitem');
+    btn.setAttribute('aria-label', 'Play ' + game.name + ' demo');
+    const img = document.createElement('img');
+    img.src = game.thumb;
+    img.alt = game.name + ' thumbnail';
+    img.loading = 'lazy';
+    img.width = 300; img.height = 400;
+    btn.appendChild(img);
+    btn.addEventListener('click', () => {
+      loadGame(game, btn);
+      document.querySelector('.demo-shell').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    strip.appendChild(btn);
+    if (i === 0) loadGame(game, btn);
+  });
+</script>
+</body>
+</html>
