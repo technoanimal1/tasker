@@ -25,7 +25,7 @@ import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
-import { KvControls, LogoControls } from './LayoutControls'
+import { KvControls, LogoControls, Slider, pct } from './LayoutControls'
 import { LazyMount } from './LazyMount'
 import { GridTile } from './GridTile'
 import { LoadingScreen, Spinner } from './Spinner'
@@ -1271,7 +1271,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <Slider label="Top fade" min={0} max={100} value={g.gradStop1} onChange={(v) => setGrad('gradStop1', v)} fmt={(v) => `${Math.round(v)}%`} />
                 <Slider label="Colour stop" min={0} max={100} value={g.gradStop2} onChange={(v) => setGrad('gradStop2', v)} fmt={(v) => `${Math.round(v)}%`} />
                 <Slider label="Bottom fade" min={0} max={100} value={g.gradBottom} onChange={(v) => setGrad('gradBottom', v)} fmt={(v) => `${Math.round(v)}%`} />
-                <Slider label="Opacity" min={0} max={1} step={0.02} value={g.gradOpacity} onChange={(v) => setGrad('gradOpacity', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
+                <Slider label="Opacity" min={0} max={1} step={0.02} value={g.gradOpacity} onChange={(v) => setGrad('gradOpacity', v)} {...pct} />
                 <Slider label="Band height" min={10} max={80} value={g.gradBandPct} onChange={(v) => setGrad('gradBandPct', v)} fmt={(v) => `${Math.round(v)}%`} />
               </Section>
             )
@@ -1375,7 +1375,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       )}
                     </div>
                   </Row>
-                  <Slider label="Size" min={0.6} max={1.4} step={0.02} value={p.textScale} onChange={(v) => set('textScale', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
+                  <Slider label="Size" min={0.6} max={1.4} step={0.02} value={p.textScale} onChange={(v) => set('textScale', v)} {...pct} />
                   <Slider label="Max lines" min={1} max={4} value={p.textMaxLines} onChange={(v) => set('textMaxLines', v)} fmt={intFmt} />
                   <Slider label="Line gap" min={0.8} max={1.6} step={0.02} value={p.textLineHeight} onChange={(v) => set('textLineHeight', v)} fmt={(v) => v.toFixed(2)} />
                   <Slider label="Letter" min={-5} max={30} value={p.textLetterPct} onChange={(v) => set('textLetterPct', v)} fmt={(v) => `${Math.round(v)}%`} />
@@ -1413,7 +1413,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     onChange={(v) => set('animPreset', v as TemplateParams['animPreset'])}
                   />
                   <Slider label="Speed" min={0.5} max={8} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
-                  <Slider label="Intensity" min={0} max={1} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} fmt={pctFmt} />
+                  <Slider label="Intensity" min={0} max={1} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} {...pct} />
                   <button
                     onClick={() => setPlaying((v) => !v)}
                     className="w-full rounded-lg bg-zinc-800 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
@@ -1510,7 +1510,6 @@ function FitPreview({
   )
 }
 
-const pctFmt = (v: number) => `${Math.round(v * 100)}%`
 const intFmt = (v: number) => `${Math.round(v)}`
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -1558,58 +1557,6 @@ function Seg({
   )
 }
 
-function Slider({
-  label,
-  min,
-  max,
-  step = 1,
-  value,
-  onChange,
-  fmt,
-}: {
-  label: string
-  min: number
-  max: number
-  step?: number
-  value: number
-  onChange: (v: number) => void
-  fmt: (v: number) => string
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [drag, setDrag] = useState(false)
-  const frac = Math.max(0, Math.min(1, (value - min) / (max - min)))
-  const valAt = (clientX: number) => {
-    const r = ref.current!.getBoundingClientRect()
-    const f = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
-    return Math.round((min + f * (max - min)) / step) * step
-  }
-  useEffect(() => {
-    if (!drag) return
-    const mv = (e: PointerEvent) => onChange(valAt(e.clientX))
-    const up = () => setDrag(false)
-    window.addEventListener('pointermove', mv)
-    window.addEventListener('pointerup', up)
-    return () => {
-      window.removeEventListener('pointermove', mv)
-      window.removeEventListener('pointerup', up)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drag])
-  return (
-    <div
-      ref={ref}
-      onPointerDown={(e) => {
-        setDrag(true)
-        onChange(valAt(e.clientX))
-      }}
-      className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3"
-    >
-      <div className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
-      <span className="relative z-10 text-xs text-zinc-300">{label}</span>
-      <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
-    </div>
-  )
-}
 
 function ThumbColorPicker({
   palette,

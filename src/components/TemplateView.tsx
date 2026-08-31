@@ -15,7 +15,7 @@ import {
   type SizeLayout,
   type TemplateParams,
 } from '../lib/thumb'
-import { KvControls, LogoControls } from './LayoutControls'
+import { KvControls, LogoControls, Slider, pct } from './LayoutControls'
 import { ThumbnailCard } from './Thumbnail'
 import { LoadingScreen, Spinner } from './Spinner'
 import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Undo2, Redo2, RotateCcw } from 'lucide-react'
@@ -383,7 +383,7 @@ export function TemplateView() {
             <Slider label="Top fade" min={0} max={100} value={grad.gradStop1} onChange={(v) => setGrad({ gradStop1: v })} fmt={(v) => `${Math.round(v)}%`} />
             <Slider label="Colour stop" min={0} max={100} value={grad.gradStop2} onChange={(v) => setGrad({ gradStop2: v })} fmt={(v) => `${Math.round(v)}%`} />
             <Slider label="Bottom fade" min={0} max={100} value={grad.gradBottom} onChange={(v) => setGrad({ gradBottom: v })} fmt={(v) => `${Math.round(v)}%`} />
-            <Slider label="Opacity" min={0} max={1} step={0.02} value={grad.gradOpacity} onChange={(v) => setGrad({ gradOpacity: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <Slider label="Opacity" min={0} max={1} step={0.02} value={grad.gradOpacity} onChange={(v) => setGrad({ gradOpacity: v })} {...pct} />
             <Slider label="Band height" min={10} max={80} value={grad.gradBandPct} onChange={(v) => setGrad({ gradBandPct: v })} fmt={(v) => `${Math.round(v)}%`} />
             {params.gradients?.[sizeKey] && (
               <button
@@ -457,7 +457,7 @@ export function TemplateView() {
                 ))}
               </select>
             </Row>
-            <Slider label="Size" min={0.5} max={2.5} step={0.05} value={params.providerScale} onChange={(v) => setP({ providerScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
+            <Slider label="Size" min={0.5} max={2.5} step={0.05} value={params.providerScale} onChange={(v) => setP({ providerScale: v })} {...pct} />
             <div className="grid grid-cols-2 gap-2">
               <Slider label="Margin X" min={0} max={60} value={params.providerMarginX} onChange={(v) => setP({ providerMarginX: v })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="Margin Y" min={0} max={60} value={params.providerMarginY} onChange={(v) => setP({ providerMarginY: v })} fmt={(v) => `${Math.round(v)}`} />
@@ -503,38 +503,3 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
-function Slider({
-  label,
-  min,
-  max,
-  step = 1,
-  value,
-  onChange,
-  fmt,
-}: {
-  label: string
-  min: number
-  max: number
-  step?: number
-  value: number
-  onChange: (v: number) => void
-  fmt: (v: number) => string
-}) {
-  const frac = Math.max(0, Math.min(1, (value - min) / (max - min)))
-  return (
-    <label className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
-      <span className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
-      <span className="relative z-10 text-xs text-zinc-300">{label}</span>
-      <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
-      />
-    </label>
-  )
-}

@@ -10,8 +10,9 @@ import { ALIGN9, type Align9, type SizeLayout } from '../lib/thumb'
  * caller wires `onLayout` / `onAutoCenter` to its own setter.
  */
 
-/** Percent-style value: shown as "40%", typed as plain "40", stored as 0.4. */
-const pct = {
+/** Percent-style value: shown as "40%", typed as plain "40", stored as 0.4.
+ *  Use for sliders whose stored value is a fraction but reads as a percentage. */
+export const pct = {
   fmt: (v: number) => `${Math.round(v * 100)}%`,
   edit: (v: number) => String(Math.round(v * 100)),
   parse: (t: string) => Number(t.replace('%', '').trim()) / 100,
@@ -164,7 +165,7 @@ export function Slider({
     <div className="relative flex h-9 select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
       <span className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
       <span className="pointer-events-none relative z-10 text-xs text-zinc-300">{label}</span>
-      {/* full-width invisible range: drag anywhere on the row */}
+      {/* LEFT: drag zone — the invisible range stops short of the value field */}
       <input
         type="range"
         aria-label={label}
@@ -173,9 +174,9 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
+        className="absolute inset-y-0 left-0 right-14 z-20 h-full cursor-ew-resize opacity-0"
       />
-      {/* the value, typeable — sits above the range so clicks land here */}
+      {/* RIGHT: the value, typeable */}
       <input
         type="text"
         inputMode="decimal"
