@@ -3,7 +3,7 @@ import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
 import { opaqueCenterFromImage } from './opaqueCenter'
-import { CORNER_MODES, CORNER_REF, bandStops, frameSize, hexA, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -28,6 +28,30 @@ function drawFit(
   const dw = img.naturalWidth * r
   const dh = img.naturalHeight * r
   ctx.drawImage(img, bx + (bw - dw) / 2, by + (bh - dh) / 2, dw, dh)
+}
+
+/**
+ * Canvas equivalent of Thumbnail.tsx's <Layer>: lay the image out at k = 1 as a
+ * contain-fit inside the frame, pin its origin (artwork centroid or geometric
+ * centre) to the placement anchor, then scale about that pinned point. The
+ * anchor never depends on the scale, so the point holds still at every size.
+ */
+function drawLayer(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  place: { ax: number; ay: number; k: number },
+  autoCenter: boolean,
+  W: number,
+  H: number,
+  offX = 0,
+  offY = 0,
+) {
+  const base = baseFit(img.naturalWidth, img.naturalHeight, W, H)
+  const c = autoCenter ? opaqueCenterFromImage(img) : { cx: 0.5, cy: 0.5 }
+  const dw = base.w * place.k
+  const dh = base.h * place.k
+  // Scaling about (cx, cy) keeps that point exactly on the anchor.
+  ctx.drawImage(img, place.ax + offX - c.cx * dw, place.ay + offY - c.cy * dh, dw, dh)
 }
 
 /** Contain-fit any drawable source (image or video) of known intrinsic size. */
@@ -177,13 +201,11 @@ function drawFrame(
   if (assets.kvVideo) {
     drawFitSource(ctx, assets.kvVideo, assets.kvVideo.videoWidth, assets.kvVideo.videoHeight, kvX + kvDX, kvY + kvDY, kvW, kvH)
   } else if (kv) {
-    if (params.kvAutoCenter ?? true) {
-      // Centre on the visible artwork (matches Thumbnail.tsx ContainImg).
-      const c = opaqueCenterFromImage(kv)
-      const r = Math.min(kvW / kv.naturalWidth, kvH / kv.naturalHeight)
-      const dw = kv.naturalWidth * r
-      const dh = kv.naturalHeight * r
-      ctx.drawImage(kv, kvX + kvDX + kvW / 2 - c.cx * dw, kvY + kvDY + kvH / 2 - c.cy * dh, dw, dh)
+    if (layout) {
+      // Same model as the live renderer (Thumbnail.tsx Layer): base contain-fit
+      // inside the frame, scaled about the pinned point — so the point holds
+      // still at every size and export matches the preview exactly.
+      drawLayer(ctx, kv, layerPlacement(layout.kvAlign, layout.kvScale, layout.kvDX ?? 0, layout.kvDY ?? 0, W, H, 'kv'), params.kvAutoCenter ?? true, W, H, kvDX, kvDY)
     } else {
       drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
     }
@@ -267,13 +289,8 @@ function drawFrame(
       /* noop */
     }
   } else if (logo) {
-    if (params.kvAutoCenter ?? true) {
-      // Centre on the visible mark (matches Thumbnail.tsx ContainImg for logos).
-      const c = opaqueCenterFromImage(logo)
-      const r = Math.min(boxW / logo.naturalWidth, boxH / logo.naturalHeight)
-      const dw = logo.naturalWidth * r
-      const dh = logo.naturalHeight * r
-      ctx.drawImage(logo, boxX + boxW / 2 - c.cx * dw, boxY + boxH / 2 - c.cy * dh, dw, dh)
+    if (layout) {
+      drawLayer(ctx, logo, layerPlacement(layout.logoAlign, layout.logoScale, layout.logoDX ?? 0, layout.logoDY ?? 0, W, H, 'logo'), params.kvAutoCenter ?? true, W, H, 0, 0)
     } else {
       drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
     }

@@ -27,33 +27,69 @@ export function alignBox(align: Align9, W: number, H: number, w: number, h: numb
   return { x, y, w, h }
 }
 
-/** Compute key-visual and logo boxes from a per-size layout. Centered anchors
- *  span wide; side anchors take ~half width (so KV-left / logo-right works).
+/** Compute key-visual and logo boxes from a per-size layout.
  *
- *  The box height is driven by the size slider (kvScale / logoScale). Its width
- *  used to be hard-capped (0.92·W for KV, 0.82·W for logo), which walled off any
- *  art already as wide as that cap: pushing the size slider only grew height, so
- *  a width-bound key visual or a wide logo could never get bigger and always sat
- *  inside a fixed left/right "safe area". We now let the width grow with the size
- *  slider once it passes that cap, so the art can scale up and bleed to (past)
- *  the edges. The cap stays the floor, so existing tuned layouts are unchanged. */
+ *  Kept for callers that need a rectangle (text logo, video layers). Image
+ *  layers use `layerPlacement` instead — see that function for why. Both box
+ *  dimensions follow the size slider, so the box aspect never changes with the
+ *  scale (that stability is what stops the contain-fit from jumping). */
 export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
-  // KV box scales UNIFORMLY with the size slider: both dimensions are W·scale /
-  // H·scale, so dragging is a pure zoom around the anchor — the box keeps a
-  // constant (frame-shaped) aspect and the contain-fitted art grows linearly.
-  // (The old width floor — max(0.92, scale)·W — pinned the width until the
-  // slider passed it: wide art wouldn't scale at all through most of the range,
-  // and the box's aspect morphed mid-drag, cropping differently as it grew,
-  // which read as the art "distorting" instead of resizing.)
   const kvW = W * layout.kvScale
   const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H, layout.kvDX ?? 0, layout.kvDY ?? 0)
-  // Logo box scales uniformly too (wide 2.2:1-ish shape, no width floor): the
-  // old floor — max(0.82, 2.2·scale)·W — froze a wide logo's rendered size until
-  // the slider passed ~37%, then let asymmetric padding drift it sideways as the
-  // width finally grew. Both dimensions now follow the slider linearly.
-  const lgW = W * layout.logoScale * 2.2
+  const lgW = W * layout.logoScale * LOGO_ASPECT_K
   const logo = anchorCenterBox(layout.logoAlign, W, H, lgW, layout.logoScale * H, layout.logoDX ?? 0, layout.logoDY ?? 0)
   return { kv, logo }
+}
+
+/** Logos are wide, so their box is wider than the frame per unit of size. */
+export const LOGO_ASPECT_K = 2.2
+
+export interface Placement {
+  /** Frame-space point the layer is pinned to (never depends on the scale). */
+  ax: number
+  ay: number
+  /** Multiplier applied to the layer's base (frame contain-fit) size. */
+  k: number
+}
+
+/** Where a layer is pinned, and how much it is scaled — the two halves kept
+ *  strictly independent.
+ *
+ *  This is the "scale from the centre" model: the renderer lays an image out
+ *  ONCE at k = 1 (a contain-fit inside the frame, computed from the image and
+ *  the frame only) with its origin point on `ax`/`ay`, then scales it about
+ *  that same origin. Because the anchor is scale-independent and the scaling is
+ *  a transform about the pinned point, the point cannot move — at any size.
+ *
+ *  The old path re-solved the image's top-left from a freshly scaled box on
+ *  every change, so any imprecision in the pinned point was multiplied by the
+ *  rendered size and the art crept sideways as it grew. */
+export function layerPlacement(
+  align: Align9,
+  scale: number,
+  dx: number,
+  dy: number,
+  W: number,
+  H: number,
+  kind: 'kv' | 'logo',
+): Placement {
+  const col = align[1]
+  const row = align[0]
+  return {
+    ax: (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) * W + dx * W,
+    ay: (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) * H + dy * H,
+    // Matches the old rendered size: the KV box shares the frame aspect, and a
+    // width-bound logo fitted 2.2·scale·W — so existing layouts keep their size.
+    k: kind === 'kv' ? scale : scale * LOGO_ASPECT_K,
+  }
+}
+
+/** Base (k = 1) contain-fit of an image inside the frame. Depends only on the
+ *  image and the frame, never on the scale, so there is no fit branch that can
+ *  flip mid-drag and make the art jump. */
+export function baseFit(natW: number, natH: number, W: number, H: number) {
+  const f = Math.min(W / natW, H / natH)
+  return { w: natW * f, h: natH * f }
 }
 
 /** Place a w×h box CENTERED on the alignment's anchor point (plus a fine X/Y

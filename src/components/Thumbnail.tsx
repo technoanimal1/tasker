@@ -12,8 +12,11 @@ import {
   frameSize,
   hexA,
   layoutBoxes,
+  layerPlacement,
+  baseFit,
   resolveGrad,
   type AssetUrls,
+  type Placement,
   type TemplateParams,
   type Thumbnail,
 } from '../lib/thumb'
@@ -72,6 +75,16 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
     : landscape
       ? { x: W * 0.5, y: H * 0.28, w: W * 0.46, h: H * 0.44 }
       : { x: params.logo.xPct * W, y: params.logo.yPct * H, w: params.logo.wPct * W, h: params.logo.hPct * H }
+
+  // Image layers are placed by anchor + scale (drift-free); boxes remain for the
+  // video layers and the text logo, which need a rectangle.
+  const kvPlace = layout
+    ? layerPlacement(layout.kvAlign, layout.kvScale, layout.kvDX ?? 0, layout.kvDY ?? 0, W, H, 'kv')
+    : null
+  const logoPlace = layout
+    ? layerPlacement(layout.logoAlign, layout.logoScale, layout.logoDX ?? 0, layout.logoDY ?? 0, W, H, 'logo')
+    : null
+  const autoCenter = params.kvAutoCenter ?? true
 
   const pr = params.providerRadius
   const provRadius = `${pr.tl * k}px ${pr.tr * k}px ${pr.br * k}px ${pr.bl * k}px`
@@ -179,14 +192,19 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             }}
           />
         ) : (
-          kv && (
-            <ContainImg
+          kv &&
+          (kvPlace ? (
+            <Layer
               src={kv}
-              box={kvBox}
-              autoCenter={params.kvAutoCenter ?? true}
-              transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`}
+              place={kvPlace}
+              autoCenter={autoCenter}
+              W={W}
+              H={H}
+              extraTransform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`}
             />
-          )
+          ) : (
+            <FitImg src={kv} box={kvBox} transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`} />
+          ))
         )}
 
         {/* light effect (Figma control-area) — sits on the chosen edge */}
@@ -225,19 +243,24 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           }}
         />
 
-        {/* logo — image or text variant. Rendered like the KV (ContainImg):
-            centred on its visible mark, so a logo file with uneven transparent
-            padding doesn't slide sideways as its size grows. */}
+        {/* logo — image or text variant. Placed like the KV: pinned on its
+            visible mark and scaled about that point, so a logo file with uneven
+            transparent padding can't slide sideways as its size grows. */}
         {params.textLogo
           ? renderTextLogo(thumb.name, params, logoBox, color, m.logoScale)
-          : logo && (
-              <ContainImg
+          : logo &&
+            (logoPlace ? (
+              <Layer
                 src={logo}
-                box={logoBox}
-                autoCenter={params.kvAutoCenter ?? true}
-                transform={m.logoScale !== 1 ? `scale(${m.logoScale})` : undefined}
+                place={logoPlace}
+                autoCenter={autoCenter}
+                W={W}
+                H={H}
+                extraTransform={m.logoScale !== 1 ? `scale(${m.logoScale})` : undefined}
               />
-            )}
+            ) : (
+              <FitImg src={logo} box={logoBox} />
+            ))}
 
         {/* shine sweep */}
         {m.shine != null && (
@@ -298,29 +321,39 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
 }
 
 /**
- * Draws an image "contained" inside a box. With `autoCenter` it centres the
- * image's *visible artwork* (opaque pixels) on the box centre instead of its
- * transparent bounding box — so scaling the KV up keeps the subject put rather
- * than drifting when the source PNG has uneven padding. Falls back to plain
- * object-fit:contain until (or unless) the artwork centre is known.
+ * One image layer, scaled from a pinned point.
+ *
+ * Laid out ONCE at k = 1 — a contain-fit inside the frame, computed from the
+ * image and the frame only — with its origin sitting exactly on the anchor,
+ * then scaled by a CSS transform about that same origin. A scale about a
+ * transform-origin holds that origin still by definition, so the pinned point
+ * cannot move at any size: resizing is pure zoom, never a drift.
+ *
+ * With `autoCenter` the pinned point is the artwork's visible centroid (so
+ * uneven transparent padding doesn't offset it); otherwise it's the image's
+ * geometric centre.
  */
-function ContainImg({
+function Layer({
   src,
-  box,
+  place,
   autoCenter,
-  transform,
+  W,
+  H,
+  extraTransform,
 }: {
   src: string
-  box: { x: number; y: number; w: number; h: number }
+  place: Placement
   autoCenter: boolean
-  transform?: string
+  W: number
+  H: number
+  extraTransform?: string
 }) {
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null)
   const [ctr, setCtr] = useState<Center>(opaqueCenterCached(src) ?? { cx: 0.5, cy: 0.5 })
   useEffect(() => {
     let live = true
-    // Reset on src change so a swap can never render the new image with the
-    // previous image's dimensions/centre (which would stretch or misplace it).
+    // Reset on src change so a swap can never render the new image using the
+    // previous one's dimensions or centre.
     setNat(null)
     setCtr(opaqueCenterCached(src) ?? { cx: 0.5, cy: 0.5 })
     const img = new Image()
@@ -334,32 +367,39 @@ function ContainImg({
     }
   }, [src, autoCenter])
 
-  const common: CSSProperties = { position: 'absolute', transform }
-  if (!autoCenter || !nat) {
-    return (
-      <img
-        src={src}
-        draggable={false}
-        loading="lazy"
-        decoding="async"
-        style={{ ...common, left: box.x, top: box.y, width: box.w, height: box.h, objectFit: 'contain' }}
-      />
-    )
-  }
-  const s = Math.min(box.w / nat.w, box.h / nat.h)
-  const rw = nat.w * s
-  const rh = nat.h * s
-  const left = box.x + box.w / 2 - ctr.cx * rw
-  const top = box.y + box.h / 2 - ctr.cy * rh
+  if (!nat) return null
+  const base = baseFit(nat.w, nat.h, W, H)
+  const ox = autoCenter ? ctr.cx : 0.5
+  const oy = autoCenter ? ctr.cy : 0.5
   return (
     <img
       src={src}
       draggable={false}
       loading="lazy"
       decoding="async"
-      // objectFit is a no-op when rw/rh match the natural aspect (they do at
-      // steady state) but guarantees no stretching during any transient.
-      style={{ ...common, left, top, width: rw, height: rh, objectFit: 'contain' }}
+      style={{
+        position: 'absolute',
+        left: place.ax - ox * base.w,
+        top: place.ay - oy * base.h,
+        width: base.w,
+        height: base.h,
+        transform: `${extraTransform ? extraTransform + ' ' : ''}scale(${place.k})`,
+        transformOrigin: `${ox * 100}% ${oy * 100}%`,
+      }}
+    />
+  )
+}
+
+/** Plain contain-fit into a box — the legacy path for thumbnails that have no
+ *  saved per-size layout yet (auto placement). */
+function FitImg({ src, box, transform }: { src: string; box: { x: number; y: number; w: number; h: number }; transform?: string }) {
+  return (
+    <img
+      src={src}
+      draggable={false}
+      loading="lazy"
+      decoding="async"
+      style={{ position: 'absolute', left: box.x, top: box.y, width: box.w, height: box.h, objectFit: 'contain', transform }}
     />
   )
 }
