@@ -90,8 +90,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkBusy, setBulkBusy] = useState(false)
-  const [bulkKv, setBulkKv] = useState(120)
-  const [bulkLogo, setBulkLogo] = useState(80)
+  // Bulk size works in the SAME units as the per-size layout (kvScale /
+  // logoScale), because that is what the renderer actually reads. `touched`
+  // gates the live preview so merely selecting tiles doesn't restyle them.
+  const [bulkKv, setBulkKv] = useState(1)
+  const [bulkLogo, setBulkLogo] = useState(0.4)
+  const [bulkTouched, setBulkTouched] = useState(false)
   // Left sidebar: provider dropdowns + game search.
   const [sidebarSearch, setSidebarSearch] = useState('')
   // Providers whose game list is expanded in the sidebar (lazy-loads on expand).
@@ -152,6 +156,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     })
     if (!selectedId && thumbnails.length) setSelectedId(thumbnails[0].id)
   }, [thumbnails, selectedId])
+  // Seed the bulk sliders from the layout in view, so they start where the
+  // selection actually is instead of at an arbitrary number.
+  useEffect(() => {
+    if (!selectMode || !params) return
+    const key = viewSize ?? params.sizeKey
+    const lay = params.layouts?.[key] ?? defaultLayout(key)
+    setBulkKv(lay.kvScale)
+    setBulkLogo(lay.logoScale)
+    setBulkTouched(false)
+  }, [selectMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Reset the frame-design draft whenever the active branch changes.
   useEffect(() => {
     setFrameParams((branch?.frame_params as ParamOverride) ?? {})
@@ -563,6 +578,31 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       setBulkBusy(false)
     }
   }
+  // Persist the previewed size onto every selected thumbnail, as a per-size
+  // layout override for the aspect currently in view (what the renderer reads).
+  async function applyBulkSize() {
+    if (!selectedIds.size || !params) return
+    const key = viewSize ?? params.sizeKey
+    const prev = [...selectedIds].map((id) => [id, overrides[id]] as const)
+    pushUndo('Bulk size', () => prev.forEach(([id, o]) => restoreOverride(id, o)))
+    setBulkBusy(true)
+    try {
+      for (const id of selectedIds) {
+        const cur = overrides[id] ?? {}
+        const baseLay = cur.layouts?.[key] ?? params.layouts?.[key] ?? defaultLayout(key)
+        const next: ParamOverride = {
+          ...cur,
+          layouts: { ...(cur.layouts ?? {}), [key]: { ...baseLay, kvScale: bulkKv, logoScale: bulkLogo } },
+        }
+        setOverrides((o) => ({ ...o, [id]: next }))
+        await saveOverrides(id, next)
+      }
+      setBulkTouched(false)
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
   async function bulkAutoColor() {
     if (!selectedIds.size) return
     const prev = [...selectedIds].map((id) => [id, overrides[id]] as const)
@@ -583,6 +623,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // the saved sizeKey, so you can preview every thumbnail at another size without
   // editing the template.
   const effSizeKey = viewSize ?? p.sizeKey
+  // Live bulk preview: while sliders are being dragged, show the pending size on
+  // the SELECTED tiles (render-only, nothing written) so you can judge it before
+  // committing. Reverts by itself if you leave select mode without applying.
+  const bulkPreview = (pp: TemplateParams, picked: boolean): TemplateParams => {
+    if (!selectMode || !bulkTouched || !picked) return pp
+    const cur = pp.layouts?.[effSizeKey] ?? defaultLayout(effSizeKey)
+    return {
+      ...pp,
+      layouts: { ...(pp.layouts ?? {}), [effSizeKey]: { ...cur, kvScale: bulkKv, logoScale: bulkLogo } },
+    }
+  }
   const size = frameSize(effSizeKey)
   const previewW = Math.min(520, Math.round(size.w * (460 / size.h)))
   const gridW = Math.min(260, Math.round(size.w * (260 / size.h)))
@@ -1006,9 +1057,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'color' })} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40">Colour</button>
                 <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-200 hover:bg-zinc-800 disabled:opacity-40" title="Pick each frame colour from its background">Auto colour</button>
                 <span className="mx-1 h-4 w-px bg-zinc-700" />
-                <label className="flex items-center gap-1 text-zinc-300">KV<input type="range" min={20} max={300} value={bulkKv} onChange={(e) => setBulkKv(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkKv}%</span></label>
-                <label className="flex items-center gap-1 text-zinc-300">Logo<input type="range" min={20} max={200} value={bulkLogo} onChange={(e) => setBulkLogo(+e.target.value)} className="w-16 accent-accent" /><span className="w-8 tabular-nums text-zinc-400">{bulkLogo}%</span></label>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ kvSizePct: bulkKv, logo: { wPct: bulkLogo / 100, hPct: (bulkLogo / 100) * 0.375 } })} className="rounded-md bg-accent px-2.5 py-1 font-medium text-zinc-900 hover:bg-accent-dark disabled:opacity-40">Apply size</button>
+                <div className="w-32"><Slider label="KV" min={0.3} max={5} step={0.02} value={bulkKv} onChange={(v) => { setBulkKv(v); setBulkTouched(true) }} {...pct} /></div>
+                <div className="w-32"><Slider label="Logo" min={0.1} max={3} step={0.02} value={bulkLogo} onChange={(v) => { setBulkLogo(v); setBulkTouched(true) }} {...pct} /></div>
+                {bulkTouched && (
+                  <button onClick={() => setBulkTouched(false)} className="rounded-md border border-zinc-700 px-2 py-1 text-zinc-400 hover:bg-zinc-800" title="Discard the previewed size">Revert</button>
+                )}
+                <button disabled={!selectedIds.size || bulkBusy || !bulkTouched} onClick={applyBulkSize} className="rounded-md bg-accent px-2.5 py-1 font-medium text-zinc-900 hover:bg-accent-dark disabled:opacity-40" title={bulkTouched ? `Apply to ${selectedIds.size} thumbnail(s) at ${effSizeKey}` : 'Move a slider to preview a size'}>Apply size</button>
                 {bulkBusy && <span className="text-zinc-400">working…</span>}
               </div>
             )}
@@ -1019,9 +1073,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               {gridItems.map((t) => {
                 const pp0 = paramsForThumb(t)
                 if (!pp0) return null
-                const pp = { ...pp0, sizeKey: effSizeKey }
                 const active = t.id === selectedId
                 const picked = selectedIds.has(t.id)
+                const pp = bulkPreview({ ...pp0, sizeKey: effSizeKey }, picked)
                 return (
                   <div
                     key={t.id}
