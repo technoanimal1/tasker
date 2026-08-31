@@ -82,6 +82,15 @@ the app's own model — each layer's contain-fit scaled by `k` (`logoScale × 2.
 for logos) and centred on the 9-point anchor — driven by the template's real
 per-size layouts.
 
+Two standalone builds of the editor live in `public/`:
+[`editor.html`](public/editor.html) is the neutral one, and
+[`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
+Framer site — the `--token-0af6a8ba…` yellow, `#171717` cards at 24px, PP Mori /
+PP Right Grotesk Wide / PP NeueBit (loaded by `@font-face` from
+framerusercontent so it also works inside an Embed iframe), and the site's 6px
+button shapes. Both are scoped under `#ts-editor` and respond to their own
+container, not the viewport.
+
 The hero editor is **live** — visitors drag the key visual, grab a corner to
 resize it, nudge with the arrow keys, flip through four frame sizes
 (each keeping its own layout, as in the app), recolour the

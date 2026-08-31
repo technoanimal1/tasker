@@ -3,31 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>thumbs.store — thumbnail editor (embeddable)</title>
-    <meta
-      name="description"
-      content="The thumbs.store thumbnail editor as a self-contained, responsive widget: drag the key visual, resize it, switch frame sizes, recolour the frame, export a PNG."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&display=swap"
-      rel="stylesheet"
-    />
+    <title>thumbs.store — thumbnail editor (Framer embed)</title>
+
+    <!-- The site's own typefaces, straight from framerusercontent, so the
+         widget matches whether it is inlined or inside an Embed iframe. -->
+    <style>
+      @font-face { font-family: "PP Mori SemiBold"; src: url("https://framerusercontent.com/assets/T93398VnrgrUA71qcf61Yy5qrc.woff2"); font-display: swap; font-style: normal; font-weight: 600 }
+      @font-face { font-family: "PP Mori Regular"; src: url("https://framerusercontent.com/assets/AE9QGl3EikgcPbta4IZVlvWEZZo.woff2"); font-display: swap; font-style: normal; font-weight: 400 }
+      @font-face { font-family: "PP Right Grotesk Wide Medium"; src: url("https://framerusercontent.com/assets/MfNZZ4KOxCSKFiD4ia28iJnlOEY.woff2"); font-display: swap; font-style: normal; font-weight: 500 }
+      @font-face { font-family: "PP NeueBit Bold"; src: url("https://framerusercontent.com/assets/LhlnRGZ9aD8mHk26ghaljbgKEcs.woff2"); font-display: swap; font-style: normal; font-weight: 700 }
+    </style>
+
     <style>
       /* Demo page only — none of this is needed by the widget. */
       body {
         margin: 0;
         min-height: 100vh;
-        background: #06070a;
+        background: #000;
         display: grid;
-        place-items: center;
-        padding: clamp(12px, 4vw, 48px);
+        place-items: start center;
+        padding: 16px;
         box-sizing: border-box;
       }
       .demo-wrap {
         width: 100%;
-        max-width: 1180px;
+        max-width: 1200px;
       }
     </style>
 
@@ -40,24 +40,31 @@
          =================================================================== -->
     <style>
       #ts-editor {
-        /* Tokens — restyle the widget from here. */
-        --ts-bg: #0e1014;
-        --ts-panel: #14171c;
-        --ts-line: #23272f;
-        --ts-line-soft: #1a1e24;
-        --ts-text: #f4f4f5;
-        --ts-muted: #9aa1ac;
-        --ts-dim: #6b7280;
-        --ts-brand: #fff050;
-        --ts-radius: 16px;
+        /* Site tokens — the yellow reads the page's own variable when the
+           widget is inlined, and falls back to its value inside an iframe. */
+        --ts-brand: var(--token-0af6a8ba-d2b3-46fd-bb59-920b51fdd118, #fef150);
+        --ts-page: var(--token-419394a1-565d-4952-8ba3-b4f1eb92339c, #050505);
+        --ts-panel: #171717;
+        --ts-bg: #0c0c0c;
+        --ts-line: rgb(255 255 255 / 0.08);
+        --ts-line-soft: rgb(255 255 255 / 0.06);
+        --ts-text: #ffffff;
+        --ts-muted: #999999;
+        --ts-dim: #7d7d7d;
+        --ts-radius: 24px;
+
+        /* Type stack, as the site sets it. */
+        --ts-body: 'PP Mori Regular', 'PP Mori Regular Placeholder', system-ui, sans-serif;
+        --ts-semi: 'PP Mori SemiBold', 'PP Mori SemiBold Placeholder', system-ui, sans-serif;
+        --ts-display: 'PP Right Grotesk Wide Medium', 'PP Right Grotesk Wide Medium Placeholder', system-ui, sans-serif;
+        --ts-mono: 'PP NeueBit Bold', 'PP NeueBit Bold Placeholder', ui-monospace, monospace;
 
         container-type: inline-size;
         container-name: ts;
         width: 100%;
         box-sizing: border-box;
         color: var(--ts-text);
-        font-family: 'Google Sans Flex', system-ui, -apple-system, 'Segoe UI', Roboto,
-          'Helvetica Neue', Arial, sans-serif;
+        font-family: var(--ts-body);
         font-size: 14px;
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
@@ -76,13 +83,13 @@
       #ts-editor .ts-shell {
         border: 1px solid var(--ts-line);
         border-radius: var(--ts-radius);
-        background: linear-gradient(180deg, var(--ts-panel), #0e1014);
-        box-shadow: 0 30px 70px -34px rgb(0 0 0 / 0.9);
+        background: #0c0c0c;
         overflow: hidden;
       }
 
       /* ---- title bar ---- */
       #ts-editor .ts-bar {
+        background: #171717;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -121,14 +128,15 @@
       #ts-editor .ts-live {
         margin-left: auto;
         flex: none;
-        font-size: 10.5px;
-        font-weight: 600;
-        letter-spacing: 0.09em;
+        font-family: var(--ts-mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: #0a0b0d;
+        color: #050505;
         background: var(--ts-brand);
-        border-radius: 999px;
-        padding: 3px 9px;
+        border-radius: 6px;
+        padding: 2px 10px;
         white-space: nowrap;
       }
 
@@ -146,10 +154,12 @@
         min-width: 0;
       }
       #ts-editor .ts-label {
-        font-size: 10px;
-        letter-spacing: 0.1em;
+        font-family: var(--ts-mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: var(--ts-dim);
+        color: var(--ts-brand);
         margin: 6px 4px 2px;
       }
       #ts-editor .layer {
@@ -161,8 +171,8 @@
         border-radius: 9px;
         border: 1px solid transparent;
         background: none;
-        font: inherit;
-        font-size: 12.5px;
+        font-family: var(--ts-body);
+        font-size: 13px;
         color: var(--ts-muted);
         text-align: left;
         white-space: nowrap;
@@ -179,8 +189,8 @@
         background: rgb(255 255 255 / 0.05);
       }
       #ts-editor .layer[data-on] {
-        background: rgb(255 240 80 / 0.09);
-        border-color: rgb(255 240 80 / 0.3);
+        background: rgb(254 241 80 / 0.1);
+        border-color: rgb(254 241 80 / 0.35);
         color: var(--ts-text);
       }
       #ts-editor .layer[data-on] i {
@@ -212,6 +222,7 @@
         grid-template-columns: minmax(0, 1fr);
         place-items: start center;
         min-width: 0;
+        background-color: #0c0c0c;
         /* A height of its own — the frame is fitted inside it, so the canvas
            must not be sized by the frame in turn. */
         height: clamp(320px, 62cqi, 560px);
@@ -361,9 +372,10 @@
         border: 0;
         background: none;
         border-radius: 999px;
-        padding: 3px 10px;
-        font: inherit;
-        font-size: 11.5px;
+        padding: 3px 11px;
+        font-family: var(--ts-mono);
+        font-size: 16px;
+        font-weight: 700;
         color: var(--ts-muted);
         white-space: nowrap;
         cursor: pointer;
@@ -406,8 +418,9 @@
         color: var(--ts-dim);
       }
       #ts-editor .prop label b {
+        font-family: var(--ts-semi);
         color: var(--ts-muted);
-        font-weight: 500;
+        font-weight: 600;
       }
       #ts-editor .prop:not([data-dim]) label b {
         color: var(--ts-brand);
@@ -483,37 +496,45 @@
         gap: 8px;
       }
       #ts-editor .ts-reset {
-        border: 1px solid var(--ts-line);
-        border-radius: 9px;
-        height: 32px;
-        background: none;
-        font: inherit;
-        font-size: 12px;
-        color: var(--ts-muted);
+        white-space: nowrap;
+        border: 1px solid var(--ts-brand);
+        border-radius: 6px;
+        height: 40px;
+        background: rgb(38 38 38 / 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        font-family: var(--ts-mono);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--ts-brand);
         cursor: pointer;
       }
       #ts-editor .ts-reset:hover {
-        color: var(--ts-text);
-        border-color: #333a44;
+        background: rgb(60 60 60 / 0.6);
       }
       #ts-editor .ts-export {
+        white-space: nowrap;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 7px;
+        gap: 8px;
         width: 100%;
-        height: 36px;
+        height: 40px;
         border: 0;
-        border-radius: 9px;
+        border-radius: 6px;
         background: var(--ts-brand);
-        color: #0a0b0d;
-        font: inherit;
-        font-size: 12.5px;
-        font-weight: 600;
+        color: #050505;
+        font-family: var(--ts-mono);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
         cursor: pointer;
       }
       #ts-editor .ts-export:hover {
-        background: #fff77a;
+        filter: brightness(1.08);
       }
 
       /* ---- filmstrip + status ---- */
@@ -550,10 +571,11 @@
       #ts-editor .ts-note {
         min-height: 18px;
         margin: 0;
-        padding: 9px 12px 11px;
+        padding: 11px 12px 13px;
         border-top: 1px solid var(--ts-line-soft);
-        font-size: 11.5px;
-        color: var(--ts-dim);
+        background: #171717;
+        font-size: 13px;
+        color: var(--ts-muted);
         text-align: center;
       }
 
@@ -620,6 +642,14 @@
 
       /* Phone — single-column controls, tighter chrome, no hint line. */
       @container ts (max-width: 460px) {
+        #ts-editor .ts-export,
+        #ts-editor .ts-reset {
+          font-size: 16px;
+        }
+        #ts-editor .size-btn {
+          font-size: 15px;
+          padding: 3px 9px;
+        }
         #ts-editor .ts-canvas {
           padding: 14px 14px 52px;
           height: clamp(300px, 96cqi, 420px);
@@ -666,6 +696,65 @@
         }
       }
 
+      /* ---- optional section wrapper: the site's card, eyebrow, heading ----
+         Drop the whole .ts-block if you only want the editor itself. */
+      .ts-block {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 48px;
+        border-radius: 24px;
+        background: #171717;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        color: #fff;
+        font-family: 'PP Mori Regular', 'PP Mori Regular Placeholder', system-ui, sans-serif;
+      }
+      .ts-block .eyebrow {
+        margin: 0;
+        font-family: 'PP NeueBit Bold', 'PP NeueBit Bold Placeholder', monospace;
+        font-size: 19px;
+        font-weight: 700;
+        text-align: center;
+        color: var(--token-0af6a8ba-d2b3-46fd-bb59-920b51fdd118, #fef150);
+      }
+      .ts-block h2 {
+        margin: 0;
+        font-family: 'PP Right Grotesk Wide Medium', 'PP Right Grotesk Wide Medium Placeholder', system-ui, sans-serif;
+        font-size: 40px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1.1em;
+        text-align: center;
+        color: #fff;
+      }
+      .ts-block .lede {
+        margin: 0;
+        max-width: 680px;
+        text-align: center;
+        line-height: 1.5em;
+        color: #999;
+      }
+      .ts-block .cta {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 18px;
+        border-radius: 6px;
+        background: var(--token-0af6a8ba-d2b3-46fd-bb59-920b51fdd118, #fef150);
+        color: #050505;
+        font-family: 'PP NeueBit Bold', 'PP NeueBit Bold Placeholder', monospace;
+        font-size: 18px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      @media (max-width: 809.98px) {
+        .ts-block { padding: 24px 16px; gap: 16px; }
+        .ts-block h2 { font-size: 31px; line-height: 1.14em; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         #ts-editor * {
           transition: none !important;
@@ -681,6 +770,14 @@
            WIDGET MARKUP — copy from here to the end of #ts-editor.
            Every id is prefixed ts- and every class lives under #ts-editor.
            ================================================================= -->
+      <section class="ts-block">
+        <p class="eyebrow">TRY IT LIVE</p>
+        <h2>One template. Every game.<br />Move it and see.</h2>
+        <p class="lede">
+          The same renderer that serves your catalogue, running in the page. Drag the key visual,
+          resize it from a corner, switch the cut, recolour the frame — the template layout holds.
+        </p>
+
       <div id="ts-editor">
         <div class="ts-shell">
           <div class="ts-bar">
@@ -755,7 +852,7 @@
                 <div class="field"><b>H</b><span id="ts-fH">0</span></div>
               </div>
               <div class="ts-actions">
-                <button class="ts-reset" type="button" id="ts-resetBtn">Reset this size</button>
+                <button class="ts-reset" type="button" id="ts-resetBtn">Reset</button>
                 <button class="ts-export" type="button" id="ts-exportBtn">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -770,6 +867,9 @@
           <p class="ts-note" id="ts-labNote" role="status">Loading the editor…</p>
         </div>
       </div>
+
+        <a class="cta" href="./apply" target="_blank">GET STARTED</a>
+      </section>
     </div>
 
     <!-- ===================================================================
