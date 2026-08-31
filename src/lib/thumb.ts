@@ -38,10 +38,14 @@ export function alignBox(align: Align9, W: number, H: number, w: number, h: numb
  *  slider once it passes that cap, so the art can scale up and bleed to (past)
  *  the edges. The cap stays the floor, so existing tuned layouts are unchanged. */
 export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
-  const kvCentered = layout.kvAlign[1] === 'c'
-  // Width follows the size slider (past a per-anchor baseline) for EVERY anchor,
-  // so nothing is width-capped: the art keeps growing as the size slider goes up.
-  const kvW = W * Math.max(kvCentered ? 0.92 : 0.5, layout.kvScale)
+  // KV box scales UNIFORMLY with the size slider: both dimensions are W·scale /
+  // H·scale, so dragging is a pure zoom around the anchor — the box keeps a
+  // constant (frame-shaped) aspect and the contain-fitted art grows linearly.
+  // (The old width floor — max(0.92, scale)·W — pinned the width until the
+  // slider passed it: wide art wouldn't scale at all through most of the range,
+  // and the box's aspect morphed mid-drag, cropping differently as it grew,
+  // which read as the art "distorting" instead of resizing.)
+  const kvW = W * layout.kvScale
   const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H, layout.kvDX ?? 0, layout.kvDY ?? 0)
   const lgCentered = layout.logoAlign[1] === 'c'
   // Logos are wide, so their width binds well before their height; scale the

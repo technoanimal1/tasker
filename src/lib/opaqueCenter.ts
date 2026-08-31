@@ -4,6 +4,14 @@
  * artwork rather than on its transparent bounding box — so scaling it up keeps
  * the subject put instead of drifting when the source PNG has uneven padding.
  *
+ * The centre is an ALPHA-WEIGHTED CENTROID of solid pixels (alpha ≥ 60), not a
+ * bounding box: a faint glow, sparkle or drop shadow reaching one edge barely
+ * moves it, where it used to drag a loose alpha>12 bbox — and because the
+ * placement correction scales with the rendered size, that bias made the art
+ * slide sideways as you resized it. The deviation from the geometric centre is
+ * also clamped (±12%) so auto-centring corrects modest padding asymmetry but
+ * can never relocate the art far enough for resizing to visibly move it.
+ *
  * Results are cached per URL. Analysis needs a CORS-clean image (our CDN sends
  * the right headers); if it can't read the pixels it falls back to the centre.
  */
@@ -17,35 +25,52 @@ export function opaqueCenterCached(url?: string | null): Center | null {
   return cache.get(url) ?? null
 }
 
-/** Compute (and cache) the opaque centre of an already-loaded image (sync). */
+/** Max deviation of the artwork centre from the geometric centre (fraction). */
+const CLAMP = 0.12
+
+function scanCenter(img: HTMLImageElement): Center {
+  const S = 128 // downscale for a fast alpha scan
+  const scale = Math.min(1, S / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
+  const w = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
+  const h = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
+  const cv = document.createElement('canvas')
+  cv.width = w
+  cv.height = h
+  const ctx = cv.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return CENTER
+  ctx.drawImage(img, 0, 0, w, h)
+  const data = ctx.getImageData(0, 0, w, h).data
+  // Solid pixels first; if the art is wholly translucent, retry with a low bar.
+  for (const cut of [60, 12]) {
+    let sum = 0
+    let sx = 0
+    let sy = 0
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const a = data[(y * w + x) * 4 + 3]
+        if (a >= cut) {
+          sum += a
+          sx += (x + 0.5) * a
+          sy += (y + 0.5) * a
+        }
+      }
+    }
+    if (sum > 0) {
+      const cx = 0.5 + Math.max(-CLAMP, Math.min(CLAMP, sx / sum / w - 0.5))
+      const cy = 0.5 + Math.max(-CLAMP, Math.min(CLAMP, sy / sum / h - 0.5))
+      return { cx, cy }
+    }
+  }
+  return CENTER
+}
+
+/** Compute (and cache) the artwork centre of an already-loaded image (sync). */
 export function opaqueCenterFromImage(img: HTMLImageElement): Center {
   const url = img.src
   const hit = cache.get(url)
   if (hit) return hit
   try {
-    const S = 128
-    const scale = Math.min(1, S / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
-    const w = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
-    const h = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
-    const cv = document.createElement('canvas')
-    cv.width = w
-    cv.height = h
-    const ctx = cv.getContext('2d', { willReadFrequently: true })
-    if (!ctx) return CENTER
-    ctx.drawImage(img, 0, 0, w, h)
-    const data = ctx.getImageData(0, 0, w, h).data
-    let minX = w, minY = h, maxX = -1, maxY = -1
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 12) {
-          if (x < minX) minX = x
-          if (x > maxX) maxX = x
-          if (y < minY) minY = y
-          if (y > maxY) maxY = y
-        }
-      }
-    }
-    const res: Center = maxX >= minX && maxY >= minY ? { cx: (minX + maxX + 1) / 2 / w, cy: (minY + maxY + 1) / 2 / h } : CENTER
+    const res = scanCenter(img)
     cache.set(url, res)
     return res
   } catch {
@@ -53,7 +78,7 @@ export function opaqueCenterFromImage(img: HTMLImageElement): Center {
   }
 }
 
-/** Compute (and cache) the opaque-pixel centre of an image URL. */
+/** Compute (and cache) the artwork centre of an image URL. */
 export async function computeOpaqueCenter(url: string): Promise<Center> {
   const hit = cache.get(url)
   if (hit) return hit
@@ -65,32 +90,7 @@ export async function computeOpaqueCenter(url: string): Promise<Center> {
       i.onerror = () => rej(new Error('img load'))
       i.src = url
     })
-    const S = 128 // downscale for a fast alpha scan
-    const scale = Math.min(1, S / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
-    const w = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
-    const h = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
-    const cv = document.createElement('canvas')
-    cv.width = w
-    cv.height = h
-    const ctx = cv.getContext('2d', { willReadFrequently: true })
-    if (!ctx) throw new Error('no ctx')
-    ctx.drawImage(img, 0, 0, w, h)
-    const data = ctx.getImageData(0, 0, w, h).data
-    let minX = w, minY = h, maxX = -1, maxY = -1
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 12) {
-          if (x < minX) minX = x
-          if (x > maxX) maxX = x
-          if (y < minY) minY = y
-          if (y > maxY) maxY = y
-        }
-      }
-    }
-    const res: Center =
-      maxX >= minX && maxY >= minY
-        ? { cx: (minX + maxX + 1) / 2 / w, cy: (minY + maxY + 1) / 2 / h }
-        : CENTER
+    const res = scanCenter(img)
     cache.set(url, res)
     return res
   } catch {
