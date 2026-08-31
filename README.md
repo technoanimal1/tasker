@@ -73,6 +73,15 @@ A standalone marketing page lives at [`public/landing.html`](public/landing.html
 at `/landing.html` in dev and in the deployed build; the CTAs point back at `/`
 (the app).
 
+The frame chrome on the page is ported from the Control Area frame in Figma
+(`great-rhino`, node `4106:125`) and the live `thumb_templates` row: corner
+radius 16/244 and stroke 2.5/244 of the frame width, the light band on its
+`gradDir` edge with `bandStops()`'s smootherstep fade, the colour glow and the
+white overlay bloom, and the provider tab (radius 8/8/0/0). Layer geometry uses
+the app's own model — each layer's contain-fit scaled by `k` (`logoScale × 2.2`
+for logos) and centred on the 9-point anchor — driven by the template's real
+per-size layouts.
+
 The hero editor is **live** — visitors drag the key visual, grab a corner to
 resize it, nudge with the arrow keys, switch between seven games, flip through
 five frame sizes (each keeping its own layout, as in the app), recolour the

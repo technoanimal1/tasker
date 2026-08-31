@@ -371,7 +371,7 @@
       .mock-body {
         display: grid;
         grid-template-columns: 172px 1fr 196px;
-        min-height: 412px;
+        min-height: 476px;
       }
 
       .mock-rail {
@@ -727,7 +727,7 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        bottom: 26px;
+        bottom: 24px;
         display: flex;
         gap: 4px;
         background: rgb(10 11 13 / 0.72);
@@ -1227,24 +1227,29 @@
         text-align: center;
       }
 
+      /* Frame chrome, ported from the Control Area frame in Figma
+         (great-rhino, 4106:125) and the live template row: corner radius
+         16/244 of the width, a 2.5/244 stroke sitting outside the art, a light
+         band on the chosen edge, and the two bottom glows the renderer draws —
+         a colour ellipse and a white overlay bloom. */
       .tile {
         position: relative;
         aspect-ratio: var(--ar, 3 / 4);
-        border-radius: 13px;
+        border-radius: 6.56%; /* 16/244, replaced with px by applyMetrics() */
         overflow: hidden;
         isolation: isolate;
-        /* Stands in until the artwork loads, and shows through a transparent KV. */
         background: #0a0c11;
-        border: 1.5px solid var(--accent, #f5b301);
-        box-shadow: 0 0 26px -8px var(--accent, #f5b301), 0 16px 34px -18px #000,
-          inset 0 0 0 1px rgb(255 255 255 / 0.07);
+        box-shadow: 0 0 26px -8px var(--accent, #7a33ff), 0 16px 34px -18px #000;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
-      a.tile:hover,
+      /* Live composites carry the chrome; baked previews already have it. */
+      .tile.live {
+        border: 1px solid var(--accent, #7a33ff);
+        container-type: inline-size;
+      }
       .shelf .tile:hover {
         transform: translateY(-3px);
-        box-shadow: 0 0 34px -6px var(--accent, #f5b301), 0 22px 40px -18px #000,
-          inset 0 0 0 1px rgb(255 255 255 / 0.1);
+        box-shadow: 0 0 34px -6px var(--accent, #7a33ff), 0 22px 40px -18px #000;
       }
 
       /* A baked preview — the finished thumbnail, exactly as the app renders it. */
@@ -1257,7 +1262,7 @@
         display: block;
       }
 
-      /* Live composite: the same three shared layers the renderer stacks. */
+      /* Live composite: the shared layers the renderer stacks. */
       .tile > .lay-bg {
         position: absolute;
         inset: 0;
@@ -1265,85 +1270,60 @@
         height: 100%;
         object-fit: cover;
       }
-      .tile > .lay-kv {
-        position: absolute;
-        left: 15%;
-        top: 5%;
-        width: 70%;
-        height: 62%;
-        object-fit: contain;
-        object-position: center top;
-      }
+      .tile > .lay-kv,
       .tile > .lay-logo {
         position: absolute;
-        left: 35%;
-        width: 30%;
-        bottom: 13%;
-        height: 15%;
         object-fit: contain;
-        object-position: center bottom;
-        z-index: 2;
       }
-      /* Landscape cut — the renderer splits KV-left / logo-right above 1.2. */
-      .tile.land > .lay-kv {
-        left: 4%;
-        top: 6%;
-        width: 46%;
-        height: 88%;
-        object-position: center center;
-      }
-      .tile.land > .lay-logo {
-        left: auto;
-        right: 5%;
-        top: 28%;
-        bottom: auto;
-        width: 40%;
-        height: 44%;
-        object-position: center center;
-      }
-
       .t-band {
         position: absolute;
-        inset: auto 0 0;
-        height: 42%;
-        background: linear-gradient(
-          180deg,
-          transparent 0%,
-          color-mix(in srgb, var(--accent) 45%, transparent) 46%,
-          rgb(0 0 0 / 0.78) 100%
-        );
         z-index: 1;
       }
-      .tile.land .t-band {
-        inset: 0 0 0 auto;
-        width: 58%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          color-mix(in srgb, var(--accent) 45%, transparent) 46%,
-          rgb(0 0 0 / 0.78) 100%
-        );
+      /* Colour glow: 90% × 34%, 5% below the bottom edge. */
+      .t-glow {
+        position: absolute;
+        left: 50%;
+        bottom: -5%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 34%;
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(2px);
+      }
+      /* White bloom, overlay-blended: 81.1% × 27.5%, 12.3% below the edge. */
+      .t-bloom {
+        position: absolute;
+        left: 50%;
+        bottom: -12.3%;
+        transform: translateX(-50%);
+        width: 81.1%;
+        height: 27.5%;
+        border-radius: 50%;
+        z-index: 1;
+        mix-blend-mode: overlay;
+        background: radial-gradient(closest-side, #ffffff, rgba(255, 255, 255, 0) 70%);
       }
 
-      /* Provider badge — pill, bottom-centre, the template's default position. */
+      /* Provider badge — the template's tab: rounded top corners only, flush
+         to the bottom edge (providerRadius 8/8/0/0, marginY 1, scale 1.75). */
       .t-prov {
         position: absolute;
         left: 50%;
-        bottom: 4.5%;
+        bottom: 0.3%;
         transform: translateX(-50%);
         z-index: 2;
         display: inline-flex;
         align-items: center;
         gap: 0.5em;
-        padding: 0.4em 0.9em;
-        border-radius: 999px;
-        border: 1px solid rgb(255 255 255 / 0.22);
-        background: rgb(8 10 14 / 0.55);
-        font-size: 10px;
+        padding: 0.45em 1em 0.55em;
+        border-radius: 3.3cqw 3.3cqw 0 0;
+        background: rgb(8 10 14 / 0.72);
+        font-size: 4cqw;
         font-weight: 600;
-        letter-spacing: 0.1em;
-        color: rgb(255 255 255 / 0.86);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgb(255 255 255 / 0.9);
         white-space: nowrap;
       }
       .t-prov::before {
@@ -1353,18 +1333,10 @@
         border-radius: 999px;
         background: var(--accent);
       }
-      .tile.land .t-prov {
-        left: auto;
-        right: 5%;
-        bottom: 12%;
-        transform: none;
-      }
       .tile.mini .t-prov {
         display: none;
       }
       .tile.mini {
-        border-radius: 7px;
-        border-width: 1px;
         box-shadow: 0 0 14px -6px var(--accent), 0 8px 18px -12px #000;
       }
 
@@ -1541,15 +1513,15 @@
                 </div>
                 <div class="rail-label" id="paletteLabel">Frame colour</div>
                 <div class="swatches" id="swatches" role="group" aria-labelledby="paletteLabel"></div>
-                <div class="rail-label">Branch</div>
-                <div class="layer static"><i></i> acme-casino · fork of main</div>
               </aside>
 
               <div class="mock-canvas">
                 <div class="frame" id="frame" tabindex="0" role="application" aria-label="Thumbnail canvas — drag the selected layer, arrow keys nudge it, corner handles resize it">
-                  <div class="tile" id="tile">
+                  <div class="tile live" id="tile">
                     <img class="lay-bg" id="layBg" alt="" decoding="async" />
                     <div class="t-band" id="layBand"></div>
+                    <div class="t-glow" id="layGlow"></div>
+                    <div class="t-bloom" id="layBloom"></div>
                     <img class="lay-kv" id="layKv" alt="The selected game's key visual" decoding="async" />
                     <img class="lay-logo" id="layLogo" alt="" decoding="async" />
                     <div class="t-prov" id="layProv">PRAGMATIC</div>
@@ -1567,12 +1539,12 @@
 
               <aside class="mock-props">
                 <div class="prop" data-for="kv">
-                  <label for="kvScale">Key visual scale <b id="kvScaleVal">100%</b></label>
-                  <input id="kvScale" type="range" min="40" max="200" step="1" value="100" />
+                  <label for="kvScale">Key visual scale <b id="kvScaleVal">122%</b></label>
+                  <input id="kvScale" type="range" min="40" max="220" step="1" value="122" />
                 </div>
                 <div class="prop" data-for="logo">
-                  <label for="logoScale">Logo scale <b id="logoScaleVal">100%</b></label>
-                  <input id="logoScale" type="range" min="40" max="200" step="1" value="100" />
+                  <label for="logoScale">Logo scale <b id="logoScaleVal">38%</b></label>
+                  <input id="logoScale" type="range" min="10" max="120" step="1" value="38" />
                 </div>
                 <div class="prop" data-for="band">
                   <label for="bandOpacity">Band opacity <b id="bandVal">100%</b></label>
@@ -1639,7 +1611,7 @@
 
           <div class="shelf reveal">
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #6C4FE8">
+              <div class="tile shot" style="--accent: #6C4FE8">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/0c089fee-01ec-4be8-ae29-5f2768a1c862.webp?v=v1_11ecz4u"
@@ -1654,7 +1626,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #FF4FA3">
+              <div class="tile shot" style="--accent: #FF4FA3">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y"
@@ -1669,7 +1641,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #9B30FF">
+              <div class="tile shot" style="--accent: #9B30FF">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/8723355a-9a95-443a-816b-697d7b30f525.webp?v=v1_ru5eth"
@@ -1684,7 +1656,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #E8A33D">
+              <div class="tile shot" style="--accent: #E8A33D">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/13b22600-c0c0-4ee4-8795-26343e25472a.webp?v=v1_jxl70i"
@@ -1699,7 +1671,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #2FA4E7">
+              <div class="tile shot" style="--accent: #2FA4E7">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/11cbbc64-f77a-49ba-8ddd-5cc71166b84d.webp?v=v1_1lrjruw"
@@ -1714,7 +1686,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #F0C020">
+              <div class="tile shot" style="--accent: #F0C020">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/26191150-8f3e-42ef-bb4b-873b82994e40.webp?v=v1_2cy06h"
@@ -1729,7 +1701,7 @@
             </figure>
 
             <figure style="margin: 0">
-              <div class="tile" style="--accent: #E23A2E">
+              <div class="tile shot" style="--accent: #E23A2E">
                 <img
                   class="baked"
                   src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/a5f31ea9-9cb6-4f92-b933-eaa8912daf29.webp?v=v1_18vwh2p"
@@ -1945,37 +1917,8 @@
             </p>
           </div>
 
-          <div class="sizes reveal">
-            <div class="size">
-              <div class="tile mini" style="--accent: #6C4FE8; --w: 96px; --ar: 3 / 4">
-                <img class="lay-bg" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/bg.jpg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><img class="lay-kv" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/kv.png" alt="Gates of Olympus, 3:4 cut" loading="lazy" decoding="async" /><img class="lay-logo" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/logoWhite.png" alt="" loading="lazy" decoding="async" />
-              </div>
-              <b>3:4</b><span>900 × 1200</span>
-            </div>
-            <div class="size">
-              <div class="tile mini" style="--accent: #6C4FE8; --w: 84px; --ar: 2 / 3">
-                <img class="lay-bg" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/bg.jpg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><img class="lay-kv" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/kv.png" alt="Gates of Olympus, 2:3 cut" loading="lazy" decoding="async" /><img class="lay-logo" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/logoWhite.png" alt="" loading="lazy" decoding="async" />
-              </div>
-              <b>2:3</b><span>800 × 1200</span>
-            </div>
-            <div class="size">
-              <div class="tile mini" style="--accent: #6C4FE8; --w: 92px; --ar: 47 / 66">
-                <img class="lay-bg" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/bg.jpg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><img class="lay-kv" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/kv.png" alt="Gates of Olympus, 47:66 cut" loading="lazy" decoding="async" /><img class="lay-logo" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/logoWhite.png" alt="" loading="lazy" decoding="async" />
-              </div>
-              <b>47:66</b><span>940 × 1320</span>
-            </div>
-            <div class="size">
-              <div class="tile mini land" style="--accent: #6C4FE8; --w: 168px; --ar: 16 / 9">
-                <img class="lay-bg" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/bg.jpg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><img class="lay-kv" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/kv.png" alt="Gates of Olympus, 16:9 cut" loading="lazy" decoding="async" /><img class="lay-logo" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/logoWhite.png" alt="" loading="lazy" decoding="async" />
-              </div>
-              <b>16:9</b><span>1280 × 720</span>
-            </div>
-            <div class="size">
-              <div class="tile mini land" style="--accent: #6C4FE8; --w: 150px; --ar: 3 / 2">
-                <img class="lay-bg" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/bg.jpg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><img class="lay-kv" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/kv.png" alt="Gates of Olympus, 3:2 cut" loading="lazy" decoding="async" /><img class="lay-logo" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/0c089fee-01ec-4be8-ae29-5f2768a1c862/logoWhite.png" alt="" loading="lazy" decoding="async" />
-              </div>
-              <b>3:2</b><span>1200 × 800</span>
-            </div>
+          <div class="sizes reveal" id="sizeRow">
+            <!-- painted by the builder script, from the same template -->
           </div>
         </div>
       </section>
@@ -2110,15 +2053,27 @@
       ]
       // A slice of the dark palette (src/lib/palettes.ts).
       const SWATCHES = ['#6C4FE8', '#FF4FA3', '#9B30FF', '#E8A33D', '#2FA4E7', '#F0C020', '#E23A2E', '#12C2C2', '#7ED321']
-      // Base boxes, as fractions of the frame — portrait stacks, landscape splits.
-      const BASE = {
-        portrait: { kv: { x: 0.15, y: 0.05, w: 0.7, h: 0.62 }, logo: { x: 0.35, y: 0.72, w: 0.3, h: 0.15 } },
-        landscape: { kv: { x: 0.04, y: 0.06, w: 0.46, h: 0.88 }, logo: { x: 0.55, y: 0.28, w: 0.4, h: 0.44 } },
+      // The live template's per-size layouts (thumb_templates.params.layouts):
+      // a 9-point anchor, a scale on the layer's contain-fit, and a fine offset.
+      const TEMPLATE = {
+        '3:4': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.38, logoDX: 0, logoDY: 0.04 },
+        '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
+        '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
+        '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
+        '3:2': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
       }
+      // Light-band gradient per size (params.gradients, else the base values).
+      const GRAD = {
+        default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
+        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 49 },
+        '3:2': { dir: 'right', s1: 41, s2: 80, bottom: 100, band: 50 },
+      }
+      const LOGO_ASPECT_K = 2.2 // thumb.ts — a width-bound logo fits 2.2·scale·W
 
       const el = {
         frame: $('frame'), tile: $('tile'), bg: $('layBg'), band: $('layBand'), kv: $('layKv'),
         logo: $('layLogo'), prov: $('layProv'), sel: $('sel'), sizeBar: $('sizeBar'),
+        glow: $('layGlow'), bloom: $('layBloom'), sizeRow: $('sizeRow'),
         strip: $('filmstrip'), swatches: $('swatches'), note: $('labNote'),
         kvScale: $('kvScale'), logoScale: $('logoScale'), bandOpacity: $('bandOpacity'),
         kvScaleVal: $('kvScaleVal'), logoScaleVal: $('logoScaleVal'), bandVal: $('bandVal'),
@@ -2129,6 +2084,9 @@
 
       const state = { g: 0, size: '3:4', accent: null, band: 1, prov: true, white: true, layer: 'kv', layouts: {} }
 
+      // The contain-fit needs the image's natural size, so re-place on load.
+      ;[el.kv, el.logo, el.bg].forEach((img) => img.addEventListener('load', () => render()))
+
       const game = () => GAMES[state.g]
       const sizeDef = () => SIZES.find((s) => s.key === state.size) || SIZES[0]
       const landscape = () => sizeDef().w / sizeDef().h > 1.2
@@ -2137,16 +2095,34 @@
 
       function layout() {
         if (!state.layouts[state.size]) {
-          state.layouts[state.size] = { kv: { s: 1, dx: 0, dy: 0 }, logo: { s: 1, dx: 0, dy: 0 } }
+          const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+          state.layouts[state.size] = {
+            kv: { s: t.kvScale, dx: t.kvDX, dy: t.kvDY },
+            logo: { s: t.logoScale, dx: t.logoDX, dy: t.logoDY },
+          }
         }
         return state.layouts[state.size]
       }
 
-      /** Box for a layer, in frame fractions: base scaled about its centre, then offset. */
+      /** Contain-fit of an image in the frame, as frame fractions (baseFit). */
+      function fitOf(img, ar) {
+        const nw = img && img.naturalWidth ? img.naturalWidth : 1000
+        const nh = img && img.naturalHeight ? img.naturalHeight : 1000
+        // Work in frame units where width = 1 and height = 1/ar.
+        const H = 1 / ar
+        const f = Math.min(1 / nw, H / nh)
+        return { w: nw * f, h: (nh * f) / H }
+      }
+
+      /** Box for a layer, in frame fractions: the layer's contain-fit scaled by
+       *  k, centred on the template's 9-point anchor plus its offset. */
       function boxOf(key) {
         if (key === 'bg') return { x: 0, y: 0, w: 1, h: 1 }
         if (key === 'band') {
-          return landscape() ? { x: 0.42, y: 0, w: 0.58, h: 1 } : { x: 0, y: 0.58, w: 1, h: 0.42 }
+          const g = GRAD[state.size] || GRAD.default
+          return g.dir === 'right'
+            ? { x: 1 - g.band / 100, y: 0, w: g.band / 100, h: 1 }
+            : { x: 0, y: 1 - g.band / 100, w: 1, h: g.band / 100 }
         }
         if (key === 'prov') {
           const f = el.frame.getBoundingClientRect()
@@ -2154,16 +2130,91 @@
           if (!f.width) return { x: 0.35, y: 0.9, w: 0.3, h: 0.07 }
           return { x: (p.left - f.left) / f.width, y: (p.top - f.top) / f.height, w: p.width / f.width, h: p.height / f.height }
         }
-        const b = BASE[landscape() ? 'landscape' : 'portrait'][key]
+        const t = TEMPLATE[state.size] || TEMPLATE['3:4']
         const st = layout()[key]
-        const w = b.w * st.s
-        const h = b.h * st.s
-        const cx = b.x + b.w / 2 + st.dx
-        const cy = b.y + b.h / 2 + st.dy
+        const s = sizeDef()
+        const align = key === 'kv' ? t.kvAlign : t.logoAlign
+        const fit = fitOf(key === 'kv' ? el.kv : el.logo, s.w / s.h)
+        const k = key === 'kv' ? st.s : st.s * LOGO_ASPECT_K
+        const w = fit.w * k
+        const h = fit.h * k
+        const col = align[1]
+        const row = align[0]
+        const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) + st.dx
+        const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) + st.dy
         return { x: cx - w / 2, y: cy - h / 2, w, h }
       }
 
       const pct = (n) => (n * 100).toFixed(2) + '%'
+
+      function rgbaOf(hex, a) {
+        const v = String(hex).replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      /** bandStops() from thumb.ts: a smootherstep fade in, the semantic→blur
+       *  crossover, then a fade out — so the band has no visible seam. */
+      function bandCss(hex, g, opacity) {
+        const semA = 0.6 * opacity
+        const blurA = 1 * opacity
+        const lo = Math.min(g.s1, g.s2) / 100
+        const hi = Math.max(g.s1, g.s2) / 100
+        const bot = Math.max(hi, g.bottom / 100)
+        const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+        const out = []
+        for (let i = 0; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, semA * smooth(t)) + ' ' + (lo * t * 100).toFixed(2) + '%')
+        }
+        out.push(rgbaOf(hex, blurA) + ' ' + (hi * 100).toFixed(2) + '%')
+        out.push(rgbaOf(hex, blurA) + ' ' + (bot * 100).toFixed(2) + '%')
+        for (let i = 1; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, blurA * smooth(1 - t)) + ' ' + ((bot + (1 - bot) * t) * 100).toFixed(2) + '%')
+        }
+        return 'linear-gradient(to ' + g.dir + ', ' + out.join(', ') + ')'
+      }
+
+      /** Corner radius 16/244 and stroke 2.5/244 of the frame width, in px —
+       *  percentages would make the corner elliptical on a non-square frame. */
+      function applyMetrics() {
+        document.querySelectorAll('.tile').forEach((t) => {
+          const w = t.offsetWidth
+          if (!w) return
+          t.style.borderRadius = Math.max(3, (16 / 244) * w) + 'px'
+          if (t.classList.contains('live')) t.style.borderWidth = Math.max(1, (2.5 / 244) * w) + 'px'
+        })
+      }
+      window.addEventListener('resize', applyMetrics)
+
+      /** Paint the frame chrome — band on its edge, colour glow, white bloom. */
+      function paintChrome(nodes, sizeKey, hex, opacity) {
+        const g = GRAD[sizeKey] || GRAD.default
+        const band = nodes.band
+        if (band) {
+          band.style.cssText = ''
+          band.style.position = 'absolute'
+          if (g.dir === 'right') {
+            band.style.top = '0'
+            band.style.bottom = '0'
+            band.style.right = '0'
+            band.style.width = g.band + '%'
+          } else {
+            band.style.left = '0'
+            band.style.right = '0'
+            band.style.bottom = '0'
+            band.style.height = g.band + '%'
+          }
+          band.style.zIndex = '1'
+          band.style.background = bandCss(hex, g, opacity)
+        }
+        if (nodes.glow) {
+          nodes.glow.style.background =
+            'radial-gradient(closest-side, ' + rgbaOf(hex, 0.85 * opacity) + ', ' + rgbaOf(hex, 0) + ' 72%)'
+        }
+        if (nodes.bloom) nodes.bloom.style.opacity = String(opacity)
+      }
 
       function place(node, box, objPos) {
         node.style.left = pct(box.x)
@@ -2182,7 +2233,7 @@
         const base = SB + '/assets/' + g.id
 
         el.frame.style.aspectRatio = s.w + ' / ' + s.h
-        el.frame.style.maxWidth = land ? '340px' : '232px'
+        el.frame.style.maxWidth = land ? '360px' : '250px'
         el.tile.classList.toggle('land', land)
         el.tile.style.setProperty('--accent', accent())
 
@@ -2195,13 +2246,11 @@
         const logoSrc = base + (state.white ? '/logoWhite.png' : '/logoColor.png')
         if (el.logo.getAttribute('src') !== logoSrc) el.logo.src = logoSrc
 
-        place(el.kv, boxOf('kv'), land ? 'center center' : 'center top')
-        place(el.logo, boxOf('logo'), land ? 'center center' : 'center bottom')
-        el.band.style.opacity = String(state.band)
+        place(el.kv, boxOf('kv'), 'center center')
+        place(el.logo, boxOf('logo'), 'center center')
+        paintChrome({ band: el.band, glow: el.glow, bloom: el.bloom }, state.size, accent(), state.band)
         el.prov.hidden = !state.prov
-        el.prov.textContent = 'PRAGMATIC'
 
-        // Selection box follows the selected layer.
         const sel = boxOf(state.layer)
         el.sel.style.left = pct(sel.x)
         el.sel.style.top = pct(sel.y)
@@ -2217,8 +2266,7 @@
           b.setAttribute('aria-checked', String(on))
         })
         lab.querySelectorAll('.prop[data-for]').forEach((p) => {
-          const dim = p.dataset.for !== state.layer
-          if (dim) p.setAttribute('data-dim', '')
+          if (p.dataset.for !== state.layer) p.setAttribute('data-dim', '')
           else p.removeAttribute('data-dim')
         })
 
@@ -2235,6 +2283,7 @@
         lab.querySelectorAll('.size-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.size === state.size)))
         lab.querySelectorAll('.film').forEach((b, i) => b.setAttribute('aria-pressed', String(i === state.g)))
         lab.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color === accent())))
+        applyMetrics()
       }
 
       function setRange(input, value, out, suffix) {
@@ -2394,7 +2443,7 @@
           drag.y = fy
         } else {
           const dist = Math.hypot((fx - drag.cx) * r.width, (fy - drag.cy) * r.height)
-          st.s = clamp((drag.startScale * dist) / drag.startDist, 0.4, 2)
+          st.s = clamp((drag.startScale * dist) / drag.startDist, 0.1, 2.2)
         }
         render()
       })
@@ -2420,7 +2469,7 @@
           e.preventDefault()
           render()
         } else if (e.key === '+' || e.key === '=' || e.key === '-') {
-          st.s = clamp(st.s + (e.key === '-' ? -0.05 : 0.05), 0.4, 2)
+          st.s = clamp(st.s + (e.key === '-' ? -0.05 : 0.05), 0.1, 2.2)
           e.preventDefault()
           render()
         }
@@ -2474,57 +2523,96 @@
           const ctx = c.getContext('2d')
           drawFit(ctx, bg, { x: 0, y: 0, w: 1, h: 1 }, s.w, s.h, 'center', true)
 
+          // Light band — the same stops the live frame paints.
+          const gd = GRAD[s.key] || GRAD.default
           if (state.band > 0) {
             const b = boxOf('band')
-            const grad = land
-              ? ctx.createLinearGradient(b.x * s.w, 0, s.w, 0)
-              : ctx.createLinearGradient(0, b.y * s.h, 0, s.h)
-            grad.addColorStop(0, rgba(accent(), 0))
-            grad.addColorStop(0.46, rgba(accent(), 0.45 * state.band))
-            grad.addColorStop(1, 'rgba(0,0,0,' + 0.78 * state.band + ')')
+            const x0 = b.x * s.w
+            const y0 = b.y * s.h
+            const bw = b.w * s.w
+            const bh = b.h * s.h
+            const grad = gd.dir === 'right' ? ctx.createLinearGradient(x0, 0, x0 + bw, 0) : ctx.createLinearGradient(0, y0, 0, y0 + bh)
+            const semA = 0.6 * state.band
+            const blurA = state.band
+            const lo = Math.min(gd.s1, gd.s2) / 100
+            const hi = Math.max(gd.s1, gd.s2) / 100
+            const bot = Math.max(hi, gd.bottom / 100)
+            const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+            for (let i = 0; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(lo * t, rgba(accent(), semA * smooth(t)))
+            }
+            grad.addColorStop(hi, rgba(accent(), blurA))
+            grad.addColorStop(bot, rgba(accent(), blurA))
+            for (let i = 1; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(Math.min(1, bot + (1 - bot) * t), rgba(accent(), blurA * smooth(1 - t)))
+            }
             ctx.fillStyle = grad
-            ctx.fillRect(b.x * s.w, b.y * s.h, b.w * s.w, b.h * s.h)
+            ctx.fillRect(x0, y0, bw, bh)
           }
 
-          drawFit(ctx, kv, boxOf('kv'), s.w, s.h, land ? 'center' : 'top', false)
-          drawFit(ctx, logo, boxOf('logo'), s.w, s.h, land ? 'center' : 'bottom', false)
+          // The two bottom glows: colour ellipse, then the white overlay bloom.
+          const ellipse = (cy, rw, rh, inner, outer, blend, alpha) => {
+            ctx.save()
+            if (blend) ctx.globalCompositeOperation = blend
+            ctx.globalAlpha = alpha == null ? 1 : alpha
+            ctx.translate(s.w / 2, cy)
+            ctx.scale(rw, rh)
+            const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+            rg.addColorStop(0, inner)
+            rg.addColorStop(0.72, outer)
+            ctx.fillStyle = rg
+            ctx.fillRect(-1, -1, 2, 2)
+            ctx.restore()
+          }
+          ellipse(s.h * 0.88, s.w * 0.45, s.h * 0.17, rgba(accent(), 0.85 * state.band), rgba(accent(), 0))
+          ellipse(s.h * 0.985, s.w * 0.4055, s.h * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay', state.band)
 
+          drawFit(ctx, kv, boxOf('kv'), s.w, s.h, 'center', false)
+          drawFit(ctx, logo, boxOf('logo'), s.w, s.h, 'center', false)
+
+          // Provider badge — the template's bottom tab (radius 8/8/0/0 @244).
           if (state.prov) {
-            const fs = Math.round(s.w * 0.024)
+            const fs = Math.round(s.w * 0.032)
             ctx.font = '600 ' + fs + 'px system-ui, sans-serif'
             const label = 'PRAGMATIC'
             const tw = ctx.measureText(label).width
             const padX = fs * 1.1
-            const bw = tw + padX * 2 + fs
-            const bh = fs * 2.2
-            const bx = land ? s.w * 0.95 - bw : (s.w - bw) / 2
-            const by = land ? s.h * 0.88 - bh : s.h * 0.955 - bh
-            ctx.fillStyle = 'rgba(8,10,14,0.55)'
-            ctx.strokeStyle = 'rgba(255,255,255,0.22)'
-            ctx.lineWidth = Math.max(1, s.w * 0.0015)
-            const rr = bh / 2
+            const dot = fs * 0.42
+            const bw = tw + padX * 2 + dot * 2
+            const bh = fs * 2
+            const bx = (s.w - bw) / 2
+            const by = s.h - bh - s.h * 0.003
+            const rr = (8 / 244) * s.w
+            ctx.fillStyle = 'rgba(8,10,14,0.72)'
             ctx.beginPath()
-            ctx.moveTo(bx + rr, by)
-            ctx.arcTo(bx + bw, by, bx + bw, by + bh, rr)
-            ctx.arcTo(bx + bw, by + bh, bx, by + bh, rr)
-            ctx.arcTo(bx, by + bh, bx, by, rr)
-            ctx.arcTo(bx, by, bx + bw, by, rr)
+            ctx.moveTo(bx, by + bh)
+            ctx.lineTo(bx, by + rr)
+            ctx.arcTo(bx, by, bx + rr, by, rr)
+            ctx.lineTo(bx + bw - rr, by)
+            ctx.arcTo(bx + bw, by, bx + bw, by + rr, rr)
+            ctx.lineTo(bx + bw, by + bh)
             ctx.closePath()
             ctx.fill()
-            ctx.stroke()
             ctx.fillStyle = accent()
             ctx.beginPath()
-            ctx.arc(bx + padX * 0.75, by + bh / 2, fs * 0.22, 0, Math.PI * 2)
+            ctx.arc(bx + padX * 0.9, by + bh / 2, dot / 2, 0, Math.PI * 2)
             ctx.fill()
-            ctx.fillStyle = 'rgba(255,255,255,0.88)'
+            ctx.fillStyle = 'rgba(255,255,255,0.9)'
             ctx.textBaseline = 'middle'
-            ctx.fillText(label, bx + padX * 1.3, by + bh / 2 + 1)
+            ctx.fillText(label, bx + padX * 1.35, by + bh / 2 + 1)
           }
 
-          // Frame stroke, in the game's accent.
+          // Frame: 2.5/244 stroke on a 16/244 corner radius, outside the art.
+          const lw = (2.5 / 244) * s.w
+          const rad = (16 / 244) * s.w
           ctx.strokeStyle = accent()
-          ctx.lineWidth = Math.max(2, s.w * 0.004)
-          ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, s.w - ctx.lineWidth, s.h - ctx.lineWidth)
+          ctx.lineWidth = lw
+          ctx.beginPath()
+          if (ctx.roundRect) ctx.roundRect(lw / 2, lw / 2, s.w - lw, s.h - lw, rad)
+          else ctx.rect(lw / 2, lw / 2, s.w - lw, s.h - lw)
+          ctx.stroke()
 
           const blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('no blob'))), 'image/png'))
           const url = URL.createObjectURL(blob)
@@ -2541,6 +2629,78 @@
         }
       })
 
+      /** The frames section: one game through every cut, same chrome, same
+       *  template layout — built here so there is one source of truth. */
+      function paintSizeRow() {
+        const row = el.sizeRow
+        if (!row) return
+        const g = GAMES[0]
+        const base = SB + '/assets/' + g.id
+        const widths = { '3:4': 104, '2:3': 96, '47:66': 100, '16:9': 172, '3:2': 156 }
+        row.textContent = ''
+        SIZES.forEach((s) => {
+          const land = s.w / s.h > 1.2
+          const t = TEMPLATE[s.key]
+          const cell = document.createElement('div')
+          cell.className = 'size'
+          const tile = document.createElement('div')
+          tile.className = 'tile live mini' + (land ? ' land' : '')
+          tile.style.setProperty('--accent', g.accent)
+          tile.style.setProperty('--ar', s.w + ' / ' + s.h)
+          tile.style.width = widths[s.key] + 'px'
+          const bg = new Image()
+          bg.className = 'lay-bg'
+          bg.alt = ''
+          bg.loading = 'lazy'
+          bg.src = base + '/bg.jpg'
+          const band = document.createElement('div')
+          band.className = 't-band'
+          const glow = document.createElement('div')
+          glow.className = 't-glow'
+          const bloom = document.createElement('div')
+          bloom.className = 't-bloom'
+          const kv = new Image()
+          kv.className = 'lay-kv'
+          kv.alt = ''
+          kv.loading = 'lazy'
+          kv.src = base + '/kv.png'
+          const logo = new Image()
+          logo.className = 'lay-logo'
+          logo.alt = ''
+          logo.loading = 'lazy'
+          logo.src = base + '/logoWhite.png'
+          tile.append(bg, band, glow, bloom, kv, logo)
+
+          const put = () => {
+            const ar = s.w / s.h
+            const fit = (img, k) => {
+              const f = fitOf(img, ar)
+              return { w: f.w * k, h: f.h * k }
+            }
+            const anchor = (align, dx, dy, box) => {
+              const cx = (align[1] === 'l' ? 0.27 : align[1] === 'r' ? 0.73 : 0.5) + dx
+              const cy = (align[0] === 't' ? 0.32 : align[0] === 'b' ? 0.68 : 0.5) + dy
+              return { x: cx - box.w / 2, y: cy - box.h / 2, w: box.w, h: box.h }
+            }
+            place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)), 'center center')
+            place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)), 'center center')
+            paintChrome({ band: band, glow: glow, bloom: bloom }, s.key, g.accent, 1)
+            applyMetrics()
+          }
+          kv.addEventListener('load', put)
+          logo.addEventListener('load', put)
+          put()
+
+          const label = document.createElement('b')
+          label.textContent = s.key
+          const dims = document.createElement('span')
+          dims.textContent = s.w + ' × ' + s.h
+          cell.append(tile, label, dims)
+          row.appendChild(cell)
+        })
+      }
+
+      paintSizeRow()
       render()
       note('Drag the key visual, switch the game, change the cut — the template stays put.')
     })()
