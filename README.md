@@ -83,10 +83,14 @@ for logos) and centred on the 9-point anchor — driven by the template's real
 per-size layouts.
 
 [`public/landing-framer.html`](public/landing-framer.html) is a complete
-side-landing in the thumbs.store Framer design system: hero with floating real
-tiles, marquee strip, problem grid, how-it-works with the live four-cut row, a
-3D exploded "anatomy" of the thumbnail layers (click to toggle), the live
-editor, the shipped-output card and CTA — all self-contained, no build step.
+side-landing in the thumbs.store Framer design system on a fluid 1440px grid:
+a centred hero with the live editor inside it, a marquee strip, the problem
+grid, then the process as seven animated sections — CSV upload/matching,
+branded frame (the 3D exploded layer anatomy), scale at any size (the live
+four-cut row), colour/white/text logo variants with translations, CSS light
+animations, AI motion, and API export with format chips — plus a white-label
+dashboard service card, the shipped-output card and CTA. All CSS-animated,
+self-contained, no build step, with static fallbacks under reduced motion.
 
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and

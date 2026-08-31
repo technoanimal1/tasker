@@ -53,7 +53,7 @@
 
       /* ---- page column: cards stacked on black, like the main site ---- */
       main {
-        max-width: 1200px;
+        max-width: 1440px;
         margin: 0 auto;
         padding: 92px 16px 16px;
         display: flex;
@@ -145,7 +145,7 @@
       nav {
         pointer-events: auto;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1440px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -176,16 +176,23 @@
       .hero {
         background: var(--panel);
         border-radius: 30px;
-        padding: 64px 56px;
+        padding: 64px clamp(20px, 4vw, 56px) 40px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 48px;
+        gap: 40px;
+      }
+      .hero-editor {
+        position: relative;
+        z-index: 1;
+        width: 100%;
       }
       .hero::before {
         content: '';
         position: absolute;
         top: -260px;
-        right: -120px;
+        left: 50%;
+        margin-left: -360px;
         width: 720px;
         height: 560px;
         background: radial-gradient(ellipse at center, rgb(254 241 80 / 0.14), transparent 65%);
@@ -197,62 +204,35 @@
         inset: 0;
         background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
         background-size: 20px 20px;
-        mask-image: radial-gradient(60% 80% at 70% 40%, #000 20%, transparent 80%);
+        mask-image: radial-gradient(70% 55% at 50% 22%, #000 20%, transparent 80%);
         pointer-events: none;
       }
       .hero-copy {
         position: relative;
         z-index: 1;
-        flex: 1 1 0;
         display: flex;
         flex-direction: column;
+        align-items: center;
+        text-align: center;
         gap: 18px;
-        min-width: 0;
+        max-width: 860px;
       }
       .hero-kicker {
         font-family: var(--semi);
         font-weight: 600;
         color: var(--yellow);
-        max-width: 480px;
+        max-width: 640px;
       }
       .hero h1 {
         font-family: var(--display);
-        font-size: 50px;
+        font-size: clamp(38px, 4.2vw, 58px);
         font-weight: 500;
         letter-spacing: -0.04em;
         line-height: 1.05em;
         color: #fff;
       }
       .hero-lede { color: #fff; max-width: 560px; }
-      .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-
-      /* floating tile cluster */
-      .hero-visual {
-        position: relative;
-        z-index: 1;
-        flex: 0 0 360px;
-        height: 400px;
-      }
-      .hero-visual .tilebox { position: absolute; }
-      .hv-back {
-        width: 210px;
-        left: 150px;
-        top: 30px;
-        transform: rotate(9deg);
-        filter: brightness(0.75);
-        animation: hfloat 7s ease-in-out infinite;
-      }
-      .hv-front {
-        width: 240px;
-        left: 0;
-        top: 60px;
-        transform: rotate(-7deg);
-        animation: hfloat 7s ease-in-out 1.2s infinite;
-      }
-      @keyframes hfloat {
-        0%, 100% { translate: 0 0; }
-        50% { translate: 0 -12px; }
-      }
+      .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
 
       /* ---- composite tile plumbing (shared with the editor) ---- */
       .tilebox { position: relative; }
@@ -504,12 +484,7 @@
 
       /* ---- breakpoints (the site's: 1200 / 810 / below) ---- */
       @media (max-width: 1199.98px) {
-        .hero { flex-direction: column; padding: 48px 32px; text-align: center; }
-        .hero-copy { align-items: center; }
-        .hero-cta { justify-content: center; }
-        .hero h1 { font-size: 44px; }
-        .hero-kicker { max-width: 620px; }
-        .hero-visual { flex: none; width: 360px; max-width: 100%; height: 380px; }
+        .hero { padding: 48px 24px 32px; }
         .cols4 { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
         .steps { flex-direction: column; }
         .anatomy-grid, .output-grid { flex-direction: column; }
@@ -527,19 +502,327 @@
         .cols4 { grid-template-columns: 1fr; gap: 36px; }
         .pcol { align-items: center; text-align: center; }
         .nav-cta .btn-o { display: none; }
-        .hero-visual { height: 330px; width: 300px; }
-        .hv-front { width: 200px; left: 0; }
-        .hv-back { width: 175px; left: 120px; }
         .anatomy-stage .tilebox { width: 200px; }
         .ltag { display: none; }
         .marquee span { font-size: 18px; }
         .output-grid .tilebox { flex: none; width: 220px; }
       }
 
+
+      /* ================== process sections ================== */
+      .pstep-card { overflow: visible; }
+      .pstep {
+        display: flex;
+        align-items: center;
+        gap: clamp(32px, 5vw, 72px);
+      }
+      .pstep-card:nth-of-type(even) .pstep { flex-direction: row-reverse; }
+      .pcopy {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .pcopy .step-tag {
+        font-family: var(--bit);
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--yellow);
+        text-transform: uppercase;
+      }
+      .pcopy h2 {
+        font-family: var(--display);
+        font-size: clamp(28px, 2.6vw, 38px);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1.12em;
+        color: #fff;
+      }
+      .pcopy p { color: var(--muted); line-height: 1.6em; max-width: 520px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      .chip {
+        font-family: var(--bit);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 3px 10px;
+        text-transform: uppercase;
+      }
+      .chip.on { color: #050505; background: var(--yellow); border-color: var(--yellow); }
+      .pstage {
+        flex: 1 1 0;
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--well);
+        min-height: 340px;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+      .pstep-wide { flex-direction: column !important; align-items: stretch; gap: 8px; }
+      .pstep-wide .pcopy { align-items: center; text-align: center; }
+      .pstep-wide .pcopy p { max-width: 640px; }
+
+      /* -- 01 upload -- */
+      .up-zone {
+        width: min(400px, 100%);
+        border: 2px dashed rgb(254 241 80 / 0.4);
+        border-radius: 14px;
+        padding: 26px 24px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        background: #101010;
+      }
+      .up-file {
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #1d1d1d;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-family: var(--bit);
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        animation: updrop 7s ease-in-out infinite;
+      }
+      .up-file i {
+        width: 22px; height: 26px; flex: none;
+        background: var(--yellow);
+        border-radius: 3px 8px 3px 3px;
+        position: relative;
+      }
+      .up-file i::after {
+        content: 'CSV';
+        position: absolute; inset: auto 0 3px 0;
+        font-family: var(--bit); font-size: 8px; font-style: normal;
+        color: #050505; text-align: center; font-weight: 700;
+      }
+      @keyframes updrop {
+        0% { opacity: 0; transform: translateY(-26px); }
+        8%, 92% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(0); }
+      }
+      .up-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+      .up-rows li {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 13px; color: #b3b3b3;
+        border-bottom: 1px solid rgb(255 255 255 / 0.05);
+        padding-bottom: 8px;
+        opacity: 0;
+        animation: uprow 7s ease-out infinite;
+      }
+      .up-rows li b {
+        font-family: var(--bit); font-size: 13px; font-weight: 700;
+        color: var(--yellow); letter-spacing: 0.05em;
+      }
+      .up-rows li:nth-child(1) { animation-delay: 0.0s; }
+      .up-rows li:nth-child(2) { animation-delay: 0.35s; }
+      .up-rows li:nth-child(3) { animation-delay: 0.7s; }
+      @keyframes uprow {
+        0%, 18% { opacity: 0; transform: translateX(-8px); }
+        26%, 92% { opacity: 1; transform: none; }
+        100% { opacity: 0; }
+      }
+      .up-bar { height: 6px; border-radius: 999px; background: #1d1d1d; overflow: hidden; }
+      .up-bar i { display: block; height: 100%; background: var(--yellow); border-radius: inherit; animation: upfill 7s ease-in-out infinite; }
+      @keyframes upfill { 0%, 20% { width: 0; } 60%, 92% { width: 100%; } 100% { width: 100%; opacity: 0; } }
+      .up-done {
+        text-align: center; font-family: var(--bit); font-size: 15px; font-weight: 700;
+        letter-spacing: 0.05em; color: var(--yellow); opacity: 0;
+        animation: updone 7s ease-out infinite;
+      }
+      @keyframes updone { 0%, 58% { opacity: 0; } 66%, 92% { opacity: 1; } 100% { opacity: 0; } }
+
+      /* -- 02 branded frame: swatch cycle under the exploded stack -- */
+      .swrow { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+      .swrow i {
+        width: 22px; height: 22px; border-radius: 7px;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        animation: swpulse 4.5s ease-in-out infinite;
+      }
+      .swrow i:nth-child(1) { background: #FF4FA3; animation-delay: 0s; }
+      .swrow i:nth-child(2) { background: #6C4FE8; animation-delay: 1.5s; }
+      .swrow i:nth-child(3) { background: #FEF150; animation-delay: 3s; }
+      @keyframes swpulse {
+        0%, 28%, 100% { box-shadow: none; transform: none; }
+        7%, 20% { box-shadow: 0 0 0 3px #0c0c0c, 0 0 0 5px var(--yellow); transform: translateY(-3px); }
+      }
+
+      /* -- 04 logo variants + translations -- */
+      .vstage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .vstage .lay-logo, .vstage .tlogo { opacity: 0; animation: vshow 16s ease-in-out infinite; }
+      .vstage .tlogo {
+        position: absolute; left: 8%; right: 8%; top: 60%;
+        text-align: center;
+        font-family: var(--display);
+        font-size: 24px; line-height: 1.05em; letter-spacing: -0.02em;
+        color: #fff; z-index: 2;
+        text-shadow: 0 2px 12px rgb(0 0 0 / 0.55);
+      }
+      .vstage [data-v='1'] { animation-delay: 0s; }
+      .vstage [data-v='2'] { animation-delay: 4s; }
+      .vstage [data-v='3'] { animation-delay: 8s; }
+      .vstage [data-v='4'] { animation-delay: 12s; }
+      @keyframes vshow {
+        0%, 2% { opacity: 0; }
+        5%, 23% { opacity: 1; }
+        27%, 100% { opacity: 0; }
+      }
+      .vchips .chip { animation: vchip 16s ease-in-out infinite; }
+      .vchips .chip:nth-child(1) { animation-delay: 0s; }
+      .vchips .chip:nth-child(2) { animation-delay: 4s; }
+      .vchips .chip:nth-child(3) { animation-delay: 8s; }
+      .vchips .chip:nth-child(4) { animation-delay: 12s; }
+      @keyframes vchip {
+        0%, 2% { color: var(--muted); background: none; border-color: var(--line); }
+        5%, 23% { color: #050505; background: var(--yellow); border-color: var(--yellow); }
+        27%, 100% { color: var(--muted); background: none; border-color: var(--line); }
+      }
+
+      /* -- 05 css light animations -- */
+      .cssstage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .cssstage .lay-kv { animation: kvfloat 4.5s ease-in-out infinite; }
+      @keyframes kvfloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+      .cssstage .shine {
+        position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.22) 50%, transparent 62%);
+        background-size: 260% 100%;
+        animation: shinemove 4.5s ease-in-out infinite;
+        border-radius: inherit;
+      }
+      @keyframes shinemove { 0%, 55% { background-position: 130% 0; } 90%, 100% { background-position: -50% 0; } }
+
+      /* -- 06 ai animations -- */
+      .aistage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .aistage .lay-kv { animation: aibreathe 5.5s ease-in-out infinite; transform-origin: 50% 70%; }
+      @keyframes aibreathe { 0%, 100% { scale: 1; rotate: 0deg; } 40% { scale: 1.035; rotate: -0.6deg; } 70% { scale: 1.015; rotate: 0.4deg; } }
+      .aistage .scan {
+        position: absolute; left: 4%; right: 4%; height: 3px; top: 0; z-index: 3;
+        background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+        filter: drop-shadow(0 0 8px rgb(254 241 80 / 0.8));
+        animation: scanmove 5.5s ease-in-out infinite;
+        border-radius: 999px;
+      }
+      @keyframes scanmove { 0% { top: 4%; opacity: 0; } 8% { opacity: 1; } 46% { top: 92%; opacity: 1; } 54%, 100% { top: 92%; opacity: 0; } }
+      .aistage .spark {
+        position: absolute; width: 6px; height: 6px; z-index: 3; border-radius: 999px;
+        background: #fff; box-shadow: 0 0 10px rgb(254 241 80 / 0.9);
+        opacity: 0; animation: sparkle 5.5s ease-in-out infinite;
+      }
+      @keyframes sparkle { 0%, 50% { opacity: 0; scale: 0.4; } 58%, 66% { opacity: 1; scale: 1; } 74%, 100% { opacity: 0; scale: 0.4; } }
+
+      /* -- 07 export api -- */
+      .codebox {
+        width: min(460px, 100%);
+        background: #0a0a0a;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px 24px;
+        font-family: var(--bit);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        line-height: 1.75;
+        overflow: hidden;
+      }
+      .codebox .ln { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #b3b3b3; opacity: 0; animation: lnshow 9s ease-out infinite; }
+      .codebox .ln:nth-child(1) { animation-delay: 0s; }
+      .codebox .ln:nth-child(2) { animation-delay: 0.5s; }
+      .codebox .ln:nth-child(3) { animation-delay: 1s; }
+      .codebox .ln:nth-child(4) { animation-delay: 1.5s; }
+      .codebox .ln:nth-child(5) { animation-delay: 2.6s; }
+      .codebox .ln:nth-child(6) { animation-delay: 3.1s; }
+      .codebox .y { color: var(--yellow); }
+      .codebox .w { color: #fff; }
+      .codebox .g { color: #7ed321; }
+      @keyframes lnshow { 0%, 4% { opacity: 0; transform: translateY(4px); } 9%, 93% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+      .fchips .chip { animation: fchip 9s ease-in-out infinite; }
+      .fchips .chip:nth-child(1) { animation-delay: 4.0s; }
+      .fchips .chip:nth-child(2) { animation-delay: 4.6s; }
+      .fchips .chip:nth-child(3) { animation-delay: 5.2s; }
+      .fchips .chip:nth-child(4) { animation-delay: 5.8s; }
+      .fchips .chip:nth-child(5) { animation-delay: 6.4s; }
+      @keyframes fchip {
+        0%, 3% { color: var(--muted); background: none; border-color: var(--line); }
+        6%, 12% { color: #050505; background: var(--yellow); border-color: var(--yellow); }
+        15%, 100% { color: var(--muted); background: none; border-color: var(--line); }
+      }
+
+      /* -- white-label service -- */
+      .wl-card { overflow: hidden; }
+      .wl-grid { display: flex; align-items: center; gap: clamp(32px, 5vw, 72px); }
+      .wl-mock {
+        flex: 1 1 0; min-width: 0;
+        border: 1px solid var(--line); border-radius: 16px; background: #0a0a0a;
+        overflow: hidden;
+        display: grid; grid-template-columns: 108px 1fr;
+        min-height: 300px;
+        animation: wlhue 14s linear infinite;
+      }
+      @keyframes wlhue { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(300deg); } }
+      .wl-side { border-right: 1px solid var(--line); padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; background: #101010; }
+      .wl-side .logo { width: 26px; height: 26px; border-radius: 8px; background: var(--yellow); margin-bottom: 6px; }
+      .wl-side i { display: block; height: 8px; border-radius: 999px; background: rgb(255 255 255 / 0.12); }
+      .wl-side i:first-of-type { background: rgb(254 241 80 / 0.7); }
+      .wl-main { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+      .wl-top { display: flex; gap: 8px; align-items: center; }
+      .wl-top i { height: 10px; border-radius: 999px; background: rgb(255 255 255 / 0.1); flex: 1; }
+      .wl-top b { width: 64px; height: 22px; border-radius: 6px; background: var(--yellow); }
+      .wl-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .wl-tiles img {
+        width: 100%; aspect-ratio: 3 / 4; object-fit: cover;
+        border-radius: 8px; display: block;
+        opacity: 0; transform: translateY(8px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .wl-tiles img:nth-child(2) { filter: hue-rotate(70deg); }
+      .wl-tiles img:nth-child(3) { filter: hue-rotate(160deg); }
+      .wl-tiles img:nth-child(4) { filter: hue-rotate(230deg); }
+      .wl-tiles img:nth-child(5) { filter: hue-rotate(40deg) saturate(1.2); }
+      .wl-tiles img:nth-child(6) { filter: hue-rotate(120deg); }
+      .wl-tiles img:nth-child(7) { filter: hue-rotate(200deg); }
+      .wl-tiles img:nth-child(8) { filter: hue-rotate(300deg); }
+      .reveal.in .wl-tiles img { opacity: 1; transform: none; }
+      .reveal.in .wl-tiles img:nth-child(n) { transition-delay: calc(var(--i, 0) * 90ms); }
+
+      @media (max-width: 1199.98px) {
+        .pstep, .pstep-card:nth-of-type(even) .pstep { flex-direction: column; }
+        .pcopy { align-items: center; text-align: center; }
+        .pcopy p { max-width: 640px; }
+        .chips { justify-content: center; }
+        .pstage { width: 100%; }
+        .wl-grid { flex-direction: column; }
+        .wl-mock { width: 100%; }
+      }
+      @media (max-width: 809.98px) {
+        .pstage { min-height: 300px; padding: 22px 14px; }
+        .codebox { font-size: 14px; padding: 16px; }
+        .wl-tiles { grid-template-columns: repeat(4, 1fr); }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
         *, *::before, *::after { animation: none !important; transition: none !important; }
         .reveal { opacity: 1; transform: none; }
+        /* Anything that appears only through an animation gets a static state. */
+        .up-file, .up-rows li, .up-done, .codebox .ln { opacity: 1 !important; transform: none !important; }
+        .up-bar i { width: 100% !important; }
+        .vstage .lay-logo[data-v='1'] { opacity: 1 !important; }
+        .wl-tiles img { opacity: 1 !important; transform: none !important; }
       }
     </style>
     <style>
@@ -1222,228 +1505,22 @@
 
     <main>
       <!-- ============================== HERO ============================== -->
-      <section class="card hero">
+      <section class="card hero" id="editor">
         <div class="hero-copy">
-          <p class="hero-kicker">The system behind the 6,000-thumbnail library — for operators who want to see how it actually works.</p>
+          <p class="hero-kicker">For casino operators, aggregators and platform providers — the system behind the 6,000-thumbnail library.</p>
           <h1>Every thumbnail, drawn by one template.</h1>
           <p class="hero-lede">
             thumbs.store isn’t a folder of images. It’s a rendering system: three shared layers per
-            game, one layout per aspect, and 6,000+ titles that inherit it. Change the template once
-            — the whole catalogue follows.
+            game, one layout per aspect, and 6,000+ titles that inherit it. This is the real
+            template below — move it.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-y" href="#editor">Try the editor</a>
-            <a class="btn btn-o" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+            <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
           </div>
         </div>
-        <div class="hero-visual tsx" aria-hidden="true">
-          <div class="tilebox hv-back" style="aspect-ratio: 3 / 4">
-            <div class="tile live" data-composite data-id="0c089fee-01ec-4be8-ae29-5f2768a1c862" data-accent="#6C4FE8" data-size="3:4">
-              <img class="lay-bg" alt="" loading="lazy" decoding="async" />
-              <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-              <img class="lay-kv" alt="" loading="lazy" decoding="async" />
-              <img class="lay-logo" alt="" loading="lazy" decoding="async" />
-              <div class="t-prov">PRAGMATIC</div>
-            </div>
-          </div>
-          <div class="tilebox hv-front" style="aspect-ratio: 3 / 4">
-            <div class="tile shot" style="--accent: #FF4FA3">
-              <img class="baked" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" decoding="async" width="480" height="640" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================ MARQUEE ============================= -->
-      <div class="marquee" aria-hidden="true">
-        <div class="track">
-          <div class="grp">
-            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
-            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
-            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
-            <span>no mock-ups</span><span>·</span>
-          </div>
-          <div class="grp">
-            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
-            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
-            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
-            <span>no mock-ups</span><span>·</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ============================ PROBLEM ============================= -->
-      <section class="card reveal">
-        <h2 class="h2">Hand-made thumbnails don’t scale.</h2>
-        <div class="cols4">
-          <div class="pcol">
-            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
-              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
-              <rect x="20" y="30" width="30" height="28" rx="6" fill="#FEF150" opacity="0.35" />
-              <rect x="26" y="25" width="30" height="28" rx="6" fill="#FEF150" opacity="0.6" />
-              <rect x="32" y="20" width="30" height="28" rx="6" fill="#FEF150" />
-            </svg>
-            <div class="tcol">
-              <h3>One-off files</h3>
-              <p>Every new game and every new size becomes another file to redraw, rename and eventually lose.</p>
-            </div>
-          </div>
-          <div class="pcol">
-            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
-              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
-              <rect x="18" y="24" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" opacity="0.4" />
-              <rect x="34" y="20" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" />
-            </svg>
-            <div class="tcol">
-              <h3>Layout drift</h3>
-              <p>Logos and key visuals slide out of place from game to game — the lobby stops reading as one product.</p>
-            </div>
-          </div>
-          <div class="pcol">
-            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
-              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
-              <circle cx="38.5" cy="40" r="17" stroke="#FEF150" stroke-width="3" opacity="0.4" />
-              <path d="M38.5 30v10l7 6" stroke="#FEF150" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <div class="tcol">
-              <h3>Slow launches</h3>
-              <p>New titles sit in a design queue waiting for artwork instead of going live the day you get them.</p>
-            </div>
-          </div>
-          <div class="pcol">
-            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
-              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
-              <path d="M24 30h20M34 30v22" stroke="#FEF150" stroke-width="4" stroke-linecap="round" opacity="0.4" />
-              <path d="M46 40l10 12M56 40L46 52" stroke="#FEF150" stroke-width="4" stroke-linecap="round" />
-            </svg>
-            <div class="tcol">
-              <h3>Brand breakage</h3>
-              <p>Generic typography replaces the game’s original art — and the recognition players buy with dies with it.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========================== HOW IT WORKS ========================== -->
-      <section class="card reveal" id="how">
-        <div class="center-stack">
-          <p class="eyebrow">How it works</p>
-          <h2 class="h2">One template. The whole catalogue.</h2>
-          <p class="lede">
-            The layout isn’t drawn into any file — it’s data. Anchors, scales, the light band, the
-            provider tab: stored once per aspect, applied to every game at render time.
-          </p>
-        </div>
-        <div class="steps">
-          <div class="step">
-            <span class="num">01</span>
-            <h3>Set the template once</h3>
-            <p>Where the key visual sits, how large the logotype runs, where the light band falls — decided once, per aspect size, by a designer.</p>
-          </div>
-          <div class="step">
-            <span class="num">02</span>
-            <h3>Drop in a game</h3>
-            <p>Background, key visual, white logotype. Three layers per title — the template places them, and nothing is redrawn by hand.</p>
-          </div>
-          <div class="step">
-            <span class="num">03</span>
-            <h3>Serve every cut</h3>
-            <p>Portrait stacks, landscape splits key-visual-left and logo-right. A new size is one layout to set — not 6,000 files to redraw.</p>
-          </div>
-        </div>
-        <div class="cutrow tsx" aria-label="One game rendered at four aspect sizes">
-          <div class="cut">
-            <div class="tilebox" style="width: 132px; aspect-ratio: 3 / 4">
-              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
-                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="Sweet Bonanza, 3:4 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
-              </div>
-            </div>
-            <b>3:4</b><span>900 × 1200</span>
-          </div>
-          <div class="cut">
-            <div class="tilebox" style="width: 118px; aspect-ratio: 2 / 3">
-              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="2:3">
-                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="Sweet Bonanza, 2:3 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
-              </div>
-            </div>
-            <b>2:3</b><span>800 × 1200</span>
-          </div>
-          <div class="cut">
-            <div class="tilebox" style="width: 126px; aspect-ratio: 47 / 66">
-              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="47:66">
-                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="Sweet Bonanza, 47:66 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
-              </div>
-            </div>
-            <b>47:66</b><span>940 × 1320</span>
-          </div>
-          <div class="cut">
-            <div class="tilebox" style="width: 232px; aspect-ratio: 16 / 9">
-              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="16:9">
-                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="Sweet Bonanza, 16:9 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
-              </div>
-            </div>
-            <b>16:9</b><span>1280 × 720</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================ ANATOMY ============================= -->
-      <section class="card reveal anatomy" id="anatomy">
-        <div class="center-stack">
-          <p class="eyebrow">The anatomy</p>
-          <h2 class="h2">Six layers. Zero hand-drawing.</h2>
-          <p class="lede">
-            Tap the tile to pull it apart. Everything below the artwork — the band, the glow, the
-            tab, the stroke — is the frame, and the frame is the same for all 6,000 games.
-          </p>
-        </div>
-        <div class="anatomy-grid tsx">
-          <div class="anatomy-stage" id="anatomyStage" role="button" tabindex="0" aria-label="Toggle the exploded layer view">
-            <div class="tilebox">
-              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
-                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
-                <div class="t-band"></div>
-                <div class="t-glow"></div>
-                <div class="t-bloom"></div>
-                <img class="lay-kv" alt="Sweet Bonanza key visual" loading="lazy" decoding="async" />
-                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
-                <div class="t-prov">PRAGMATIC</div>
-                <span class="ltag" style="top: 84%; transform: translateZ(0)">Background</span>
-                <span class="ltag" style="top: 66%; transform: translateZ(52px)">Light band</span>
-                <span class="ltag" style="top: 30%; transform: translateZ(115px)">Key visual</span>
-                <span class="ltag" style="top: 55%; transform: translateZ(155px)">Logotype</span>
-                <span class="ltag" style="top: 93%; transform: translateZ(190px)">Provider tab</span>
-              </div>
-            </div>
-          </div>
-          <div class="anatomy-list">
-            <div class="row"><span class="k">Background</span><p>The game’s own scene, filling the frame at 120% so every cut stays covered.</p></div>
-            <div class="row"><span class="k">Key visual</span><p>A clean cutout with its own transparent padding, anchored and scaled by the template — never stretched.</p></div>
-            <div class="row"><span class="k">Light band</span><p>A seamless gradient in the game’s accent colour, eased in so there’s no visible edge.</p></div>
-            <div class="row"><span class="k">Glow + bloom</span><p>A colour glow and a white overlay bloom lift the lower third, exactly like the renderer.</p></div>
-            <div class="row"><span class="k">Logotype</span><p>The original game logotype, white where the art needs it — original branding, not typography.</p></div>
-            <div class="row"><span class="k">Provider tab</span><p>The provider’s name on a tab in the frame colour, flush to the bottom edge.</p></div>
-            <p class="anatomy-hint">Click the tile to stack it back together.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================ EDITOR ============================== -->
-      <section class="card reveal" id="editor">
-        <div class="center-stack" style="margin-bottom: 28px">
-          <p class="eyebrow">Try it live</p>
-          <h2 class="h2">Don’t take our word for it. Move it.</h2>
-          <p class="lede">
-            This is the real template with the real layers, running in your browser. Drag the key
-            visual, resize it from a corner, switch the cut, recolour the frame — then export a PNG
-            at full resolution.
-          </p>
-        </div>
-        <div id="ts-editor" class="tsx">
+        <div class="hero-editor">
+<div id="ts-editor" class="tsx">
         <div class="ts-shell">
           <div class="ts-bar">
             <div class="ts-dots" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -1532,7 +1609,348 @@
           <p class="ts-note" id="ts-labNote" role="status">Loading the editor…</p>
         </div>
       </div>
+        </div>
       </section>
+
+      <!-- ============================ MARQUEE ============================= -->
+      <div class="marquee" aria-hidden="true">
+        <div class="track">
+          <div class="grp">
+            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+          <div class="grp">
+            <span>6,000+ thumbnails</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================ PROBLEM ============================= -->
+      <section class="card reveal">
+        <h2 class="h2">Hand-made thumbnails don’t scale.</h2>
+        <div class="cols4">
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <rect x="20" y="30" width="30" height="28" rx="6" fill="#FEF150" opacity="0.35" />
+              <rect x="26" y="25" width="30" height="28" rx="6" fill="#FEF150" opacity="0.6" />
+              <rect x="32" y="20" width="30" height="28" rx="6" fill="#FEF150" />
+            </svg>
+            <div class="tcol">
+              <h3>One-off files</h3>
+              <p>Every new game and every new size becomes another file to redraw, rename and eventually lose.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <rect x="18" y="24" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" opacity="0.4" />
+              <rect x="34" y="20" width="26" height="34" rx="5" stroke="#FEF150" stroke-width="3" />
+            </svg>
+            <div class="tcol">
+              <h3>Layout drift</h3>
+              <p>Logos and key visuals slide out of place from game to game — the lobby stops reading as one product.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <circle cx="38.5" cy="40" r="17" stroke="#FEF150" stroke-width="3" opacity="0.4" />
+              <path d="M38.5 30v10l7 6" stroke="#FEF150" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Slow launches</h3>
+              <p>New titles sit in a design queue waiting for artwork instead of going live the day you get them.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#2E2E2E" />
+              <path d="M24 30h20M34 30v22" stroke="#FEF150" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+              <path d="M46 40l10 12M56 40L46 52" stroke="#FEF150" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Brand breakage</h3>
+              <p>Generic typography replaces the game’s original art — and the recognition players buy with dies with it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== THE PROCESS ====================== -->
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag">Step 01 · Upload</span>
+            <h2>Upload your CSV — or any file you have.</h2>
+            <p>
+              Send us your game list however it lives today: a CSV export, a spreadsheet, a JSON
+              dump from your aggregator. We match every row against the 6,000+ game library —
+              providers, slugs and all — and flag anything we don't cover yet.
+            </p>
+            <div class="chips"><span class="chip">CSV</span><span class="chip">XLSX</span><span class="chip">JSON</span><span class="chip">API feed</span></div>
+          </div>
+          <div class="pstage" aria-hidden="true">
+            <div class="up-zone">
+              <div class="up-file"><i></i> games.csv</div>
+              <ul class="up-rows">
+                <li>sweet-bonanza · Pragmatic <b>MATCHED</b></li>
+                <li>gates-of-olympus · Pragmatic <b>MATCHED</b></li>
+                <li>wanted-dead-or-a-wild · Hacksaw <b>MATCHED</b></li>
+              </ul>
+              <div class="up-bar"><i></i></div>
+              <p class="up-done">6,000+ GAMES MATCHED</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card anatomy">
+        <div class="pstep pstep-wide">
+          <div class="pcopy">
+            <span class="step-tag">Step 02 · Frame</span>
+            <h2>Make your branded frame.</h2>
+            <p>
+              Stroke, corner radius, light band, glow and provider tab — designed once with our
+              team, in your colours, as a template. Tap the stack to see the layers every game
+              inherits; nothing is ever drawn into a file by hand.
+            </p>
+            <div class="swrow" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+          <div class="anatomy-grid tsx">
+          <div class="anatomy-stage" id="anatomyStage" role="button" tabindex="0" aria-label="Toggle the exploded layer view">
+            <div class="tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div>
+                <div class="t-glow"></div>
+                <div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza key visual" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <span class="ltag" style="top: 84%; transform: translateZ(0)">Background</span>
+                <span class="ltag" style="top: 66%; transform: translateZ(52px)">Light band</span>
+                <span class="ltag" style="top: 30%; transform: translateZ(115px)">Key visual</span>
+                <span class="ltag" style="top: 55%; transform: translateZ(155px)">Logotype</span>
+                <span class="ltag" style="top: 93%; transform: translateZ(190px)">Provider tab</span>
+              </div>
+            </div>
+          </div>
+          <div class="anatomy-list">
+            <div class="row"><span class="k">Background</span><p>The game’s own scene, filling the frame at 120% so every cut stays covered.</p></div>
+            <div class="row"><span class="k">Key visual</span><p>A clean cutout with its own transparent padding, anchored and scaled by the template — never stretched.</p></div>
+            <div class="row"><span class="k">Light band</span><p>A seamless gradient in the game’s accent colour, eased in so there’s no visible edge.</p></div>
+            <div class="row"><span class="k">Glow + bloom</span><p>A colour glow and a white overlay bloom lift the lower third, exactly like the renderer.</p></div>
+            <div class="row"><span class="k">Logotype</span><p>The original game logotype, white where the art needs it — original branding, not typography.</p></div>
+            <div class="row"><span class="k">Provider tab</span><p>The provider’s name on a tab in the frame colour, flush to the bottom edge.</p></div>
+            <p class="anatomy-hint">Click the tile to stack it back together.</p>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep pstep-wide">
+          <div class="pcopy">
+            <span class="step-tag">Step 03 · Scale</span>
+            <h2>Scale at any size.</h2>
+            <p>
+              Portrait stacks the key visual over the logotype; landscape splits them left and
+              right. Each aspect keeps its own layout in the template, so a new lobby size is one
+              decision — not thousands of redraws.
+            </p>
+          </div>
+          <div class="cutrow tsx" aria-label="One game rendered at four aspect sizes">
+          <div class="cut">
+            <div class="tilebox" style="width: 132px; aspect-ratio: 3 / 4">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 3:4 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>3:4</b><span>900 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 118px; aspect-ratio: 2 / 3">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="2:3">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 2:3 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>2:3</b><span>800 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 126px; aspect-ratio: 47 / 66">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="47:66">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 47:66 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>47:66</b><span>940 × 1320</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 232px; aspect-ratio: 16 / 9">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="16:9">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 16:9 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>16:9</b><span>1280 × 720</span>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag">Step 04 · Variants</span>
+            <h2>Original colour, white knockouts — or text with custom fonts and translations.</h2>
+            <p>
+              Every game ships with its original colour logotype and a clean white variant for busy
+              art. No logotype at all? We set the title as text in your typeface — and localise it
+              for every market you run.
+            </p>
+            <div class="chips vchips"><span class="chip">White</span><span class="chip">Colour</span><span class="chip">Text · EN</span><span class="chip">Text · DE</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="vstage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" data-v="1" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo lay-logo-c" data-v="2" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/47453318-634c-4833-aeb2-4598bd73d543/logoColor.png" alt="" loading="lazy" decoding="async" />
+                <span class="tlogo" data-v="3">SWEET BONANZA</span>
+                <span class="tlogo" data-v="4">SÜSSE BONANZA</span>
+                <div class="t-prov">PRAGMATIC</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag">Step 05 · Motion</span>
+            <h2>Light CSS animations, free with every tile.</h2>
+            <p>
+              Float, pulse and shine presets run as pure CSS — no video, no payload, no GPU tax.
+              The lobby feels alive the moment thumbnails land, and it costs your players nothing.
+            </p>
+            <div class="chips"><span class="chip on">Float</span><span class="chip">Pulse</span><span class="chip">Shine</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="cssstage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <div class="shine"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag">Step 06 · AI motion</span>
+            <h2>Advanced AI animations that loop perfectly.</h2>
+            <p>
+              The character breathes, blinks and sways — generated per game, alpha-matted over your
+              frame, and looped so the restart is invisible. Camera locked, artwork preserved,
+              served as a transparent clip.
+            </p>
+            <div class="chips"><span class="chip">Hailuo 02</span><span class="chip">Kling Pro</span><span class="chip">Perfect loop</span><span class="chip">Alpha WebM</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="aistage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <div class="scan"></div>
+                <i class="spark" style="left: 22%; top: 26%"></i>
+                <i class="spark" style="left: 70%; top: 38%; animation-delay: 0.4s"></i>
+                <i class="spark" style="left: 46%; top: 16%; animation-delay: 0.9s"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag">Step 07 · Export</span>
+            <h2>Export via API, in every format you serve.</h2>
+            <p>
+              One call returns the right cut, the right format and the right variant for every game
+              in your catalogue — stills or animated, cached on our CDN. No manual uploads, ever.
+            </p>
+            <div class="chips fchips"><span class="chip">PNG</span><span class="chip">WebP</span><span class="chip">AVIF</span><span class="chip">WebM</span><span class="chip">JSON</span></div>
+          </div>
+          <div class="pstage" aria-hidden="true">
+            <div class="codebox">
+              <span class="ln"><span class="y">POST</span> <span class="w">/v1/thumbnails/render</span></span>
+              <span class="ln">{ "game": <span class="w">"sweet-bonanza"</span>,</span>
+              <span class="ln">&nbsp;&nbsp;"size": <span class="w">"3:4"</span>, "format": <span class="w">"webp"</span> }</span>
+              <span class="ln">&nbsp;</span>
+              <span class="ln"><span class="g">200 OK · 84 ms</span></span>
+              <span class="ln"><span class="y">→</span> cdn.thumbs.store/sweet-bonanza-3x4.webp</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== WHITE-LABEL SERVICE ====================== -->
+      <section class="card reveal wl-card">
+        <div class="wl-grid">
+          <div class="pcopy">
+            <span class="step-tag">+ Service</span>
+            <h2>White-label dashboard integration for aggregators and platforms.</h2>
+            <p>
+              Put the whole system inside your own product. Your operators upload their catalogue,
+              pick a frame, and serve branded thumbnails from your dashboard — powered by
+              thumbs.store underneath, wearing your name on top.
+            </p>
+            <div class="chips"><span class="chip">Your domain</span><span class="chip">Your brand</span><span class="chip">SSO</span><span class="chip">Usage API</span></div>
+            <div class="hero-cta"><a class="btn btn-y" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a></div>
+          </div>
+          <div class="wl-mock" aria-hidden="true">
+            <div class="wl-side">
+              <div class="logo"></div>
+              <i style="width: 78%"></i><i style="width: 62%"></i><i style="width: 70%"></i><i style="width: 54%"></i>
+            </div>
+            <div class="wl-main">
+              <div class="wl-top"><i></i><b></b></div>
+              <div class="wl-tiles">
+                <img style="--i:0" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:1" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:2" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:3" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:4" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:5" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:6" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:7" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       <!-- ============================ OUTPUT ============================== -->
       <section class="card reveal">
@@ -2247,7 +2665,8 @@
         const q = (c) => tile.querySelector(c)
         const bg = q('.lay-bg')
         const kv = q('.lay-kv')
-        const logo = q('.lay-logo')
+        const logos = Array.from(tile.querySelectorAll('.lay-logo'))
+        const logo = logos[0]
         tile.style.setProperty('--accent', hex)
         tile.style.setProperty('--bg-scale', String(BG_SCALE))
         const put = () => {
@@ -2265,12 +2684,14 @@
             return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
           }
           place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)), 'center center')
-          place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)), 'center center')
+          logos.forEach((lg) => {
+            place(lg, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(lg, t.logoScale * LOGO_ASPECT_K)), 'center center')
+          })
           paintChrome({ band: q('.t-band'), glow: q('.t-glow'), bloom: q('.t-bloom') }, sizeKey, hex, 1)
           applyMetrics()
         }
         kv.addEventListener('load', put)
-        logo.addEventListener('load', put)
+        logos.forEach((lg) => lg.addEventListener('load', put))
         bg.src = base + '/bg.jpg'
         kv.src = base + '/kv.png'
         logo.src = base + '/logoWhite.png'
