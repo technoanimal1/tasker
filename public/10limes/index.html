@@ -96,7 +96,9 @@
   }
   .browser-dots { position: absolute; left: 0.9rem; display: flex; gap: 6px; }
   .browser-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
-  #demo-title { font-size: 0.8rem; color: var(--muted); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #demo-title { font-size: 0.8rem; color: var(--muted); max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #demo-open { position: absolute; right: 0.9rem; font-size: 0.78rem; color: var(--lime); }
+  #demo-open:hover { text-decoration: underline; text-underline-offset: 0.2em; }
   .browser-frame { position: relative; aspect-ratio: 16 / 9; background: #0a0c07; }
   @media (max-width: 720px) { .browser-frame { aspect-ratio: 3 / 4; } }
   .browser-frame iframe {
@@ -188,6 +190,8 @@
         <div class="browser-bar">
           <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <div id="demo-title">Loading demo…</div>
+          <a id="demo-open" href="#" target="_blank" rel="noopener noreferrer"
+             title="Open game in a new tab">open ↗</a>
         </div>
         <div class="browser-frame">
           <div class="frame-hint" id="frame-hint">Loading live demo…</div>
@@ -261,13 +265,13 @@
   // Thumbnails are placeholders in ./thumbs/ — replace the SVG files
   // (same filenames) or point `thumb` at new images to swap them later.
   // ------------------------------------------------------------------
-  const BASE = 'https://games.duel.aviator.studio/';
+  const BASE = 'https://games-staging.duel.aviator.studio/';
   const GAMES = [
     // Featured titles (branded thumbnails) first.
-    { name: 'Blackjack', slug: 'blackjack', url: BASE + 'blackjack', thumb: 'thumbs/blackjack.svg' },
-    { name: 'Duel',      slug: 'duel',      url: BASE + 'duel',      thumb: 'thumbs/duel.svg' },
-    { name: 'Goat Hunt', slug: 'goat-hunt', url: BASE + 'goat-hunt', thumb: 'thumbs/goathunt.svg' },
-    { name: 'Hi Lo',     slug: 'hilo',      url: BASE + 'hilo',      thumb: 'thumbs/hilo.svg' },
+    { name: 'Blackjack', slug: 'blackjack', url: BASE + 'blackjack',     thumb: 'thumbs/blackjack.svg' },
+    { name: 'Duel',      slug: 'duel',      url: BASE + 'dice',          thumb: 'thumbs/duel.svg' },
+    { name: 'Hi Lo',     slug: 'hilo',      url: BASE + 'hilo/?lang=ka', thumb: 'thumbs/hilo.svg' },
+    { name: 'Goat Hunt', slug: 'goat-hunt', url: BASE + 'moles',         thumb: 'thumbs/goathunt.svg' },
     // Remaining titles with grey placeholder thumbnails.
     { name: 'Dice',      slug: 'dice',      url: BASE + 'dice',      thumb: 'thumbs/dice.svg' },
     { name: 'Crash',     slug: 'crash',     url: BASE + 'crash',     thumb: 'thumbs/crash.svg' },
@@ -292,6 +296,7 @@
     title.textContent = game.name + ' — 10LIMES Originals demo';
     frame.title = game.name + ' demo';
     frame.src = game.url;
+    document.getElementById('demo-open').href = game.url;
     strip.querySelectorAll('.thumb').forEach(b => b.classList.remove('active'));
     if (button) button.classList.add('active');
   }
