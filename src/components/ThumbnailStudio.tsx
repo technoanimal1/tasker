@@ -131,10 +131,25 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   useEffect(() => {
     if (template && !params) setParams(withDefaults(template.params))
   }, [template, params])
+  // Seed each thumbnail's saved overrides the first time it appears. The
+  // catalogue arrives in waves (infinite-scroll batches, a provider opening,
+  // search hits), so this must merge per id — a one-shot "initialise if empty"
+  // silently dropped the saved overrides of everything loaded after the first
+  // batch, which made per-thumbnail colours/sizes revert to the template on
+  // reload even though they were saved. Existing entries are never overwritten,
+  // so in-flight local edits survive.
   useEffect(() => {
-    setOverrides((cur) =>
-      Object.keys(cur).length ? cur : Object.fromEntries(thumbnails.map((t) => [t.id, t.overrides ?? {}])),
-    )
+    setOverrides((cur) => {
+      let added = false
+      const next = { ...cur }
+      for (const t of thumbnails) {
+        if (!(t.id in next)) {
+          next[t.id] = (t.overrides as ParamOverride) ?? {}
+          added = true
+        }
+      }
+      return added ? next : cur
+    })
     if (!selectedId && thumbnails.length) setSelectedId(thumbnails[0].id)
   }, [thumbnails, selectedId])
   // Reset the frame-design draft whenever the active branch changes.
@@ -502,11 +517,9 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       const prev = overrides[id]
       pushUndo('Recolour', () => restoreOverride(id, prev))
     }
-    setOverrides((o) => {
-      const next = { ...(o[id] ?? {}), palette, colorKey }
-      saveOverrides(id, next)
-      return { ...o, [id]: next }
-    })
+    const next: ParamOverride = { ...(overrides[id] ?? {}), palette, colorKey }
+    setOverrides((o) => ({ ...o, [id]: next }))
+    saveOverrides(id, next)
   }
 
   // Pick the frame colour automatically from a thumbnail's background (bg-color fn).
