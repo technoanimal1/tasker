@@ -1,7 +1,7 @@
 import { figmaProxyUrl, assetUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
-import { motionAt } from './animate'
+import { motionAt, particlesAt, particlesAdditive, type Particle } from './animate'
 import { opaqueCenterFromImage } from './opaqueCenter'
 import { CORNER_MODES, CORNER_REF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
 
@@ -45,13 +45,112 @@ function drawLayer(
   H: number,
   offX = 0,
   offY = 0,
+  rotDeg = 0,
 ) {
   const base = baseFit(img.naturalWidth, img.naturalHeight, W, H)
   const c = autoCenter ? opaqueCenterFromImage(img) : { cx: 0.5, cy: 0.5 }
   const dw = base.w * place.k
   const dh = base.h * place.k
+  const ax = place.ax + offX
+  const ay = place.ay + offY
+  if (rotDeg) {
+    // Rotate about the pinned point, exactly like the DOM transform-origin.
+    ctx.save()
+    ctx.translate(ax, ay)
+    ctx.rotate((rotDeg * Math.PI) / 180)
+    ctx.drawImage(img, -c.cx * dw, -c.cy * dh, dw, dh)
+    ctx.restore()
+    return
+  }
   // Scaling about (cx, cy) keeps that point exactly on the anchor.
-  ctx.drawImage(img, place.ax + offX - c.cx * dw, place.ay + offY - c.cy * dh, dw, dh)
+  ctx.drawImage(img, ax - c.cx * dw, ay - c.cy * dh, dw, dh)
+}
+
+/** Canvas twin of Thumbnail.tsx's ParticleLayer. */
+function drawParticles(ctx: CanvasRenderingContext2D, params: TemplateParams, phase: number, W: number, H: number) {
+  const parts = particlesAt(params, phase)
+  if (!parts.length) return
+  const unit = Math.min(W, H)
+  ctx.save()
+  if (particlesAdditive(params.animPreset)) ctx.globalCompositeOperation = 'lighter'
+  for (const p of parts) drawParticle(ctx, p, unit, W, H)
+  ctx.restore()
+}
+
+function drawParticle(ctx: CanvasRenderingContext2D, p: Particle, unit: number, W: number, H: number) {
+  const d = p.size * unit
+  const cx = p.x * W
+  const cy = p.y * H
+  ctx.save()
+  ctx.globalAlpha = Math.max(0, Math.min(1, p.opacity))
+  ctx.translate(cx, cy)
+  switch (p.kind) {
+    case 'coin': {
+      // width squashed by |cos| to read as a tumbling coin
+      ctx.scale(Math.max(0.12, Math.abs(Math.cos(p.rot))), 1)
+      const g = ctx.createRadialGradient(-d * 0.15, -d * 0.2, d * 0.05, 0, 0, d / 2)
+      g.addColorStop(0, '#fff3b0')
+      g.addColorStop(0.38, '#ffd54a')
+      g.addColorStop(0.72, '#e8a911')
+      g.addColorStop(1, '#c8891b')
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    case 'ember': {
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, d / 2)
+      g.addColorStop(0, `hsla(${p.hue},100%,72%,0.95)`)
+      g.addColorStop(0.45, `hsla(${p.hue},100%,55%,0.55)`)
+      g.addColorStop(0.72, `hsla(${p.hue},100%,45%,0)`)
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    case 'spark': {
+      ctx.rotate(p.rot)
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, d / 2)
+      g.addColorStop(0, `hsla(${p.hue},100%,92%,1)`)
+      g.addColorStop(0.22, `hsla(${p.hue},100%,80%,0.5)`)
+      g.addColorStop(0.62, `hsla(${p.hue},100%,70%,0)`)
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
+      ctx.fill()
+      // four-point glint
+      ctx.fillStyle = `hsla(${p.hue},100%,95%,0.95)`
+      const r = d / 2
+      const w = d * 0.09
+      ctx.beginPath()
+      ctx.moveTo(0, -r)
+      ctx.lineTo(w, 0)
+      ctx.lineTo(0, r)
+      ctx.lineTo(-w, 0)
+      ctx.closePath()
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-r, 0)
+      ctx.lineTo(0, -w)
+      ctx.lineTo(r, 0)
+      ctx.lineTo(0, w)
+      ctx.closePath()
+      ctx.fill()
+      break
+    }
+    default: {
+      // confetti chip
+      ctx.rotate(p.rot)
+      ctx.scale(1, Math.max(0.15, Math.abs(Math.cos(p.rot * 0.7))))
+      ctx.fillStyle = `hsl(${p.hue}, 85%, 62%)`
+      roundRectPath(ctx, -d / 2, -d * 0.3, d, d * 0.6, d * 0.12)
+      ctx.fill()
+      break
+    }
+  }
+  ctx.restore()
 }
 
 /** Contain-fit any drawable source (image or video) of known intrinsic size. */
@@ -205,7 +304,8 @@ function drawFrame(
       // Same model as the live renderer (Thumbnail.tsx Layer): base contain-fit
       // inside the frame, scaled about the pinned point — so the point holds
       // still at every size and export matches the preview exactly.
-      drawLayer(ctx, kv, layerPlacement(layout.kvAlign, layout.kvScale, layout.kvDX ?? 0, layout.kvDY ?? 0, W, H, 'kv'), params.kvAutoCenter ?? true, W, H, kvDX, kvDY)
+      const kvPlace = layerPlacement(layout.kvAlign, layout.kvScale, layout.kvDX ?? 0, layout.kvDY ?? 0, W, H, 'kv')
+      drawLayer(ctx, kv, { ...kvPlace, k: kvPlace.k * m.kvScaleMul }, params.kvAutoCenter ?? true, W, H, kvDX, kvDY, m.kvRotDeg)
     } else {
       drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
     }
@@ -310,6 +410,9 @@ function drawFrame(
     ctx.fillRect(0, 0, W, H)
     ctx.restore()
   }
+
+  // code-drawn particles — same pure phase function the preview uses
+  drawParticles(ctx, params, phase, W, H)
 
   // Match the live renderer: the badge respects the template's text case, so
   // exports and baked previews read the same as the on-screen thumbnail.

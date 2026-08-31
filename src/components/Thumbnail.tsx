@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
 import { computeOpaqueCenter, opaqueCenterCached, type Center } from '../lib/opaqueCenter'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
-import { motionAt } from '../lib/animate'
+import { motionAt, particlesAt, particlesAdditive, type Particle } from '../lib/animate'
 import { AlphaVideo } from './AlphaVideo'
 import {
   CORNER_MODES,
@@ -200,7 +200,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               autoCenter={autoCenter}
               W={W}
               H={H}
-              extraTransform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`}
+              extraTransform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px) rotate(${m.kvRotDeg}deg) scale(${m.kvScaleMul})`}
             />
           ) : (
             <FitImg src={kv} box={kvBox} transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`} />
@@ -274,6 +274,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             }}
           />
         )}
+
+        {/* code-drawn particle effects (coins / fire / sparkle / confetti) */}
+        <ParticleLayer params={params} phase={phase} W={W} H={H} />
 
         {/* provider label */}
         {params.showProvider && showFrame && (params.providerName.trim() || thumb.provider) && (
@@ -388,6 +391,79 @@ function Layer({
       }}
     />
   )
+}
+
+/**
+ * Draws the current frame's particles. Positions come from animate.ts, which is
+ * a pure function of the loop phase, so this matches the exporter exactly.
+ */
+function ParticleLayer({ params, phase, W, H }: { params: TemplateParams; phase: number; W: number; H: number }) {
+  const parts = particlesAt(params, phase)
+  if (!parts.length) return null
+  const unit = Math.min(W, H)
+  const additive = particlesAdditive(params.animPreset)
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        mixBlendMode: additive ? 'screen' : undefined,
+      }}
+    >
+      {parts.map((p, i) => (
+        <div key={i} style={particleStyle(p, unit, W, H)} />
+      ))}
+    </div>
+  )
+}
+
+function particleStyle(p: Particle, unit: number, W: number, H: number): CSSProperties {
+  const d = p.size * unit
+  const base: CSSProperties = {
+    position: 'absolute',
+    left: p.x * W - d / 2,
+    top: p.y * H - d / 2,
+    width: d,
+    height: d,
+    opacity: p.opacity,
+  }
+  switch (p.kind) {
+    case 'coin':
+      return {
+        ...base,
+        borderRadius: '50%',
+        // squashing the width by |cos| reads as a tumbling coin
+        transform: `scaleX(${Math.max(0.12, Math.abs(Math.cos(p.rot)))})`,
+        background: 'radial-gradient(circle at 35% 30%, #fff3b0 0%, #ffd54a 38%, #e8a911 72%, #c8891b 100%)',
+        boxShadow: `0 0 ${d * 0.35}px rgba(255,196,60,0.65)`,
+      }
+    case 'ember':
+      return {
+        ...base,
+        borderRadius: '50%',
+        background: `radial-gradient(circle, hsla(${p.hue},100%,72%,0.95) 0%, hsla(${p.hue},100%,55%,0.55) 45%, hsla(${p.hue},100%,45%,0) 72%)`,
+      }
+    case 'spark':
+      return {
+        ...base,
+        transform: `rotate(${p.rot}rad)`,
+        background: `radial-gradient(circle, hsla(${p.hue},100%,92%,1) 0%, hsla(${p.hue},100%,80%,0.5) 22%, hsla(${p.hue},100%,70%,0) 62%)`,
+        // the cross that makes it read as a glint
+        boxShadow: `0 0 ${d * 0.5}px hsla(${p.hue},100%,85%,0.9)`,
+        clipPath:
+          'polygon(50% 0%, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0% 50%, 42% 42%)',
+      }
+    default: // confetti
+      return {
+        ...base,
+        height: d * 0.6,
+        top: p.y * H - d * 0.3,
+        borderRadius: d * 0.12,
+        transform: `rotate(${p.rot}rad) scaleY(${Math.max(0.15, Math.abs(Math.cos(p.rot * 0.7)))})`,
+        background: `hsl(${p.hue}, 85%, 62%)`,
+      }
+  }
 }
 
 /** Plain contain-fit into a box — the legacy path for thumbnails that have no

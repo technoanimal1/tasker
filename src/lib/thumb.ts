@@ -244,11 +244,19 @@ export interface TemplateParams {
   animEnabled: boolean
   animPreset: AnimPreset
   animSpeed: number // seconds per loop
-  animIntensity: number // 0..1
+  animIntensity: number // 0..2 (past 1 = deliberately punchy)
+  animCount: number // particle density for the particle presets
 }
 
-export type AnimPreset = 'float' | 'pulse' | 'kenburns' | 'shine'
-export const ANIM_PRESETS: AnimPreset[] = ['float', 'pulse', 'kenburns', 'shine']
+export type AnimPreset =
+  | 'float' | 'pulse' | 'kenburns' | 'shine' | 'zoom' | 'wiggle' | 'bounce' | 'heartbeat'
+  | 'coins' | 'fire' | 'sparkle' | 'confetti'
+export const ANIM_PRESETS: AnimPreset[] = [
+  // motion
+  'float', 'pulse', 'kenburns', 'shine', 'zoom', 'wiggle', 'bounce', 'heartbeat',
+  // particles (drawn in code — no video needed)
+  'coins', 'fire', 'sparkle', 'confetti',
+]
 
 export const DEFAULT_PARAMS: TemplateParams = {
   sizeKey: '3:4',
@@ -288,6 +296,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   animPreset: 'float',
   animSpeed: 3,
   animIntensity: 0.5,
+  animCount: 26,
 }
 
 export interface Template {
@@ -373,7 +382,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
   'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
-  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity',
+  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity', 'animCount',
 ]
 
 /** Keep only the frame-design keys from an arbitrary params bag (never `logo`). */

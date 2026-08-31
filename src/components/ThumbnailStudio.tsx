@@ -7,7 +7,6 @@ import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
   TEXT_LOGO_PRESET,
-  ANIM_PRESETS,
   branchParams,
   defaultLayout,
   effectiveParams,
@@ -45,11 +44,15 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
+import { PARTICLE_PRESETS, isParticlePreset } from '../lib/animate'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
 import { WhiteLogo } from './WhiteLogo'
 
 type ExportFormat = StillFormat | 'anim'
+
+/** Presets that move the artwork, split from the code-drawn particle effects. */
+const MOTION_PRESETS = ['float', 'pulse', 'kenburns', 'shine', 'zoom', 'wiggle', 'bounce', 'heartbeat'] as const
 
 // Compact square icon-button styles (toolbar).
 const ICON_BTN =
@@ -1513,13 +1516,41 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               </Row>
               {p.animEnabled && (
                 <>
-                  <Seg
-                    options={ANIM_PRESETS.map((o) => ({ value: o, label: o }))}
-                    value={p.animPreset}
-                    onChange={(v) => set('animPreset', v as TemplateParams['animPreset'])}
-                  />
-                  <Slider label="Speed" min={0.5} max={8} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
-                  <Slider label="Intensity" min={0} max={1} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} {...pct} />
+                  {/* Motion presets move the artwork; particle presets add
+                      code-drawn effects on top (no video needed). */}
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Motion</p>
+                  <div className="grid grid-cols-4 gap-1">
+                    {MOTION_PRESETS.map((o) => (
+                      <button
+                        key={o}
+                        onClick={() => set('animPreset', o)}
+                        className={`rounded-md border px-1 py-1.5 text-[10px] font-medium capitalize transition ${
+                          p.animPreset === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                        }`}
+                      >
+                        {o}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Effects</p>
+                  <div className="grid grid-cols-4 gap-1">
+                    {PARTICLE_PRESETS.map((o) => (
+                      <button
+                        key={o}
+                        onClick={() => set('animPreset', o)}
+                        className={`rounded-md border px-1 py-1.5 text-[10px] font-medium capitalize transition ${
+                          p.animPreset === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                        }`}
+                      >
+                        {o === 'coins' ? '🪙 coins' : o === 'fire' ? '🔥 fire' : o === 'sparkle' ? '✨ sparkle' : '🎉 confetti'}
+                      </button>
+                    ))}
+                  </div>
+                  <Slider label="Speed" min={0.3} max={20} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
+                  <Slider label="Intensity" min={0} max={2} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} {...pct} />
+                  {isParticlePreset(p.animPreset) && (
+                    <Slider label="Density" min={0} max={200} step={1} value={p.animCount ?? 26} onChange={(v) => set('animCount', v)} fmt={(v) => `${Math.round(v)}`} />
+                  )}
                   <button
                     onClick={() => setPlaying((v) => !v)}
                     className="w-full rounded-lg bg-zinc-800 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
