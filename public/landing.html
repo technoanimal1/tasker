@@ -1275,6 +1275,10 @@
         position: absolute;
         object-fit: contain;
       }
+      /* The band and the glows sit over the key visual, under the logotype. */
+      .tile > .lay-logo {
+        z-index: 2;
+      }
       .t-band {
         position: absolute;
         z-index: 1;
@@ -1312,26 +1316,18 @@
         left: 50%;
         bottom: 0.3%;
         transform: translateX(-50%);
-        z-index: 2;
+        z-index: 3;
         display: inline-flex;
         align-items: center;
-        gap: 0.5em;
-        padding: 0.45em 1em 0.55em;
+        padding: 0.45em 1.1em 0.55em;
         border-radius: 3.3cqw 3.3cqw 0 0;
-        background: rgb(8 10 14 / 0.72);
+        background: var(--accent);
         font-size: 4cqw;
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: rgb(255 255 255 / 0.9);
+        color: #fff;
         white-space: nowrap;
-      }
-      .t-prov::before {
-        content: '';
-        width: 0.42em;
-        height: 0.42em;
-        border-radius: 999px;
-        background: var(--accent);
       }
       .tile.mini .t-prov {
         display: none;
@@ -2578,14 +2574,13 @@
             ctx.font = '600 ' + fs + 'px system-ui, sans-serif'
             const label = 'PRAGMATIC'
             const tw = ctx.measureText(label).width
-            const padX = fs * 1.1
-            const dot = fs * 0.42
-            const bw = tw + padX * 2 + dot * 2
+            const padX = fs * 1.15
+            const bw = tw + padX * 2
             const bh = fs * 2
             const bx = (s.w - bw) / 2
             const by = s.h - bh - s.h * 0.003
             const rr = (8 / 244) * s.w
-            ctx.fillStyle = 'rgba(8,10,14,0.72)'
+            ctx.fillStyle = accent()
             ctx.beginPath()
             ctx.moveTo(bx, by + bh)
             ctx.lineTo(bx, by + rr)
@@ -2595,13 +2590,11 @@
             ctx.lineTo(bx + bw, by + bh)
             ctx.closePath()
             ctx.fill()
-            ctx.fillStyle = accent()
-            ctx.beginPath()
-            ctx.arc(bx + padX * 0.9, by + bh / 2, dot / 2, 0, Math.PI * 2)
-            ctx.fill()
-            ctx.fillStyle = 'rgba(255,255,255,0.9)'
+            ctx.fillStyle = '#ffffff'
             ctx.textBaseline = 'middle'
-            ctx.fillText(label, bx + padX * 1.35, by + bh / 2 + 1)
+            ctx.textAlign = 'center'
+            ctx.fillText(label, s.w / 2, by + bh / 2 + 1)
+            ctx.textAlign = 'left'
           }
 
           // Frame: 2.5/244 stroke on a 16/244 corner radius, outside the art.
