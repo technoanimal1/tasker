@@ -641,6 +641,28 @@
         }
       }
 
+      /* Fallback for engines without container queries: same two breakpoints,
+         measured against the viewport instead of the widget. */
+      @supports not (container-type: inline-size) {
+        @media (max-width: 860px) {
+          #ts-editor .ts-body { grid-template-columns: minmax(0, 1fr); }
+          #ts-editor .ts-rail { border-right: 0; border-bottom: 1px solid var(--ts-line-soft); flex-direction: row; align-items: center; gap: 8px; overflow-x: auto; padding: 10px 12px; }
+          #ts-editor .ts-label { display: none; }
+          #ts-editor .ts-layers { display: flex; gap: 6px; flex: none; }
+          #ts-editor .layer { width: auto; }
+          #ts-editor .ts-swatches { flex-wrap: nowrap; flex: none; }
+          #ts-editor .ts-canvas { height: 420px; }
+          #ts-editor .ts-props { border-left: 0; border-top: 1px solid var(--ts-line-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; align-items: end; }
+          #ts-editor .ts-actions { grid-column: 1 / -1; flex-direction: row; }
+          #ts-editor .ts-fields { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 460px) {
+          #ts-editor .ts-props { grid-template-columns: 1fr; }
+          #ts-editor .ts-canvas { height: 360px; padding: 14px 14px 52px; }
+          #ts-editor .ts-hint, #ts-editor .ts-live { display: none; }
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         #ts-editor * {
           transition: none !important;
@@ -742,7 +764,7 @@
           </div>
 
           <div class="ts-strip" id="ts-filmstrip" role="group" aria-label="Pick a game"></div>
-          <p class="ts-note" id="ts-labNote" role="status"></p>
+          <p class="ts-note" id="ts-labNote" role="status">Loading the editor…</p>
         </div>
       </div>
     </div>
@@ -752,8 +774,31 @@
          =================================================================== -->
     <script>
     ;(() => {
-      const lab = document.getElementById('ts-editor')
-      if (!lab) return
+      // Page builders drop embeds in odd orders: this script may run before the
+      // markup exists, or after the document is already parsed. Wait for the
+      // root either way, and give up loudly rather than leaving an empty shell.
+      function boot() {
+        const root = document.getElementById('ts-editor')
+        if (root) return start(root)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot, { once: true })
+          return
+        }
+        let tries = 0
+        const t = setInterval(() => {
+          const r = document.getElementById('ts-editor')
+          if (r) {
+            clearInterval(t)
+            start(r)
+          } else if (++tries > 40) {
+            clearInterval(t)
+            console.error('[ts-editor] markup not found — is the #ts-editor block on the page?')
+          }
+        }, 50)
+      }
+      boot()
+
+      function start(lab) {
       const $ = (id) => document.getElementById('ts-' + id)
 
       const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
@@ -1381,6 +1426,7 @@
 
       render()
       note('Drag the key visual, resize it, change the cut — the template layout stays put.')
+      }
     })()
     </script>
   </body>
