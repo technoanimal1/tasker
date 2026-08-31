@@ -245,7 +245,39 @@ export interface TemplateParams {
   animPreset: AnimPreset
   animSpeed: number // seconds per loop
   animIntensity: number // 0..2 (past 1 = deliberately punchy)
-  animCount: number // particle density for the particle presets
+  animCount: number // legacy particle density (kept for old templates)
+  animFx: AnimFx // per-depth particle effects
+}
+
+/**
+ * A code-drawn particle effect, applied at one depth of the card. Three of them
+ * stack independently (behind the art, over the key visual, over the logo), so
+ * e.g. embers can rise behind the character while coins fall in front of it.
+ */
+export type FxKind = 'none' | 'coins' | 'fire' | 'sparkle' | 'confetti'
+export const FX_KINDS: FxKind[] = ['none', 'coins', 'fire', 'sparkle', 'confetti']
+
+export interface FxLayer {
+  fx: FxKind
+  intensity: number // 0..2
+  count: number // particle density
+  /** Whole loops per animation loop. Integer so the loop stays seamless. */
+  cycles: number
+}
+export const FX_OFF: FxLayer = { fx: 'none', intensity: 1, count: 26, cycles: 1 }
+
+/** The three depths an effect can sit at. */
+export interface AnimFx {
+  bg: FxLayer
+  kv: FxLayer
+  logo: FxLayer
+}
+export const FX_SLOTS = ['bg', 'kv', 'logo'] as const
+export type FxSlot = (typeof FX_SLOTS)[number]
+export const FX_SLOT_LABEL: Record<FxSlot, string> = {
+  bg: 'Behind art',
+  kv: 'Over key visual',
+  logo: 'Over logo',
 }
 
 export type AnimPreset =
@@ -297,6 +329,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   animSpeed: 3,
   animIntensity: 0.5,
   animCount: 26,
+  animFx: { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF },
 }
 
 export interface Template {
@@ -382,7 +415,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
   'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
-  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity', 'animCount',
+  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity', 'animCount', 'animFx',
 ]
 
 /** Keep only the frame-design keys from an arbitrary params bag (never `logo`). */
@@ -434,11 +467,26 @@ export function withDefaults(p: Partial<TemplateParams> | null | undefined): Tem
     typeof pr === 'number'
       ? { tl: pr, tr: pr, br: pr, bl: pr }
       : { ...DEFAULT_PARAMS.providerRadius, ...((pr as object) ?? {}) }
+  // Effect layers: fill in any missing field per slot. A template from before
+  // the layers existed carried its particle effect on animPreset, drawn above
+  // the logo — migrate it to that slot so it keeps looking the same.
+  const legacy = p?.animPreset as string | undefined
+  const migrated: Partial<AnimFx> =
+    !p?.animFx && legacy && FX_KINDS.includes(legacy as FxKind) && legacy !== 'none'
+      ? { logo: { fx: legacy as FxKind, intensity: p?.animIntensity ?? 1, count: p?.animCount ?? 26, cycles: 1 } }
+      : {}
+  const srcFx = { ...(p?.animFx ?? {}), ...migrated } as Partial<AnimFx>
+  const animFx: AnimFx = {
+    bg: { ...FX_OFF, ...(srcFx.bg ?? {}) },
+    kv: { ...FX_OFF, ...(srcFx.kv ?? {}) },
+    logo: { ...FX_OFF, ...(srcFx.logo ?? {}) },
+  }
   return {
     ...DEFAULT_PARAMS,
     ...(p ?? {}),
     logo: { ...DEFAULT_PARAMS.logo, ...(p?.logo ?? {}) },
     providerRadius,
+    animFx,
   }
 }
 

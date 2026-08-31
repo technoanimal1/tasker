@@ -7,6 +7,11 @@ import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
   TEXT_LOGO_PRESET,
+  FX_SLOTS,
+  FX_KINDS,
+  FX_OFF,
+  FX_SLOT_LABEL,
+  type FxLayer,
   branchParams,
   defaultLayout,
   effectiveParams,
@@ -44,7 +49,6 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { exportThumbPng, exportThumbAnim, animSupported, type StillFormat } from '../lib/exportThumb'
-import { PARTICLE_PRESETS, isParticlePreset } from '../lib/animate'
 import { ExportProgress, type ExportJob } from './ExportProgress'
 import { GenerativeMotion } from './GenerativeMotion'
 import { WhiteLogo } from './WhiteLogo'
@@ -1532,25 +1536,46 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Effects</p>
-                  <div className="grid grid-cols-4 gap-1">
-                    {PARTICLE_PRESETS.map((o) => (
-                      <button
-                        key={o}
-                        onClick={() => set('animPreset', o)}
-                        className={`rounded-md border px-1 py-1.5 text-[10px] font-medium capitalize transition ${
-                          p.animPreset === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
-                        }`}
-                      >
-                        {o === 'coins' ? '🪙 coins' : o === 'fire' ? '🔥 fire' : o === 'sparkle' ? '✨ sparkle' : '🎉 confetti'}
-                      </button>
-                    ))}
-                  </div>
                   <Slider label="Speed" min={0.3} max={20} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
                   <Slider label="Intensity" min={0} max={2} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} {...pct} />
-                  {isParticlePreset(p.animPreset) && (
-                    <Slider label="Density" min={0} max={200} step={1} value={p.animCount ?? 26} onChange={(v) => set('animCount', v)} fmt={(v) => `${Math.round(v)}`} />
-                  )}
+
+                  {/* Effects stack at three depths, each configured on its own. */}
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Effects</p>
+                  {FX_SLOTS.map((slot) => {
+                    const layer = (p.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF })[slot]
+                    const setFx = (patch: Partial<FxLayer>) => {
+                      const cur = p.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
+                      set('animFx', { ...cur, [slot]: { ...cur[slot], ...patch } })
+                    }
+                    return (
+                      <div key={slot} className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 p-2">
+                        <p className="text-[11px] font-medium text-zinc-300">{FX_SLOT_LABEL[slot]}</p>
+                        <div className="grid grid-cols-5 gap-1">
+                          {FX_KINDS.map((o) => (
+                            <button
+                              key={o}
+                              onClick={() => setFx({ fx: o })}
+                              title={o}
+                              className={`rounded-md border py-1.5 text-[11px] transition ${
+                                layer.fx === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                              }`}
+                            >
+                              {o === 'none' ? '–' : o === 'coins' ? '🪙' : o === 'fire' ? '🔥' : o === 'sparkle' ? '✨' : '🎉'}
+                            </button>
+                          ))}
+                        </div>
+                        {layer.fx !== 'none' && (
+                          <>
+                            <Slider label="Amount" min={0} max={200} step={1} value={layer.count} onChange={(v) => setFx({ count: v })} fmt={(v) => `${Math.round(v)}`} />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Slider label="Strength" min={0} max={2} step={0.05} value={layer.intensity} onChange={(v) => setFx({ intensity: v })} {...pct} />
+                              <Slider label="Rate" min={1} max={4} step={1} value={layer.cycles} onChange={(v) => setFx({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
                   <button
                     onClick={() => setPlaying((v) => !v)}
                     className="w-full rounded-lg bg-zinc-800 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"

@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
 import { computeOpaqueCenter, opaqueCenterCached, type Center } from '../lib/opaqueCenter'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
-import { motionAt, particlesAt, particlesAdditive, type Particle } from '../lib/animate'
+import { motionAt, fxParticles, fxAdditive, type Particle } from '../lib/animate'
 import { AlphaVideo } from './AlphaVideo'
 import {
   CORNER_MODES,
@@ -17,6 +17,8 @@ import {
   resolveGrad,
   type AssetUrls,
   type Placement,
+  type FxLayer,
+  FX_OFF,
   type TemplateParams,
   type Thumbnail,
 } from '../lib/thumb'
@@ -107,6 +109,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           : { top: 0, bottom: 0, right: 0, width: bandExtent }
 
   const m = motionAt(params, phase)
+  // Effect layers, each drawn at its own depth. Defaulted so a params object
+  // that predates them (or a branch override) can't crash the renderer.
+  const fx = params.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
 
   return (
     <div className={className} style={{ width: W * scale, height: H * scale }}>
@@ -147,6 +152,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             }}
           />
         )}
+
+        {/* effect layer behind the art (over the background only) */}
+        <ParticleLayer layer={fx.bg} phase={phase} W={W} H={H} />
 
         {/* subtle top darken */}
         <div
@@ -206,6 +214,9 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             <FitImg src={kv} box={kvBox} transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`} />
           ))
         )}
+
+        {/* effect layer over the key visual (under the logo) */}
+        <ParticleLayer layer={fx.kv} phase={phase} W={W} H={H} />
 
         {/* light effect (Figma control-area) — sits on the chosen edge */}
         <div
@@ -275,8 +286,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           />
         )}
 
-        {/* code-drawn particle effects (coins / fire / sparkle / confetti) */}
-        <ParticleLayer params={params} phase={phase} W={W} H={H} />
+        {/* topmost effect layer — over the logo */}
+        <ParticleLayer layer={fx.logo} phase={phase} W={W} H={H} />
 
         {/* provider label */}
         {params.showProvider && showFrame && (params.providerName.trim() || thumb.provider) && (
@@ -397,11 +408,11 @@ function Layer({
  * Draws the current frame's particles. Positions come from animate.ts, which is
  * a pure function of the loop phase, so this matches the exporter exactly.
  */
-function ParticleLayer({ params, phase, W, H }: { params: TemplateParams; phase: number; W: number; H: number }) {
-  const parts = particlesAt(params, phase)
+function ParticleLayer({ layer, phase, W, H }: { layer: FxLayer; phase: number; W: number; H: number }) {
+  const parts = fxParticles(layer, phase)
   if (!parts.length) return null
   const unit = Math.min(W, H)
-  const additive = particlesAdditive(params.animPreset)
+  const additive = fxAdditive(layer.fx)
   return (
     <div
       style={{
@@ -411,7 +422,7 @@ function ParticleLayer({ params, phase, W, H }: { params: TemplateParams; phase:
         mixBlendMode: additive ? 'screen' : undefined,
       }}
     >
-      {parts.map((p, i) => (
+      {parts.map((p: Particle, i: number) => (
         <div key={i} style={particleStyle(p, unit, W, H)} />
       ))}
     </div>

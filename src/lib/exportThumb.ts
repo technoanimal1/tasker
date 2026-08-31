@@ -1,9 +1,9 @@
 import { figmaProxyUrl, assetUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
-import { motionAt, particlesAt, particlesAdditive, type Particle } from './animate'
+import { motionAt, fxParticles, fxAdditive, type Particle } from './animate'
 import { opaqueCenterFromImage } from './opaqueCenter'
-import { CORNER_MODES, CORNER_REF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, FX_OFF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type FxLayer, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -67,12 +67,12 @@ function drawLayer(
 }
 
 /** Canvas twin of Thumbnail.tsx's ParticleLayer. */
-function drawParticles(ctx: CanvasRenderingContext2D, params: TemplateParams, phase: number, W: number, H: number) {
-  const parts = particlesAt(params, phase)
+function drawParticles(ctx: CanvasRenderingContext2D, layer: FxLayer, phase: number, W: number, H: number) {
+  const parts = fxParticles(layer, phase)
   if (!parts.length) return
   const unit = Math.min(W, H)
   ctx.save()
-  if (particlesAdditive(params.animPreset)) ctx.globalCompositeOperation = 'lighter'
+  if (fxAdditive(layer.fx)) ctx.globalCompositeOperation = 'lighter'
   for (const p of parts) drawParticle(ctx, p, unit, W, H)
   ctx.restore()
 }
@@ -238,6 +238,7 @@ function drawFrame(
   phase: number,
 ) {
   const m = motionAt(params, phase)
+  const fx = params.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
   const kk = W / CORNER_REF
@@ -266,6 +267,9 @@ function drawFrame(
     const bgH = H * s
     drawFit(ctx, bg, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH, 'cover')
   }
+
+  // effect layer behind the art (over the background only)
+  drawParticles(ctx, fx.bg, phase, W, H)
 
   // subtle top darken
   const dg = ctx.createLinearGradient(0, 0, 0, H * 0.3)
@@ -310,6 +314,9 @@ function drawFrame(
       drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
     }
   }
+
+  // effect layer over the key visual (under the logo)
+  drawParticles(ctx, fx.kv, phase, W, H)
 
   // light band
   const grad = resolveGrad(params)
@@ -411,8 +418,8 @@ function drawFrame(
     ctx.restore()
   }
 
-  // code-drawn particles — same pure phase function the preview uses
-  drawParticles(ctx, params, phase, W, H)
+  // topmost effect layer — over the logo
+  drawParticles(ctx, fx.logo, phase, W, H)
 
   // Match the live renderer: the badge respects the template's text case, so
   // exports and baked previews read the same as the on-screen thumbnail.

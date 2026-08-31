@@ -1,4 +1,4 @@
-import type { TemplateParams } from './thumb'
+import type { FxKind, FxLayer, TemplateParams } from './thumb'
 
 /**
  * Per-frame motion derived from a normalized loop phase (0..1). Shared by the
@@ -59,14 +59,6 @@ export function motionAt(params: TemplateParams, phase: number): Motion {
       const b = phase < 0.5 ? Math.sin(tau * phase * 2) ** 2 : 0
       return { ...STATIC, kvScaleMul: 1 + 0.1 * k * b, bloomScale: 1 + 0.2 * k * b, logoScale: 1 + 0.04 * k * b }
     }
-    // Particle presets keep a gentle base motion; the particles carry the show.
-    case 'fire':
-      return { ...STATIC, bloomScale: 1 + 0.12 * k * up, kvScaleMul: 1 + 0.012 * k * up }
-    case 'sparkle':
-      return { ...STATIC, bloomScale: 1 + 0.08 * k * up, shine: phase }
-    case 'coins':
-    case 'confetti':
-      return { ...STATIC, kvDYFrac: -0.008 * k * s }
     default:
       return STATIC
   }
@@ -92,13 +84,9 @@ export interface Particle {
   hue: number // degrees, for embers/confetti
 }
 
-export const PARTICLE_PRESETS = ['coins', 'fire', 'sparkle', 'confetti'] as const
-export function isParticlePreset(p: string): boolean {
-  return (PARTICLE_PRESETS as readonly string[]).includes(p)
-}
-/** Particles read best drawn additively (embers, sparkles). */
-export function particlesAdditive(preset: string): boolean {
-  return preset === 'fire' || preset === 'sparkle'
+/** Particles that read best drawn additively (embers, sparkles). */
+export function fxAdditive(fx: FxKind): boolean {
+  return fx === 'fire' || fx === 'sparkle'
 }
 
 /** Stable pseudo-random in [0,1) for a particle index + salt. */
@@ -110,19 +98,28 @@ const frac = (v: number) => v - Math.floor(v)
 /** Fade in/out at the ends of a particle's travel so nothing pops. */
 const edgeFade = (t: number) => Math.max(0, Math.min(1, t / 0.1, (1 - t) / 0.1))
 
-/** The particles to draw for this frame. Empty unless a particle preset is on. */
-export function particlesAt(params: TemplateParams, phase: number): Particle[] {
-  if (!params.animEnabled || !isParticlePreset(params.animPreset)) return []
-  const k = Math.max(0, Math.min(2, params.animIntensity))
-  const n = Math.max(0, Math.min(200, Math.round(params.animCount ?? 24)))
+/**
+ * The particles for one effect layer at this frame.
+ *
+ * Pure in (layer, phase, index): no state, no RNG carried between frames. That
+ * is what lets the DOM preview and the canvas exporter draw identical motion.
+ * Each particle's progress is frac(phase * cycles + offset), which is
+ * continuous across the 1 → 0 wrap, so every loop is seamless — `cycles` is an
+ * integer for exactly that reason.
+ */
+export function fxParticles(layer: FxLayer, phase: number): Particle[] {
+  if (!layer || layer.fx === 'none') return []
+  const k = Math.max(0, Math.min(2, layer.intensity))
+  const n = Math.max(0, Math.min(200, Math.round(layer.count)))
+  const cycles = Math.max(1, Math.round(layer.cycles || 1))
   const out: Particle[] = []
   for (let i = 0; i < n; i++) {
     const r1 = rnd(i, 1)
     const r2 = rnd(i, 2)
     const r3 = rnd(i, 3)
     const r4 = rnd(i, 4)
-    const t = frac(phase + r1) // this particle's own 0..1 progress
-    switch (params.animPreset) {
+    const t = frac(phase * cycles + r1) // this particle's own 0..1 progress
+    switch (layer.fx) {
       case 'coins': {
         // tossed coins falling and tumbling, with a little lateral sway
         const sway = 0.04 * k * Math.sin((t * 4 + r2 * 6.283) * Math.PI)
@@ -153,7 +150,7 @@ export function particlesAt(params: TemplateParams, phase: number): Particle[] {
       }
       case 'sparkle': {
         // twinkling glints at fixed spots, each on its own blink cycle
-        const tw = 0.5 - 0.5 * Math.cos(frac(phase * (1 + Math.floor(r3 * 3)) + r1) * 6.283)
+        const tw = 0.5 - 0.5 * Math.cos(frac(phase * cycles * (1 + Math.floor(r3 * 3)) + r1) * 6.283)
         out.push({
           kind: 'spark',
           x: 0.05 + r2 * 0.9,
@@ -182,6 +179,12 @@ export function particlesAt(params: TemplateParams, phase: number): Particle[] {
     }
   }
   return out
+}
+
+/** True when any effect layer would draw something. */
+export function hasFx(params: TemplateParams): boolean {
+  const f = params.animFx
+  return !!f && (f.bg.fx !== 'none' || f.kv.fx !== 'none' || f.logo.fx !== 'none')
 }
 
 /** Recommended export frame count for a smooth loop at the given fps. */
