@@ -267,7 +267,16 @@ function drawFrame(
       /* noop */
     }
   } else if (logo) {
-    drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
+    if (params.kvAutoCenter ?? true) {
+      // Centre on the visible mark (matches Thumbnail.tsx ContainImg for logos).
+      const c = opaqueCenterFromImage(logo)
+      const r = Math.min(boxW / logo.naturalWidth, boxH / logo.naturalHeight)
+      const dw = logo.naturalWidth * r
+      const dh = logo.naturalHeight * r
+      ctx.drawImage(logo, boxX + boxW / 2 - c.cx * dw, boxY + boxH / 2 - c.cy * dh, dw, dh)
+    } else {
+      drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
+    }
   }
   ctx.restore()
 

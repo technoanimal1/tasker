@@ -47,10 +47,11 @@ export function layoutBoxes(layout: SizeLayout, W: number, H: number) {
   // which read as the art "distorting" instead of resizing.)
   const kvW = W * layout.kvScale
   const kv = anchorCenterBox(layout.kvAlign, W, H, kvW, layout.kvScale * H, layout.kvDX ?? 0, layout.kvDY ?? 0)
-  const lgCentered = layout.logoAlign[1] === 'c'
-  // Logos are wide, so their width binds well before their height; scale the
-  // width faster than the height (×2.2) so "Logo size" visibly enlarges them.
-  const lgW = W * Math.max(lgCentered ? 0.82 : 0.46, layout.logoScale * 2.2)
+  // Logo box scales uniformly too (wide 2.2:1-ish shape, no width floor): the
+  // old floor — max(0.82, 2.2·scale)·W — froze a wide logo's rendered size until
+  // the slider passed ~37%, then let asymmetric padding drift it sideways as the
+  // width finally grew. Both dimensions now follow the slider linearly.
+  const lgW = W * layout.logoScale * 2.2
   const logo = anchorCenterBox(layout.logoAlign, W, H, lgW, layout.logoScale * H, layout.logoDX ?? 0, layout.logoDY ?? 0)
   return { kv, logo }
 }

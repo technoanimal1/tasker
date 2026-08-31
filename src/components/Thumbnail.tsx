@@ -225,25 +225,17 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           }}
         />
 
-        {/* logo — image or text variant */}
+        {/* logo — image or text variant. Rendered like the KV (ContainImg):
+            centred on its visible mark, so a logo file with uneven transparent
+            padding doesn't slide sideways as its size grows. */}
         {params.textLogo
           ? renderTextLogo(thumb.name, params, logoBox, color, m.logoScale)
           : logo && (
-              <img
+              <ContainImg
                 src={logo}
-                draggable={false}
-                loading="lazy"
-                decoding="async"
-                style={{
-                  position: 'absolute',
-                  left: logoBox.x,
-                  top: logoBox.y,
-                  width: logoBox.w,
-                  height: logoBox.h,
-                  objectFit: 'contain',
-                  transform: `scale(${m.logoScale})`,
-                  transformOrigin: 'center center',
-                }}
+                box={logoBox}
+                autoCenter={params.kvAutoCenter ?? true}
+                transform={m.logoScale !== 1 ? `scale(${m.logoScale})` : undefined}
               />
             )}
 
@@ -327,13 +319,15 @@ function ContainImg({
   const [ctr, setCtr] = useState<Center>(opaqueCenterCached(src) ?? { cx: 0.5, cy: 0.5 })
   useEffect(() => {
     let live = true
+    // Reset on src change so a swap can never render the new image with the
+    // previous image's dimensions/centre (which would stretch or misplace it).
+    setNat(null)
+    setCtr(opaqueCenterCached(src) ?? { cx: 0.5, cy: 0.5 })
     const img = new Image()
     img.onload = () => live && setNat({ w: img.naturalWidth, h: img.naturalHeight })
     img.src = src
-    if (autoCenter) {
-      const c = opaqueCenterCached(src)
-      if (c) setCtr(c)
-      else computeOpaqueCenter(src).then((r) => live && setCtr(r))
+    if (autoCenter && !opaqueCenterCached(src)) {
+      computeOpaqueCenter(src).then((r) => live && setCtr(r))
     }
     return () => {
       live = false
@@ -363,7 +357,9 @@ function ContainImg({
       draggable={false}
       loading="lazy"
       decoding="async"
-      style={{ ...common, left, top, width: rw, height: rh }}
+      // objectFit is a no-op when rw/rh match the natural aspect (they do at
+      // steady state) but guarantees no stretching during any transient.
+      style={{ ...common, left, top, width: rw, height: rh, objectFit: 'contain' }}
     />
   )
 }
