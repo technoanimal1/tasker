@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
@@ -19,7 +19,7 @@ import {
 } from '../lib/thumb'
 import { ThumbnailCard } from './Thumbnail'
 import { LoadingScreen, Spinner } from './Spinner'
-import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Undo2, Redo2, RotateCcw } from 'lucide-react'
 
 /**
  * Master template controller (designer-only). One place to set logo / key-visual
@@ -35,15 +35,28 @@ export function TemplateView() {
   const { assetsFor, ensureResolved } = useFigmaAssets(pageItems)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
+  // Baseline = the last-saved params; per-size / global dirtiness is measured
+  // against it, and a scoped save writes only the sizes that differ from it.
+  const [base, setBase] = useState<TemplateParams | null>(null)
   const [saving, setSaving] = useState(false)
   const [previewIdx, setPreviewIdx] = useState(0)
   // The provider-label config is locked until you tap Edit (avoids stray changes).
   const [labelEdit, setLabelEdit] = useState(false)
   // Preview width tracks the viewport so the card fits on mobile (no clipping).
   const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 800))
+  // Change history for undo / redo. Slider drags coalesce into one step by tag.
+  const [undoStack, setUndoStack] = useState<TemplateParams[]>([])
+  const [redoStack, setRedoStack] = useState<TemplateParams[]>([])
+  const lastTag = useRef<{ tag: string; t: number }>({ tag: '', t: 0 })
 
   useEffect(() => {
-    if (template) setParams(withDefaults(template.params))
+    if (template) {
+      const wd = withDefaults(template.params)
+      setParams(wd)
+      setBase(wd)
+      setUndoStack([])
+      setRedoStack([])
+    }
   }, [template])
 
   useEffect(() => {
@@ -56,10 +69,80 @@ export function TemplateView() {
     return () => window.removeEventListener('resize', onR)
   }, [])
 
-  const dirty = useMemo(
-    () => (template && params ? JSON.stringify(params) !== JSON.stringify(withDefaults(template.params)) : false),
-    [params, template],
-  )
+  // Which aspect sizes differ from the saved baseline (layout or gradient).
+  const editedSizes = useMemo(() => {
+    const set = new Set<string>()
+    if (!params || !base) return set
+    for (const s of FRAME_SIZES) {
+      const layDiff = JSON.stringify(params.layouts?.[s.key] ?? null) !== JSON.stringify(base.layouts?.[s.key] ?? null)
+      const grDiff = JSON.stringify(params.gradients?.[s.key] ?? null) !== JSON.stringify(base.gradients?.[s.key] ?? null)
+      if (layDiff || grDiff) set.add(s.key)
+    }
+    return set
+  }, [params, base])
+
+  // Product-wide (non-per-size) fields that differ from the baseline.
+  const globalsDirty = useMemo(() => {
+    if (!params || !base) return false
+    const strip = (p: TemplateParams) => {
+      const { layouts: _l, gradients: _g, sizeKey: _s, ...rest } = p
+      return rest
+    }
+    return JSON.stringify(strip(params)) !== JSON.stringify(strip(base))
+  }, [params, base])
+
+  const dirty = editedSizes.size > 0 || globalsDirty
+
+  // A single mutation: snapshot the pre-change state for undo (coalescing rapid
+  // same-tag edits like a slider drag), clear redo, then apply the change.
+  const mutate = (tag: string, fn: (p: TemplateParams) => TemplateParams) => {
+    if (!params) return
+    const now = Date.now()
+    const coalesce = lastTag.current.tag === tag && now - lastTag.current.t < 700
+    lastTag.current = { tag, t: now }
+    if (!coalesce) {
+      setUndoStack((s) => [...s.slice(-99), params])
+      setRedoStack([])
+    }
+    setParams(fn(params))
+  }
+
+  function undo() {
+    if (!undoStack.length || !params) return
+    const prev = undoStack[undoStack.length - 1]
+    setUndoStack((s) => s.slice(0, -1))
+    setRedoStack((r) => [...r, params])
+    setParams(prev)
+    lastTag.current = { tag: '', t: 0 }
+  }
+  function redo() {
+    if (!redoStack.length || !params) return
+    const next = redoStack[redoStack.length - 1]
+    setRedoStack((r) => r.slice(0, -1))
+    setUndoStack((s) => [...s, params])
+    setParams(next)
+    lastTag.current = { tag: '', t: 0 }
+  }
+
+  // Cmd/Ctrl+Z → undo, Cmd/Ctrl+Shift+Z (or Ctrl+Y) → redo.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      const k = e.key.toLowerCase()
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'TEXTAREA') return
+      if (k === 'z') {
+        e.preventDefault()
+        e.shiftKey ? redo() : undo()
+      } else if (k === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }) // eslint-disable-line react-hooks/exhaustive-deps
+
   const sample = pageItems[previewIdx] ?? pageItems[0] ?? null
 
   // Resolve the sample's Figma-only layers (assets not yet on our CDN) on demand.
@@ -80,38 +163,67 @@ export function TemplateView() {
   const lay = params.layouts?.[sizeKey] ?? defaultLayout(sizeKey)
   const grad = resolveGrad(params)
 
+  // Switching the previewed aspect isn't an edit — no history entry.
   const setSize = (key: string) => setParams((p) => (p ? { ...p, sizeKey: key } : p))
   const setLayout = (patch: Partial<SizeLayout>) =>
-    setParams((p) => {
-      if (!p) return p
+    mutate(`layout:${params?.sizeKey}:${Object.keys(patch).join(',')}`, (p) => {
       const cur = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
       return { ...p, layouts: { ...(p.layouts ?? {}), [p.sizeKey]: { ...cur, ...patch } } }
     })
   const setGrad = (patch: Partial<GradientParams>) =>
-    setParams((p) => {
-      if (!p) return p
+    mutate(`grad:${params?.sizeKey}:${Object.keys(patch).join(',')}`, (p) => {
       const cur = resolveGrad(p)
       return { ...p, gradients: { ...(p.gradients ?? {}), [p.sizeKey]: { ...cur, ...patch } } }
     })
   // Provider label styling is product-wide (not per aspect size).
-  const setP = (patch: Partial<TemplateParams>) => setParams((p) => (p ? { ...p, ...patch } : p))
+  const setP = (patch: Partial<TemplateParams>) => mutate(`global:${Object.keys(patch).join(',')}`, (p) => ({ ...p, ...patch }))
 
   // Copy the current size's KV + logo layout (alignment, size, offsets) onto every
   // aspect size, so a proportion tuned here can be applied to all sizes at once.
   const applyLayoutToAll = () =>
-    setParams((p) => {
-      if (!p) return p
+    mutate('apply-all', (p) => {
       const cur = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
       const layouts = { ...(p.layouts ?? {}) }
       for (const s of FRAME_SIZES) layouts[s.key] = { ...cur }
       return { ...p, layouts }
     })
 
-  async function saveAll() {
-    if (!params) return
+  // Revert one aspect size's layout + gradient back to the saved baseline.
+  const resetSize = (key: string) =>
+    mutate(`reset:${key}`, (p) => {
+      const layouts = { ...(p.layouts ?? {}) }
+      const gradients = { ...(p.gradients ?? {}) }
+      if (base?.layouts?.[key]) layouts[key] = base.layouts[key]
+      else delete layouts[key]
+      if (base?.gradients?.[key]) gradients[key] = base.gradients[key]
+      else delete gradients[key]
+      return { ...p, layouts, gradients }
+    })
+
+  // Save only the sizes that were edited: start from the saved baseline and
+  // overlay just the changed sizes (+ any global fields), so aspect sizes you
+  // didn't touch are persisted exactly as they were.
+  async function saveEdited() {
+    if (!params || !base) return
     setSaving(true)
     try {
-      await save(params)
+      const next: TemplateParams = { ...(globalsDirty ? params : base) }
+      const layouts = { ...(base.layouts ?? {}) }
+      const gradients = { ...(base.gradients ?? {}) }
+      for (const s of editedSizes) {
+        if (params.layouts?.[s]) layouts[s] = params.layouts[s]
+        else delete layouts[s]
+        if (params.gradients?.[s]) gradients[s] = params.gradients[s]
+        else delete gradients[s]
+      }
+      next.layouts = layouts
+      next.gradients = gradients
+      next.sizeKey = params.sizeKey
+      await save(next)
+      setBase(next)
+      setParams(next)
+      setUndoStack([])
+      setRedoStack([])
     } finally {
       setSaving(false)
     }
@@ -119,35 +231,80 @@ export function TemplateView() {
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold">Template controller</h1>
           <p className="text-sm text-zinc-400">
-            Master layout &amp; gradient per aspect size. Saving applies to <b>every thumbnail</b> on the product.
+            Master layout &amp; gradient <b>per aspect size</b>. Saving writes only the sizes you edited.
           </p>
         </div>
-        <button
-          onClick={saveAll}
-          disabled={saving || !dirty}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
-        >
-          {saving ? 'Saving…' : dirty ? 'Save template' : 'Saved'}
-        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            onClick={undo}
+            disabled={!undoStack.length}
+            title="Undo (⌘Z)"
+            aria-label="Undo"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
+          >
+            <Undo2 size={16} />
+          </button>
+          <button
+            onClick={redo}
+            disabled={!redoStack.length}
+            title="Redo (⌘⇧Z)"
+            aria-label="Redo"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
+          >
+            <Redo2 size={16} />
+          </button>
+          <button
+            onClick={saveEdited}
+            disabled={saving || !dirty}
+            title={dirty ? `Save ${editedSizes.size ? `${editedSizes.size} size${editedSizes.size > 1 ? 's' : ''}` : 'changes'}${globalsDirty ? (editedSizes.size ? ' + label' : 'label') : ''}` : 'Nothing to save'}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
+          >
+            {saving
+              ? 'Saving…'
+              : dirty
+                ? `Save${editedSizes.size ? ` ${editedSizes.size} size${editedSizes.size > 1 ? 's' : ''}` : ' changes'}`
+                : 'Saved'}
+          </button>
+        </div>
       </div>
 
-      {/* aspect switcher */}
+      {/* aspect switcher — a dot marks a size with unsaved edits */}
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
-        {FRAME_SIZES.map((s) => (
+        {FRAME_SIZES.map((s) => {
+          const edited = editedSizes.has(s.key)
+          return (
+            <button
+              key={s.key}
+              onClick={() => setSize(s.key)}
+              title={edited ? `${s.key} · edited (unsaved)` : s.key}
+              className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                sizeKey === s.key ? 'bg-accent text-zinc-900' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
+              }`}
+            >
+              {s.key}
+              {edited && (
+                <span
+                  className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ring-2 ${
+                    sizeKey === s.key ? 'bg-zinc-900 ring-accent' : 'bg-accent ring-zinc-900'
+                  }`}
+                />
+              )}
+            </button>
+          )
+        })}
+        {editedSizes.has(sizeKey) && (
           <button
-            key={s.key}
-            onClick={() => setSize(s.key)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              sizeKey === s.key ? 'bg-accent text-zinc-900' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
-            }`}
+            onClick={() => resetSize(sizeKey)}
+            title={`Revert ${sizeKey} to the saved version`}
+            className="flex items-center gap-1 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
           >
-            {s.key}
+            <RotateCcw size={13} /> Reset {sizeKey}
           </button>
-        ))}
+        )}
         <button
           onClick={applyLayoutToAll}
           title="Copy this size's KV + logo alignment, size and offsets to every aspect size"
@@ -274,7 +431,7 @@ export function TemplateView() {
                 </button>
                 <button
                   onClick={async () => {
-                    await saveAll()
+                    await saveEdited()
                     setLabelEdit(false)
                   }}
                   disabled={saving || !dirty}
@@ -338,7 +495,9 @@ export function TemplateView() {
             </div>
           </div>
 
-          <p className="text-[11px] text-zinc-500">Everything here is saved per aspect size and applies to all thumbnails at that size.</p>
+          <p className="text-[11px] text-zinc-500">
+            Layout &amp; gradient are saved per aspect size — a dot marks an edited size, and only edited sizes are written on save. ⌘Z undoes, ⌘⇧Z redoes.
+          </p>
         </aside>
       </div>
     </div>
