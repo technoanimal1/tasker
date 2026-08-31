@@ -73,7 +73,12 @@ A standalone marketing page lives at [`public/landing.html`](public/landing.html
 at `/landing.html` in dev and in the deployed build; the CTAs point back at `/`
 (the app).
 
-It shows real work rather than mock-ups: the game shelf loads seven baked WebP
+The hero editor is **live** — visitors drag the key visual, grab a corner to
+resize it, nudge with the arrow keys, switch between seven games, flip through
+five frame sizes (each keeping its own layout, as in the app), recolour the
+frame from the palette, toggle the provider badge and the white logotype, and
+Export PNG redraws the frame to a canvas at its true pixel size. It shows real
+work rather than mock-ups: the game shelf loads seven baked WebP
 previews from the public `previews` bucket, and the editor canvas and the frame-size
 row composite the raw layers (`bg.jpg` / `kv.png` / `logoWhite.png`) from the public
 `assets` bucket, laid out the way `defaultLayout()` does — portrait stacks the key
