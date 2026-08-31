@@ -1,68 +1,155 @@
-import type { FxKind, FxLayer, TemplateParams } from './thumb'
+import type { FxKind, FxLayer, MoLayer, TemplateParams } from './thumb'
 
 /**
- * Per-frame motion derived from a normalized loop phase (0..1). Shared by the
- * DOM preview (Thumbnail.tsx) and the canvas exporter so animation looks the
- * same on screen and in the exported file. All values are relative multipliers
- * / fractions applied on top of the static layout.
+ * Per-layer motion.
+ *
+ * Each layer (background, key visual, logo) gets its own preset, so the art can
+ * move as a composition rather than as one rigid block.
+ *
+ * ── What makes it read as real rather than "a sine wave" ────────────────────
+ * 1. LOOP-SAFE NOISE. Organic drift comes from summed integer-frequency
+ *    harmonics with fixed random phases. Because every frequency is a whole
+ *    number of cycles per loop, the result is exactly periodic — but it wanders
+ *    like noise instead of swinging like a metronome.
+ * 2. REAL GRAVITY. Bounce is a parabola (constant acceleration) with a rest
+ *    beat on the ground, not |sin|. Fast at the bottom, hangs at the top.
+ * 3. SQUASH AND STRETCH. On impact the layer flattens and widens together, so
+ *    it deforms like something with mass. The widening uses sx = 1/sqrt(sy) —
+ *    the softer convention animators favour over strict area preservation
+ *    (1/sy), which reads as too rubbery at these amplitudes.
+ * 4. ANTICIPATION AND OVERSHOOT. A punch dips slightly the wrong way first,
+ *    overshoots the target, then settles — the classic animation arc.
+ * 5. DAMPED OSCILLATION. Wiggle is a decaying spring wobble, windowed to zero
+ *    at the loop end so it never clicks at the wrap.
+ * 6. FOLLOW-THROUGH. Each layer has `lag`, a phase offset, so the logo trails
+ *    the key visual instead of moving in lockstep — the single cheapest trick
+ *    for making a composition feel connected but alive.
+ * Everything stays a pure function of phase, so the exporter matches exactly.
  */
-export interface Motion {
-  bgScaleMul: number // multiplies params.bgScale
-  kvDXFrac: number // key-visual x shift, fraction of width
-  kvDYFrac: number // key-visual y shift, fraction of height
-  kvRotDeg: number // key-visual rotation about its pinned point
-  kvScaleMul: number // extra scale on the key visual
-  bloomScale: number // extra scale on the overlay bloom
-  bloomOpacity: number // 0..1 opacity of the overlay bloom
-  logoScale: number // scale on the logo/text logo
-  shine: number | null // 0..1 sweep position across the logo, or null
+export interface Xform {
+  dx: number // translate, fraction of frame width
+  dy: number // translate, fraction of frame height
+  sx: number // horizontal scale
+  sy: number // vertical scale
+  rot: number // degrees
+  glow: number // 0..1 extra bloom
+  shine: number | null // 0..1 sweep position, or null
 }
 
-const STATIC: Motion = {
-  bgScaleMul: 1,
-  kvDXFrac: 0,
-  kvDYFrac: 0,
-  kvRotDeg: 0,
-  kvScaleMul: 1,
-  bloomScale: 1,
-  bloomOpacity: 1,
-  logoScale: 1,
-  shine: null,
-}
+export const NO_XFORM: Xform = { dx: 0, dy: 0, sx: 1, sy: 1, rot: 0, glow: 0, shine: null }
 
-/** Compute motion for a given loop phase (0..1). Returns identity when off. */
-export function motionAt(params: TemplateParams, phase: number): Motion {
-  if (!params.animEnabled) return STATIC
-  // Intensity runs past 1 so effects can be pushed to genuinely eye-catching.
-  const k = Math.max(0, Math.min(2, params.animIntensity))
-  const tau = Math.PI * 2
-  const s = Math.sin(tau * phase) // -1..1
-  const up = 0.5 - 0.5 * Math.cos(tau * phase) // 0..1..0
-  switch (params.animPreset) {
-    case 'float':
-      return { ...STATIC, kvDYFrac: -0.03 * k * s, logoScale: 1 + 0.015 * k * s }
-    case 'pulse':
-      return { ...STATIC, bloomScale: 1 + 0.25 * k * up, bloomOpacity: 1 - 0.35 * k * (1 - up) }
-    case 'kenburns':
-      return { ...STATIC, bgScaleMul: 1 + 0.12 * k * up, kvDXFrac: 0.01 * k * s }
-    case 'shine':
-      return { ...STATIC, shine: phase, bloomScale: 1 + 0.08 * k * up }
-    // ── new motion presets ──────────────────────────────────────────────────
-    case 'zoom': // punch-in on the key visual, background eases the other way
-      return { ...STATIC, kvScaleMul: 1 + 0.14 * k * up, bgScaleMul: 1 + 0.05 * k * (1 - up), logoScale: 1 + 0.03 * k * up }
-    case 'wiggle': // playful tilt
-      return { ...STATIC, kvRotDeg: 3.5 * k * s, kvDXFrac: 0.008 * k * s }
-    case 'bounce': // squash-and-stretch drop
-      return { ...STATIC, kvDYFrac: -0.05 * k * Math.abs(s), kvScaleMul: 1 + 0.04 * k * up }
-    case 'heartbeat': {
-      // two quick beats per loop, then rest
-      const b = phase < 0.5 ? Math.sin(tau * phase * 2) ** 2 : 0
-      return { ...STATIC, kvScaleMul: 1 + 0.1 * k * b, bloomScale: 1 + 0.2 * k * b, logoScale: 1 + 0.04 * k * b }
+const TAU = Math.PI * 2
+const frac2 = (v: number) => v - Math.floor(v)
+/** Distance between two phases on the loop circle (so effects wrap smoothly). */
+const circDist = (a: number, b: number) => {
+  const d = Math.abs(frac2(a) - frac2(b))
+  return Math.min(d, 1 - d)
+}
+function hash1(n: number): number {
+  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453
+  return x - Math.floor(x)
+}
+/**
+ * Periodic value noise: harmonics at integer frequencies, so the period is
+ * exactly 1 while the shape stays irregular. Returns roughly -1..1.
+ */
+function loopNoise(t: number, seed: number, octaves = 3): number {
+  let v = 0
+  let amp = 1
+  let norm = 0
+  for (let i = 0; i < octaves; i++) {
+    const f = i + 1 // whole cycles per loop → seamless
+    const ph = hash1(seed * 7.13 + i * 3.77)
+    v += amp * Math.sin(TAU * (f * t + ph))
+    norm += amp
+    amp *= 0.55
+  }
+  return v / norm
+}
+/** Squash partner for a vertical scale. 1/sqrt (not 1/sy) keeps the deformation
+ *  believable rather than rubbery at the amplitudes used here. */
+const squash = (sy: number) => 1 / Math.sqrt(Math.max(0.05, sy))
+
+/** Compute one layer's transform at this phase. */
+export function motionFor(layer: MoLayer | undefined, phase: number): Xform {
+  if (!layer || layer.mo === 'none') return NO_XFORM
+  const k = Math.max(0, Math.min(2, layer.intensity))
+  if (k === 0) return NO_XFORM
+  const cycles = Math.max(1, Math.round(layer.cycles || 1))
+  // `lag` shifts this layer back in the loop → follow-through between layers.
+  const t = frac2(phase * cycles - (layer.lag ?? 0))
+  const up = 0.5 - 0.5 * Math.cos(TAU * t) // 0..1..0
+
+  switch (layer.mo) {
+    case 'float': {
+      // organic drift: noise, not a sine — never quite repeats within the loop
+      return { ...NO_XFORM, dx: 0.012 * k * loopNoise(t, 1), dy: 0.022 * k * loopNoise(t, 2), rot: 0.8 * k * loopNoise(t, 3) }
     }
-    default:
-      return STATIC
+    case 'sway': {
+      // pendulum: rotation leads, with a bob at double frequency (a real
+      // pendulum's height peaks twice per swing)
+      const a = Math.sin(TAU * t)
+      return { ...NO_XFORM, rot: 4 * k * a, dx: 0.02 * k * a, dy: -0.008 * k * Math.abs(Math.cos(TAU * t)) }
+    }
+    case 'orbit': {
+      // slow circular drift — good for backgrounds, adds depth without a beat
+      return { ...NO_XFORM, dx: 0.018 * k * Math.cos(TAU * t), dy: 0.018 * k * Math.sin(TAU * t) }
+    }
+    case 'bounce': {
+      // ballistic arc: constant gravity for the flight, then a rest beat
+      const tf = 0.62 // fraction of the loop spent in the air
+      let h = 0
+      let vel = 0
+      if (t < tf) {
+        const u = t / tf
+        h = 4 * u * (1 - u) // parabola: 0 → 1 → 0
+        vel = 4 * (1 - 2 * u) // its derivative, for stretch
+      }
+      // squash at the two ground contacts (t≈0 and t≈tf), stretch in flight
+      const imp = Math.max(0, 1 - Math.min(circDist(t, 0), circDist(t, tf)) / 0.05)
+      const sy = 1 - 0.2 * k * imp + 0.07 * k * Math.abs(vel) * (1 - imp)
+      return { ...NO_XFORM, dy: -0.13 * k * h, sy, sx: squash(sy) }
+    }
+    case 'zoom': {
+      // anticipation → overshoot → settle
+      const a = 0.18
+      const v =
+        t < a
+          ? -0.35 * Math.sin((Math.PI * t) / a) // pull back first
+          : Math.pow(Math.sin(Math.PI * ((t - a) / (1 - a))), 0.6) * Math.exp(-2.2 * ((t - a) / (1 - a)))
+      const sc = 1 + 0.16 * k * v
+      return { ...NO_XFORM, sx: sc, sy: sc, glow: Math.max(0, 0.5 * k * v) }
+    }
+    case 'wiggle': {
+      // damped spring wobble, windowed to zero at the wrap so it can't click
+      const env = Math.exp(-3.2 * t) * (1 - t)
+      return { ...NO_XFORM, rot: 7 * k * env * Math.sin(TAU * 6 * t), dx: 0.01 * k * env * Math.sin(TAU * 6 * t) }
+    }
+    case 'heartbeat': {
+      // two beats with a sharp attack, then rest — gaussians on the loop circle
+      const beat = (c: number, w: number) => Math.exp(-(circDist(t, c) ** 2) / (w * w))
+      const b = beat(0, 0.045) + 0.65 * beat(0.14, 0.04)
+      const sc = 1 + 0.11 * k * b
+      return { ...NO_XFORM, sx: sc, sy: sc, glow: 0.6 * k * b }
+    }
+    case 'pulse': {
+      // breathing glow — gamma-shaped so the attack differs from the release
+      const g = Math.pow(up, 1.8)
+      return { ...NO_XFORM, glow: k * g, sx: 1 + 0.02 * k * g, sy: 1 + 0.02 * k * g }
+    }
+    case 'kenburns': {
+      // slow push with a drifting centre, eased so it never sits still
+      const e = up * up * (3 - 2 * up) // smoothstep
+      return { ...NO_XFORM, sx: 1 + 0.14 * k * e, sy: 1 + 0.14 * k * e, dx: 0.02 * k * loopNoise(t, 5), dy: 0.015 * k * loopNoise(t, 6) }
+    }
+    default: {
+      // shine: an eased sweep, with a small glow as it crosses
+      const e = t * t * (3 - 2 * t)
+      return { ...NO_XFORM, shine: e, glow: 0.35 * k * Math.exp(-((e - 0.5) ** 2) / 0.02) }
+    }
   }
 }
+
 
 // ── particle effects ────────────────────────────────────────────────────────
 //

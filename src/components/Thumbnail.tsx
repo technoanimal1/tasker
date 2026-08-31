@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { resolveColor } from '../lib/palettes'
 import { computeOpaqueCenter, opaqueCenterCached, type Center } from '../lib/opaqueCenter'
 import { ensureFont, layoutTextLogo, snapWeight } from '../lib/fonts'
-import { motionAt, fxParticles, fxAdditive, type Particle } from '../lib/animate'
+import { motionFor, fxParticles, fxAdditive, NO_XFORM, type Particle, type Xform } from '../lib/animate'
 import { AlphaVideo } from './AlphaVideo'
 import {
   CORNER_MODES,
@@ -19,6 +19,7 @@ import {
   type Placement,
   type FxLayer,
   FX_OFF,
+  MO_OFF,
   type TemplateParams,
   type Thumbnail,
 } from '../lib/thumb'
@@ -108,10 +109,19 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
           ? { top: 0, bottom: 0, left: 0, width: bandExtent }
           : { top: 0, bottom: 0, right: 0, width: bandExtent }
 
-  const m = motionAt(params, phase)
-  // Effect layers, each drawn at its own depth. Defaulted so a params object
-  // that predates them (or a branch override) can't crash the renderer.
+  // Per-layer motion + effects. Defaulted so a params object that predates them
+  // (or a branch override) can't crash the renderer.
   const fx = params.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
+  const on = params.animEnabled
+  const mo = params.animMo ?? { bg: MO_OFF, kv: MO_OFF, logo: MO_OFF }
+  const mBg = on ? motionFor(mo.bg, phase) : NO_XFORM
+  const mKv = on ? motionFor(mo.kv, phase) : NO_XFORM
+  const mLogo = on ? motionFor(mo.logo, phase) : NO_XFORM
+  // Bloom follows the key visual; the shine sweep belongs to whichever layer asked for it.
+  const glow = Math.max(mBg.glow, mKv.glow, mLogo.glow)
+  const shine = mLogo.shine ?? mKv.shine ?? mBg.shine
+  const xf = (x: typeof mBg) =>
+    `translate(${x.dx * W}px, ${x.dy * H}px) rotate(${x.rot}deg) scale(${x.sx}, ${x.sy})`
 
   return (
     <div className={className} style={{ width: W * scale, height: H * scale }}>
@@ -147,7 +157,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               backgroundSize: 'cover',
               backgroundPosition: 'center center',
               backgroundRepeat: 'no-repeat',
-              transform: `scale(${params.bgScale * m.bgScaleMul})`,
+              transform: `translate(${mBg.dx * W}px, ${mBg.dy * H}px) scale(${params.bgScale * mBg.sx}, ${params.bgScale * mBg.sy}) rotate(${mBg.rot}deg)`,
               transformOrigin: 'center center',
             }}
           />
@@ -179,7 +189,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               width: kvBox.w,
               height: kvBox.h,
               objectFit: 'contain',
-              transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
+              transform: xf(mKv),
             }}
           />
         ) : assets.animVideo ? (
@@ -196,7 +206,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               width: kvBox.w,
               height: kvBox.h,
               objectFit: 'contain',
-              transform: `translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`,
+              transform: xf(mKv),
             }}
           />
         ) : (
@@ -208,10 +218,10 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
               autoCenter={autoCenter}
               W={W}
               H={H}
-              extraTransform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px) rotate(${m.kvRotDeg}deg) scale(${m.kvScaleMul})`}
+              extraTransform={xf(mKv)}
             />
           ) : (
-            <FitImg src={kv} box={kvBox} transform={`translate(${m.kvDXFrac * W}px, ${m.kvDYFrac * H}px)`} />
+            <FitImg src={kv} box={kvBox} transform={xf(mKv)} />
           ))
         )}
 
@@ -244,8 +254,8 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             position: 'absolute',
             left: '50%',
             bottom: -H * 0.123,
-            transform: `translateX(-50%) scale(${m.bloomScale})`,
-            opacity: m.bloomOpacity,
+            transform: `translateX(-50%) scale(${1 + 0.25 * glow})`,
+            opacity: 0.65 + 0.35 * glow,
             width: W * 0.811,
             height: H * 0.275,
             borderRadius: '50%',
@@ -258,7 +268,7 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
             visible mark and scaled about that point, so a logo file with uneven
             transparent padding can't slide sideways as its size grows. */}
         {params.textLogo
-          ? renderTextLogo(thumb.name, params, logoBox, color, m.logoScale)
+          ? renderTextLogo(thumb.name, params, logoBox, color, mLogo)
           : logo &&
             (logoPlace ? (
               <Layer
@@ -267,21 +277,21 @@ export function ThumbnailCard({ thumb, params, assets, displayW = 244, phase = 0
                 autoCenter={autoCenter}
                 W={W}
                 H={H}
-                extraTransform={m.logoScale !== 1 ? `scale(${m.logoScale})` : undefined}
+                extraTransform={xf(mLogo)}
               />
             ) : (
               <FitImg src={logo} box={logoBox} />
             ))}
 
         {/* shine sweep */}
-        {m.shine != null && (
+        {shine != null && (
           <div
             style={{
               position: 'absolute',
               inset: 0,
               pointerEvents: 'none',
               mixBlendMode: 'overlay',
-              background: `linear-gradient(105deg, transparent ${m.shine * 140 - 30}%, rgba(255,255,255,0.55) ${m.shine * 140 - 18}%, transparent ${m.shine * 140 - 6}%)`,
+              background: `linear-gradient(105deg, transparent ${shine * 140 - 30}%, rgba(255,255,255,0.55) ${shine * 140 - 18}%, transparent ${shine * 140 - 6}%)`,
             }}
           />
         )}
@@ -503,7 +513,7 @@ function renderTextLogo(
   params: TemplateParams,
   box: { x: number; y: number; w: number; h: number },
   color: { stroke: string; blur: string },
-  scale = 1,
+  x: Xform = NO_XFORM,
 ) {
   ensureFont(params.fontFamily)
   const boxW = box.w
@@ -540,7 +550,7 @@ function renderTextLogo(
         textShadow: params.textShadow ? `0 ${boxH * 0.02}px ${boxH * 0.06}px rgba(0,0,0,0.45)` : 'none',
         whiteSpace: 'nowrap',
         overflow: 'visible',
-        transform: `scale(${scale})`,
+        transform: `translate(${x.dx * boxW}px, ${x.dy * boxH}px) rotate(${x.rot}deg) scale(${x.sx}, ${x.sy})`,
         transformOrigin: 'center center',
       }}
     >

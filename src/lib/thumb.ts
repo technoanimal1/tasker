@@ -247,6 +247,33 @@ export interface TemplateParams {
   animIntensity: number // 0..2 (past 1 = deliberately punchy)
   animCount: number // legacy particle density (kept for old templates)
   animFx: AnimFx // per-depth particle effects
+  animMo: AnimMo // per-layer motion
+}
+
+/**
+ * Motion applied to one layer of the card (background / key visual / logo).
+ * Each layer animates independently, so the art moves as a composition.
+ */
+export type MotionKind =
+  | 'none' | 'float' | 'sway' | 'orbit' | 'bounce' | 'zoom' | 'wiggle' | 'heartbeat' | 'pulse' | 'kenburns' | 'shine'
+export const MO_KINDS: MotionKind[] = [
+  'none', 'float', 'sway', 'orbit', 'bounce', 'zoom', 'wiggle', 'heartbeat', 'pulse', 'kenburns', 'shine',
+]
+
+export interface MoLayer {
+  mo: MotionKind
+  intensity: number // 0..2
+  /** Whole loops per animation loop. Integer so the loop stays seamless. */
+  cycles: number
+  /** Phase offset (0..1) — delays this layer for follow-through between layers. */
+  lag: number
+}
+export const MO_OFF: MoLayer = { mo: 'none', intensity: 1, cycles: 1, lag: 0 }
+
+export interface AnimMo {
+  bg: MoLayer
+  kv: MoLayer
+  logo: MoLayer
 }
 
 /**
@@ -330,6 +357,7 @@ export const DEFAULT_PARAMS: TemplateParams = {
   animIntensity: 0.5,
   animCount: 26,
   animFx: { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF },
+  animMo: { bg: MO_OFF, kv: MO_OFF, logo: MO_OFF },
 }
 
 export interface Template {
@@ -415,7 +443,7 @@ export const FRAME_DESIGN_KEYS: (keyof TemplateParams)[] = [
   'logoVariant', 'textLogo', 'fontFamily',
   'textWeight', 'textAlign', 'textColorMode', 'textColor', 'textAllCaps', 'textShadow',
   'textLetterPct', 'textLineHeight', 'textMaxLines', 'textScale', 'textFillLines',
-  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity', 'animCount', 'animFx',
+  'animEnabled', 'animPreset', 'animSpeed', 'animIntensity', 'animCount', 'animFx', 'animMo',
 ]
 
 /** Keep only the frame-design keys from an arbitrary params bag (never `logo`). */
@@ -481,12 +509,33 @@ export function withDefaults(p: Partial<TemplateParams> | null | undefined): Tem
     kv: { ...FX_OFF, ...(srcFx.kv ?? {}) },
     logo: { ...FX_OFF, ...(srcFx.logo ?? {}) },
   }
+  // Motion layers. A template from before per-layer motion carried one preset
+  // for the whole card — move it to the layer it mostly drove, so it keeps
+  // looking the same: kenburns was a background push, pulse/shine sat on the
+  // logo, everything else moved the key visual.
+  const legacyMo = p?.animPreset as MotionKind | undefined
+  const legacySlot: FxSlot | null =
+    !p?.animMo && legacyMo && MO_KINDS.includes(legacyMo) && legacyMo !== 'none'
+      ? legacyMo === 'kenburns'
+        ? 'bg'
+        : legacyMo === 'pulse' || legacyMo === 'shine'
+          ? 'logo'
+          : 'kv'
+      : null
+  const srcMo = { ...(p?.animMo ?? {}) } as Partial<AnimMo>
+  if (legacySlot) srcMo[legacySlot] = { mo: legacyMo!, intensity: p?.animIntensity ?? 1, cycles: 1, lag: 0 }
+  const animMo: AnimMo = {
+    bg: { ...MO_OFF, ...(srcMo.bg ?? {}) },
+    kv: { ...MO_OFF, ...(srcMo.kv ?? {}) },
+    logo: { ...MO_OFF, ...(srcMo.logo ?? {}) },
+  }
   return {
     ...DEFAULT_PARAMS,
     ...(p ?? {}),
     logo: { ...DEFAULT_PARAMS.logo, ...(p?.logo ?? {}) },
     providerRadius,
     animFx,
+    animMo,
   }
 }
 

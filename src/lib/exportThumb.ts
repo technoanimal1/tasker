@@ -1,9 +1,9 @@
 import { figmaProxyUrl, assetUrl } from './supabase'
 import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
-import { motionAt, fxParticles, fxAdditive, type Particle } from './animate'
+import { motionFor, fxParticles, fxAdditive, NO_XFORM, type Particle, type Xform } from './animate'
 import { opaqueCenterFromImage } from './opaqueCenter'
-import { CORNER_MODES, CORNER_REF, FX_OFF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type FxLayer, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, FX_OFF, MO_OFF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type FxLayer, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -45,7 +45,7 @@ function drawLayer(
   H: number,
   offX = 0,
   offY = 0,
-  rotDeg = 0,
+  x: Xform = NO_XFORM,
 ) {
   const base = baseFit(img.naturalWidth, img.naturalHeight, W, H)
   const c = autoCenter ? opaqueCenterFromImage(img) : { cx: 0.5, cy: 0.5 }
@@ -53,11 +53,13 @@ function drawLayer(
   const dh = base.h * place.k
   const ax = place.ax + offX
   const ay = place.ay + offY
-  if (rotDeg) {
-    // Rotate about the pinned point, exactly like the DOM transform-origin.
+  if (x.rot || x.sx !== 1 || x.sy !== 1) {
+    // Rotate/scale about the pinned point, exactly like the DOM
+    // transform-origin does, so export matches the preview.
     ctx.save()
     ctx.translate(ax, ay)
-    ctx.rotate((rotDeg * Math.PI) / 180)
+    ctx.rotate((x.rot * Math.PI) / 180)
+    ctx.scale(x.sx, x.sy)
     ctx.drawImage(img, -c.cx * dw, -c.cy * dh, dw, dh)
     ctx.restore()
     return
@@ -237,8 +239,14 @@ function drawFrame(
   color: Color,
   phase: number,
 ) {
-  const m = motionAt(params, phase)
   const fx = params.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
+  const mo = params.animMo ?? { bg: MO_OFF, kv: MO_OFF, logo: MO_OFF }
+  const on = params.animEnabled
+  const mBg = on ? motionFor(mo.bg, phase) : NO_XFORM
+  const mKv = on ? motionFor(mo.kv, phase) : NO_XFORM
+  const mLogo = on ? motionFor(mo.logo, phase) : NO_XFORM
+  const glow = Math.max(mBg.glow, mKv.glow, mLogo.glow)
+  const shine = mLogo.shine ?? mKv.shine ?? mBg.shine
   const radius = (CORNER_MODES[params.cornerMode] / CORNER_REF) * W
   const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
   const kk = W / CORNER_REF
@@ -262,10 +270,9 @@ function drawFrame(
 
   const { bg, kv, logo } = assets
   if (bg) {
-    const s = params.bgScale * m.bgScaleMul
-    const bgW = W * s
-    const bgH = H * s
-    drawFit(ctx, bg, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH, 'cover')
+    const bgW = W * params.bgScale * mBg.sx
+    const bgH = H * params.bgScale * mBg.sy
+    drawFit(ctx, bg, (W - bgW) / 2 + mBg.dx * W, (H - bgH) / 2 + mBg.dy * H, bgW, bgH, 'cover')
   }
 
   // effect layer behind the art (over the background only)
@@ -299,8 +306,8 @@ function drawFrame(
     kvX = (W - kvW) / 2
     kvY = H - kvH - H * (params.kvBottomPct / 100)
   }
-  const kvDX = m.kvDXFrac * W
-  const kvDY = m.kvDYFrac * H
+  const kvDX = mKv.dx * W
+  const kvDY = mKv.dy * H
   if (assets.kvVideo) {
     drawFitSource(ctx, assets.kvVideo, assets.kvVideo.videoWidth, assets.kvVideo.videoHeight, kvX + kvDX, kvY + kvDY, kvW, kvH)
   } else if (kv) {
@@ -309,7 +316,7 @@ function drawFrame(
       // inside the frame, scaled about the pinned point — so the point holds
       // still at every size and export matches the preview exactly.
       const kvPlace = layerPlacement(layout.kvAlign, layout.kvScale, layout.kvDX ?? 0, layout.kvDY ?? 0, W, H, 'kv')
-      drawLayer(ctx, kv, { ...kvPlace, k: kvPlace.k * m.kvScaleMul }, params.kvAutoCenter ?? true, W, H, kvDX, kvDY, m.kvRotDeg)
+      drawLayer(ctx, kv, kvPlace, params.kvAutoCenter ?? true, W, H, kvDX, kvDY, mKv)
     } else {
       drawFit(ctx, kv, kvX + kvDX, kvY + kvDY, kvW, kvH, 'contain')
     }
@@ -340,7 +347,8 @@ function drawFrame(
     ctx.restore()
   }
   ellipse(H * 0.88, W * 0.45, H * 0.17, hexA(color.blur, 0.85), hexA(color.blur, 0))
-  ellipse(H * 0.985, W * 0.4055 * m.bloomScale, H * 0.1375 * m.bloomScale, '#ffffff', 'rgba(255,255,255,0)', 'overlay', m.bloomOpacity)
+  const bloom = 1 + 0.25 * glow
+  ellipse(H * 0.985, W * 0.4055 * bloom, H * 0.1375 * bloom, '#ffffff', 'rgba(255,255,255,0)', 'overlay', 0.65 + 0.35 * glow)
 
   // logo — image or text, with optional motion scale
   const boxX = boxes ? boxes.logo.x : landscape ? W * 0.5 : params.logo.xPct * W
@@ -348,11 +356,12 @@ function drawFrame(
   const boxW = boxes ? boxes.logo.w : landscape ? W * 0.46 : params.logo.wPct * W
   const boxH = boxes ? boxes.logo.h : landscape ? H * 0.44 : params.logo.hPct * H
   ctx.save()
-  if (m.logoScale !== 1) {
+  if (mLogo.rot || mLogo.sx !== 1 || mLogo.sy !== 1 || mLogo.dx || mLogo.dy) {
     const cx = boxX + boxW / 2
     const cy = boxY + boxH / 2
-    ctx.translate(cx, cy)
-    ctx.scale(m.logoScale, m.logoScale)
+    ctx.translate(cx + mLogo.dx * W, cy + mLogo.dy * H)
+    ctx.rotate((mLogo.rot * Math.PI) / 180)
+    ctx.scale(mLogo.sx, mLogo.sy)
     ctx.translate(-cx, -cy)
   }
   if (params.textLogo && thumb.name) {
@@ -397,7 +406,7 @@ function drawFrame(
     }
   } else if (logo) {
     if (layout) {
-      drawLayer(ctx, logo, layerPlacement(layout.logoAlign, layout.logoScale, layout.logoDX ?? 0, layout.logoDY ?? 0, W, H, 'logo'), params.kvAutoCenter ?? true, W, H, 0, 0)
+      drawLayer(ctx, logo, layerPlacement(layout.logoAlign, layout.logoScale, layout.logoDX ?? 0, layout.logoDY ?? 0, W, H, 'logo'), params.kvAutoCenter ?? true, W, H, mLogo.dx * W, mLogo.dy * H, mLogo)
     } else {
       drawFit(ctx, logo, boxX, boxY, boxW, boxH, 'contain')
     }
@@ -405,10 +414,10 @@ function drawFrame(
   ctx.restore()
 
   // shine sweep
-  if (m.shine != null) {
+  if (shine != null) {
     ctx.save()
     ctx.globalCompositeOperation = 'overlay'
-    const center = m.shine * 1.4 - 0.2
+    const center = shine * 1.4 - 0.2
     const g = ctx.createLinearGradient(0, 0, W, 0)
     g.addColorStop(clamp01(center - 0.12), 'rgba(255,255,255,0)')
     g.addColorStop(clamp01(center), 'rgba(255,255,255,0.55)')

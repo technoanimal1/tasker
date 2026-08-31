@@ -11,6 +11,9 @@ import {
   FX_KINDS,
   FX_OFF,
   FX_SLOT_LABEL,
+  MO_KINDS,
+  MO_OFF,
+  type MoLayer,
   type FxLayer,
   branchParams,
   defaultLayout,
@@ -55,8 +58,6 @@ import { WhiteLogo } from './WhiteLogo'
 
 type ExportFormat = StillFormat | 'anim'
 
-/** Presets that move the artwork, split from the code-drawn particle effects. */
-const MOTION_PRESETS = ['float', 'pulse', 'kenburns', 'shine', 'zoom', 'wiggle', 'bounce', 'heartbeat'] as const
 
 // Compact square icon-button styles (toolbar).
 const ICON_BTN =
@@ -1520,36 +1521,49 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               </Row>
               {p.animEnabled && (
                 <>
-                  {/* Motion presets move the artwork; particle presets add
-                      code-drawn effects on top (no video needed). */}
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Motion</p>
-                  <div className="grid grid-cols-4 gap-1">
-                    {MOTION_PRESETS.map((o) => (
-                      <button
-                        key={o}
-                        onClick={() => set('animPreset', o)}
-                        className={`rounded-md border px-1 py-1.5 text-[10px] font-medium capitalize transition ${
-                          p.animPreset === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
-                        }`}
-                      >
-                        {o}
-                      </button>
-                    ))}
-                  </div>
-                  <Slider label="Speed" min={0.3} max={20} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
-                  <Slider label="Intensity" min={0} max={2} step={0.05} value={p.animIntensity} onChange={(v) => set('animIntensity', v)} {...pct} />
+                  <Slider label="Loop" min={0.3} max={20} step={0.1} value={p.animSpeed} onChange={(v) => set('animSpeed', v)} fmt={(v) => `${v.toFixed(1)}s`} />
 
-                  {/* Effects stack at three depths, each configured on its own. */}
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Effects</p>
+                  {/* One card per layer: its own motion, plus particles at that
+                      depth. Layers animate independently, so the art moves as a
+                      composition rather than one rigid block. */}
                   {FX_SLOTS.map((slot) => {
-                    const layer = (p.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF })[slot]
+                    const moL = (p.animMo ?? { bg: MO_OFF, kv: MO_OFF, logo: MO_OFF })[slot]
+                    const fxL = (p.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF })[slot]
+                    const setMo = (patch: Partial<MoLayer>) => {
+                      const cur = p.animMo ?? { bg: MO_OFF, kv: MO_OFF, logo: MO_OFF }
+                      set('animMo', { ...cur, [slot]: { ...cur[slot], ...patch } })
+                    }
                     const setFx = (patch: Partial<FxLayer>) => {
                       const cur = p.animFx ?? { bg: FX_OFF, kv: FX_OFF, logo: FX_OFF }
                       set('animFx', { ...cur, [slot]: { ...cur[slot], ...patch } })
                     }
                     return (
-                      <div key={slot} className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 p-2">
-                        <p className="text-[11px] font-medium text-zinc-300">{FX_SLOT_LABEL[slot]}</p>
+                      <div key={slot} className="space-y-2 rounded-lg border border-zinc-800 bg-zinc-900/40 p-2">
+                        <p className="text-[11px] font-semibold text-zinc-200">{FX_SLOT_LABEL[slot]}</p>
+
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Motion</p>
+                        <select
+                          value={moL.mo}
+                          onChange={(e) => setMo({ mo: e.target.value as MoLayer['mo'] })}
+                          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs capitalize outline-none focus:border-accent"
+                        >
+                          {MO_KINDS.map((o) => (
+                            <option key={o} value={o}>
+                              {o === 'none' ? '— none —' : o}
+                            </option>
+                          ))}
+                        </select>
+                        {moL.mo !== 'none' && (
+                          <>
+                            <Slider label="Strength" min={0} max={2} step={0.05} value={moL.intensity} onChange={(v) => setMo({ intensity: v })} {...pct} />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Slider label="Rate" min={1} max={4} step={1} value={moL.cycles} onChange={(v) => setMo({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
+                              <Slider label="Delay" min={0} max={0.5} step={0.01} value={moL.lag} onChange={(v) => setMo({ lag: v })} {...pct} />
+                            </div>
+                          </>
+                        )}
+
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Effect</p>
                         <div className="grid grid-cols-5 gap-1">
                           {FX_KINDS.map((o) => (
                             <button
@@ -1557,19 +1571,19 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                               onClick={() => setFx({ fx: o })}
                               title={o}
                               className={`rounded-md border py-1.5 text-[11px] transition ${
-                                layer.fx === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                                fxL.fx === o ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
                               }`}
                             >
                               {o === 'none' ? '–' : o === 'coins' ? '🪙' : o === 'fire' ? '🔥' : o === 'sparkle' ? '✨' : '🎉'}
                             </button>
                           ))}
                         </div>
-                        {layer.fx !== 'none' && (
+                        {fxL.fx !== 'none' && (
                           <>
-                            <Slider label="Amount" min={0} max={200} step={1} value={layer.count} onChange={(v) => setFx({ count: v })} fmt={(v) => `${Math.round(v)}`} />
+                            <Slider label="Amount" min={0} max={200} step={1} value={fxL.count} onChange={(v) => setFx({ count: v })} fmt={(v) => `${Math.round(v)}`} />
                             <div className="grid grid-cols-2 gap-2">
-                              <Slider label="Strength" min={0} max={2} step={0.05} value={layer.intensity} onChange={(v) => setFx({ intensity: v })} {...pct} />
-                              <Slider label="Rate" min={1} max={4} step={1} value={layer.cycles} onChange={(v) => setFx({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
+                              <Slider label="Strength" min={0} max={2} step={0.05} value={fxL.intensity} onChange={(v) => setFx({ intensity: v })} {...pct} />
+                              <Slider label="Rate" min={1} max={4} step={1} value={fxL.cycles} onChange={(v) => setFx({ cycles: v })} fmt={(v) => `${Math.round(v)}×`} />
                             </div>
                           </>
                         )}
