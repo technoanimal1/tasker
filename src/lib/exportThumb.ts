@@ -3,7 +3,7 @@ import { resolveColor } from './palettes'
 import { layoutTextLogo, loadFontFace, snapWeight } from './fonts'
 import { motionAt } from './animate'
 import { opaqueCenterFromImage } from './opaqueCenter'
-import { CORNER_MODES, CORNER_REF, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
+import { CORNER_MODES, CORNER_REF, applyCase, bandStops, baseFit, frameSize, hexA, layerPlacement, layoutBoxes, resolveGrad, type TemplateParams, type Thumbnail } from './thumb'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -311,7 +311,9 @@ function drawFrame(
     ctx.restore()
   }
 
-  const ptext = params.providerName.trim() || thumb.provider
+  // Match the live renderer: the badge respects the template's text case, so
+  // exports and baked previews read the same as the on-screen thumbnail.
+  const ptext = applyCase(params.providerName.trim() || thumb.provider, params.providerCase ?? 'as-is')
   if (params.showProvider && ptext) {
     const fs = W * 0.025 * params.providerScale
     ctx.font = `700 ${fs}px "Helvetica Neue", Arial, sans-serif`

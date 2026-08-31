@@ -2,7 +2,7 @@ import type { TemplateParams, Thumbnail } from './thumb'
 
 // Bump when the renderer (exportThumb drawFrame) changes in a way that alters
 // pixels, so every cached preview is treated as stale and re-baked.
-const RENDER_VERSION = 'v9'
+const RENDER_VERSION = 'v10'
 
 /**
  * A short, stable signature of everything that affects a thumbnail's rendered
