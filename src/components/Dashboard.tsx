@@ -7,12 +7,13 @@ import { useBrandAssets } from '../hooks/useBrandAssets'
 import { BrandAssets } from './BrandAssets'
 import { FramesView } from './FramesView'
 import { TemplateView } from './TemplateView'
+import { EditorStaging } from './EditorStaging'
 import { BranchMenu } from './BranchMenu'
 import { ThumbnailStudio } from './ThumbnailStudio'
 import { useEntitlements } from '../hooks/useEntitlements'
 import { ClientOnboarding } from './ClientOnboarding'
 
-type View = 'studio' | 'template' | 'frames' | 'assets'
+type View = 'studio' | 'template' | 'staging' | 'frames' | 'assets'
 
 export function Dashboard() {
   const { session } = useAuth()
@@ -86,6 +87,7 @@ export function Dashboard() {
             {([
               ['studio', 'Thumbnails'],
               ...(role === 'designer' ? [['template', 'Template'] as [View, string]] : []),
+              ...(role === 'designer' ? [['staging', 'Editor staging'] as [View, string]] : []),
               ['frames', 'Frames'],
               ['assets', 'Brand assets'],
             ] as [View, string][]).map(([v, label]) => (
@@ -131,6 +133,8 @@ export function Dashboard() {
           <ThumbnailStudio role={role ?? 'client'} branch={branch} saveFrameParams={branchesApi.saveFrameParams} />
         ) : view === 'template' ? (
           <TemplateView />
+        ) : view === 'staging' ? (
+          <EditorStaging />
         ) : view === 'assets' ? (
           <BrandAssets api={assetsApi} />
         ) : branch ? (
