@@ -6,6 +6,7 @@ import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
+  TEXT_LOGO_PRESET,
   ANIM_PRESETS,
   branchParams,
   defaultLayout,
@@ -370,6 +371,19 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       setFrameParams((fp) => ({ ...fp, [key]: value }))
     } else if (scope === 'global') setParams((prev) => (prev ? { ...prev, [key]: value } : prev))
     else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), [key]: value } }))
+  }
+  /** Apply several params at once, honouring the active scope (bulk / global /
+   *  this-one). Used for presets, where setting keys one by one would stack
+   *  partial states and fight the current scope. */
+  function setMany(patch: Partial<TemplateParams>) {
+    setLiveGrid(true)
+    if (bulkMode) {
+      patchSelected((cur) => ({ ...cur, ...patch }))
+      return
+    }
+    if (editingBranch) return // text-logo styling is designer-only
+    if (scope === 'global') setParams((prev) => (prev ? { ...prev, ...patch } : prev))
+    else if (selectedId) setOverrides((o) => ({ ...o, [selectedId]: { ...(o[selectedId] ?? {}), ...patch } }))
   }
   // Per-size alignment layout. Global scope edits the template; selected scope
   // stores a per-thumbnail layout override (merged over the template by size).
@@ -1397,7 +1411,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <Section title="Logo style">
               <Seg options={['color', 'white'].map((o) => ({ value: o, label: o }))} value={p.logoVariant} onChange={(v) => set('logoVariant', v as TemplateParams['logoVariant'])} />
               <Row label="Text logo">
-                <input type="checkbox" checked={p.textLogo} onChange={(e) => set('textLogo', e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={p.textLogo}
+                  // Turning it on seeds the house text-logo style, so a text
+                  // logotype always starts from the same look.
+                  onChange={(e) =>
+                    e.target.checked ? setMany({ ...TEXT_LOGO_PRESET, textLogo: true }) : set('textLogo', false)
+                  }
+                />
               </Row>
               {p.textLogo && (
                 <>

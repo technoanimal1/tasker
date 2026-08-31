@@ -170,6 +170,25 @@ export function applyCase(text: string, mode: ProviderCase): string {
   }
 }
 
+/**
+ * House style for the text logotype — the settings a text logo starts from.
+ * Applied when the text-logo variant is switched on, and used as the defaults
+ * for any template that hasn't set them.
+ */
+export const TEXT_LOGO_PRESET = {
+  fontFamily: 'Bebas Neue',
+  textWeight: 900, // snapped to the family's available weights at render time
+  textAlign: 'center' as const,
+  textColorMode: 'white' as const,
+  textAllCaps: true,
+  textShadow: false,
+  textLetterPct: 3,
+  textLineHeight: 0.88,
+  textMaxLines: 3,
+  textScale: 0.8,
+  textFillLines: true, // vary line widths
+}
+
 export interface TemplateParams {
   sizeKey: string
   cornerMode: 'sharp' | 'friendly' | 'playful'
@@ -243,18 +262,8 @@ export const DEFAULT_PARAMS: TemplateParams = {
   logo: { xPct: 0.1, yPct: 0.55, wPct: 0.8, hPct: 0.3 },
   logoVariant: 'color',
   textLogo: false,
-  fontFamily: 'Anton',
-  textWeight: 900,
-  textAlign: 'center',
-  textColorMode: 'white',
+  ...TEXT_LOGO_PRESET,
   textColor: '#ffffff',
-  textAllCaps: true,
-  textShadow: false,
-  textLetterPct: 1,
-  textLineHeight: 1.04,
-  textMaxLines: 3,
-  textScale: 1,
-  textFillLines: false,
   strokeWidth: 1.5,
   strokePad: 0,
   strokePos: 'inside',
