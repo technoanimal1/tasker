@@ -428,17 +428,14 @@
         width: 100%;
         max-width: 232px;
         aspect-ratio: 3 / 4;
-        border-radius: 10px;
-        overflow: hidden;
-        background: linear-gradient(135deg, #1b2434 0%, #2a1f3d 55%, #3a2740 100%);
-        box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.9);
+        filter: drop-shadow(0 20px 40px rgb(0 0 0 / 0.85));
       }
       .frame::after {
         content: '';
         position: absolute;
-        inset: 0;
+        inset: -7px;
         border: 1.5px solid rgb(255 240 80 / 0.75);
-        border-radius: 10px;
+        border-radius: 20px;
         pointer-events: none;
         z-index: 4;
       }
@@ -447,9 +444,7 @@
         position: absolute;
         inset: 0;
         aspect-ratio: auto;
-        border: 0;
-        border-radius: 10px;
-        box-shadow: none;
+        border-radius: 15px;
       }
       .frame > .tile:hover {
         transform: none;
@@ -511,10 +506,10 @@
         background: var(--brand);
         box-shadow: 0 0 0 2px #0a0b0d;
       }
-      .handle.tl { left: 4px; top: 4px; }
-      .handle.tr { right: 4px; top: 4px; }
-      .handle.bl { left: 4px; bottom: 4px; }
-      .handle.br { right: 4px; bottom: 4px; }
+      .handle.tl { left: -11px; top: -11px; }
+      .handle.tr { right: -11px; top: -11px; }
+      .handle.bl { left: -11px; bottom: -11px; }
+      .handle.br { right: -11px; bottom: -11px; }
 
       .size-chip {
         position: absolute;
