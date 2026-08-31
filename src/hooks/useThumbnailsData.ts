@@ -23,6 +23,13 @@ export function useThumbnailsData() {
   const [pageItems, setPageItems] = useState<Thumbnail[]>([]) // current "All" page
   const [pageLoading, setPageLoading] = useState(false)
   const [loading, setLoading] = useState(true) // initial provider-index load only
+  // Infinite-scroll "All" list: accumulates across batches as you scroll.
+  const [allItems, setAllItems] = useState<Thumbnail[]>([])
+  const [allLoading, setAllLoading] = useState(false)
+  const [allDone, setAllDone] = useState(false)
+  const allOffset = useRef(0)
+  const allDoneRef = useRef(false)
+  const allLoadingRef = useRef(false)
 
   const mergeIn = (items: Thumbnail[]) =>
     setThumbnails((ts) => {
@@ -88,6 +95,39 @@ export function useThumbnailsData() {
     setPageLoading(false)
   }, [])
 
+  /** Append the next batch of the whole catalogue for infinite scroll (ordered
+   *  by provider then name). No-ops while a batch is in flight or the end is
+   *  reached. Also merges into `thumbnails` so edits/assets stay in sync. */
+  const loadMoreAll = useCallback(async (pageSize = 30) => {
+    if (allLoadingRef.current || allDoneRef.current) return
+    allLoadingRef.current = true
+    setAllLoading(true)
+    try {
+      const from = allOffset.current
+      const { data } = await supabase
+        .from('thumbnails')
+        .select('*')
+        .order('provider', { ascending: true })
+        .order('name', { ascending: true })
+        .range(from, from + pageSize - 1)
+      const items = (data as Thumbnail[]) ?? []
+      setAllItems((cur) => {
+        const have = new Set(cur.map((t) => t.id))
+        const add = items.filter((i) => !have.has(i.id))
+        return add.length ? [...cur, ...add] : cur
+      })
+      mergeIn(items)
+      allOffset.current = from + items.length
+      if (items.length < pageSize) {
+        allDoneRef.current = true
+        setAllDone(true)
+      }
+    } finally {
+      allLoadingRef.current = false
+      setAllLoading(false)
+    }
+  }, [])
+
   /** Search games by name across the whole catalogue (server-side). */
   const searchGames = useCallback(async (q: string): Promise<Thumbnail[]> => {
     const term = q.trim()
@@ -109,6 +149,10 @@ export function useThumbnailsData() {
     setLoadedProviders(new Set())
     setThumbnails([])
     setPageItems([])
+    setAllItems([])
+    allOffset.current = 0
+    allDoneRef.current = false
+    setAllDone(false)
     const { data } = await supabase.rpc('provider_counts')
     const counts = ((data as { provider: string; cnt: number }[]) ?? []).map((r) => ({
       provider: r.provider,
@@ -181,6 +225,10 @@ export function useThumbnailsData() {
     pageItems,
     pageLoading,
     loadPage,
+    allItems,
+    allLoading,
+    allDone,
+    loadMoreAll,
     searchGames,
     loading,
     ensureProvider,

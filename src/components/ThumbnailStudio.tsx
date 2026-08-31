@@ -66,7 +66,7 @@ interface Props {
 
 export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const { template, loading: tLoading, save } = useTemplate()
-  const { thumbnails, providerCounts, providerLoading, pageItems, pageLoading, loadPage, searchGames, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, saveLogoColor, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
+  const { thumbnails, providerCounts, providerLoading, allItems, allLoading, allDone, loadMoreAll, searchGames, ensureProvider, loading: thLoading, saveOverrides, saveAnim, saveAnimAlpha, saveLogoWhite, saveLogoColor, savePreview, deleteThumbnail, insertThumbnail } = useThumbnailsData()
   const { assetsFor, ensureResolved } = useFigmaAssets(thumbnails)
 
   const [params, setParams] = useState<TemplateParams | null>(null)
@@ -97,9 +97,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [sidebarSearch, setSidebarSearch] = useState('')
   // Providers whose game list is expanded in the sidebar (lazy-loads on expand).
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
-  // Which category the grid shows: a provider name, or null = "All" (paginated).
+  // Which category the grid shows: a provider name, or null = "All" (infinite scroll).
   const [activeProvider, setActiveProvider] = useState<string | null>(null)
-  const [page, setPage] = useState(0)
   const [providerPickerOpen, setProviderPickerOpen] = useState(false) // mobile 70% sheet
   // View-only aspect override for the grid/preview (doesn't change saved params).
   const [viewSize, setViewSize] = useState<string | null>(null)
@@ -107,7 +106,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const [gameSearch, setGameSearch] = useState('')
   const [searchResults, setSearchResults] = useState<Thumbnail[]>([])
   const [searching, setSearching] = useState(false)
-  const PAGE_SIZE = 30
   // Undo stack for risky actions (delete / bulk / recolour).
   const [undoStack, setUndoStack] = useState<{ label: string; run: () => void | Promise<void> }[]>([])
   // Mobile controls half-sheet: draggable height (top offset in vh). 30 = 70% tall.
@@ -116,14 +114,8 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   const sheetDrag = useRef<{ startY: number; startTop: number } | null>(null)
   const cancelRef = useRef(false)
   const gridScrollRef = useRef<HTMLDivElement>(null)
-  // Change the "All" catalogue page and jump back to the top of the grid so the
-  // new page is visible (on mobile the page body scrolls; on desktop the grid).
-  function goToPage(next: number) {
-    const clamped = Math.max(0, Math.min(pageCount - 1, next))
-    setPage(clamped)
-    gridScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  // Infinite-scroll sentinel: when it scrolls into view, load the next batch.
+  const loadMoreRef = useRef<HTMLDivElement>(null)
   // Desktop-width gate. Background preview baking loads full-res Figma layers per
   // tile, which is too heavy on a phone (scrolling a large grid can exhaust
   // memory) — designers bake on desktop; mobile just consumes the baked WebPs.
@@ -253,13 +245,13 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
     return m
   }, [thumbnails])
 
-  // Load data for the active view: a provider's games, or the current "All" page.
+  // Load data for the active view: a provider's games, or the first "All" batch.
   useEffect(() => {
     if (activeProvider) ensureProvider(activeProvider)
   }, [activeProvider, ensureProvider])
   useEffect(() => {
-    if (!activeProvider) loadPage(page, PAGE_SIZE)
-  }, [activeProvider, page, loadPage])
+    if (!activeProvider && allItems.length === 0) loadMoreAll()
+  }, [activeProvider, allItems.length, loadMoreAll])
 
   // Top-bar game search: debounce, then query the whole catalogue by name.
   const gameQuery = gameSearch.trim()
@@ -279,18 +271,32 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }, [gameQuery, searchGames])
 
   // Games shown in the grid: search hits (when searching), else a provider's
-  // loaded games, or the current All page.
+  // loaded games, or the infinite-scroll All list.
   const gridItems = useMemo(
     () =>
       gameQuery
         ? searchResults
         : activeProvider
           ? thumbnails.filter((t) => t.provider === activeProvider)
-          : pageItems,
-    [gameQuery, searchResults, activeProvider, thumbnails, pageItems],
+          : allItems,
+    [gameQuery, searchResults, activeProvider, thumbnails, allItems],
   )
   const totalCatalog = useMemo(() => providerCounts.reduce((n, p) => n + p.count, 0), [providerCounts])
-  const pageCount = Math.max(1, Math.ceil(totalCatalog / PAGE_SIZE))
+  // Infinite scroll: load the next All batch when the sentinel nears the viewport.
+  const allView = !gameQuery && !activeProvider
+  useEffect(() => {
+    if (!allView) return
+    const el = loadMoreRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMoreAll()
+      },
+      { rootMargin: '600px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [allView, allDone, gridItems.length, loadMoreAll])
 
   if (tLoading || thLoading || !params || !activeParams) {
     return <LoadingScreen label="Loading studio…" />
@@ -593,7 +599,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       ? `Search · ${gridItems.length}`
       : activeProvider
         ? `${activeProvider} · ${gridItems.length}`
-        : `All · ${totalCatalog}${pageCount > 1 ? ` (page ${page + 1}/${pageCount})` : ''}`
+        : `All · ${gridItems.length}${totalCatalog ? ` / ${totalCatalog}` : ''}`
   const previewPhase = playing ? phase : 0
   const canExportAnim = animSupported()
   const sidebarQuery = sidebarSearch.trim().toLowerCase()
@@ -736,7 +742,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               <button
                 onClick={() => {
                   setActiveProvider(null)
-                  setPage(0)
                   setProviderPickerOpen(false)
                 }}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
@@ -751,7 +756,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   key={provider}
                   onClick={() => {
                     setActiveProvider(provider)
-                    setPage(0)
                     ensureProvider(provider)
                     setProviderPickerOpen(false)
                   }}
@@ -805,7 +809,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <button
               onClick={() => {
                 setActiveProvider(null)
-                setPage(0)
                 setMobilePanel(null)
               }}
               className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
@@ -827,7 +830,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   onClick={() => {
                     // Filter the grid to this provider (and load its games).
                     setActiveProvider(provider)
-                    setPage(0)
                     ensureProvider(provider)
                     setMobilePanel(null)
                     setExpandedProviders((s) => {
@@ -1107,7 +1109,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </div>
 
             {gridItems.length === 0 &&
-              (searching || pageLoading || (activeProvider && providerLoading === activeProvider) ? (
+              (searching || allLoading || (activeProvider && providerLoading === activeProvider) ? (
                 <LoadingScreen label={gameQuery ? 'Searching…' : 'Loading games…'} className="py-16" />
               ) : gameQuery ? (
                 <p className="py-16 text-center text-sm text-zinc-500">No games match “{gameSearch}”.</p>
@@ -1115,24 +1117,17 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <p className="py-16 text-center text-sm text-zinc-500">No games here yet.</p>
               ))}
 
-            {/* "All" view: paginate the whole catalogue, 30 per page */}
-            {!gameQuery && !activeProvider && totalCatalog > PAGE_SIZE && (
-              <div className="relative z-10 mb-24 mt-5 flex items-center justify-center gap-3 text-xs text-zinc-300 lg:mb-5">
-                <button
-                  disabled={page === 0 || pageLoading}
-                  onClick={() => goToPage(page - 1)}
-                  className="rounded-lg border border-zinc-700 px-4 py-2.5 transition hover:bg-zinc-800 disabled:opacity-40"
-                >
-                  ← Prev
-                </button>
-                <span className="tabular-nums text-zinc-400">Page {page + 1} of {pageCount}</span>
-                <button
-                  disabled={page + 1 >= pageCount || pageLoading}
-                  onClick={() => goToPage(page + 1)}
-                  className="rounded-lg border border-zinc-700 px-4 py-2.5 transition hover:bg-zinc-800 disabled:opacity-40"
-                >
-                  Next →
-                </button>
+            {/* "All" view: infinite scroll — a sentinel loads the next batch as it
+                nears the viewport; a spinner shows while the batch fetches. */}
+            {!gameQuery && !activeProvider && (
+              <div ref={loadMoreRef} className="mb-20 mt-5 flex items-center justify-center lg:mb-5">
+                {allLoading ? (
+                  <span className="flex items-center gap-2 text-xs text-zinc-400">
+                    <Spinner size={16} /> Loading more…
+                  </span>
+                ) : allDone && gridItems.length > 0 ? (
+                  <span className="text-xs text-zinc-600">That’s all {gridItems.length} thumbnails.</span>
+                ) : null}
               </div>
             )}
           </div>
