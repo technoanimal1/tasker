@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>thumbs.store — the editor for scalable client design</title>
+    <title>thumbs.store — the casino thumbnail editor</title>
     <meta
       name="description"
-      content="thumbs.store is a design editor built on shared brand assets and branches: upload the background, key visual and logo once, fork a branch per client, and export every frame at full resolution."
+      content="thumbs.store is the thumbnail editor for casino lobbies: one template drives every game tile across every aspect size, forked per client, exported at full resolution."
     />
     <meta name="theme-color" content="#0a0b0d" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="thumbs.store — the editor for scalable client design" />
+    <meta property="og:title" content="thumbs.store — the casino thumbnail editor" />
     <meta
       property="og:description"
-      content="Shared brand assets, per-client branches, sized frames, PNG export. Stop hand-maintaining a pile of one-off design files."
+      content="One template per aspect, a tile per game, a branch per client, full-resolution export. Stop hand-maintaining a pile of one-off design files."
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -440,6 +440,16 @@
         border: 1.5px solid rgb(255 240 80 / 0.75);
         border-radius: 10px;
         pointer-events: none;
+        z-index: 4;
+      }
+      /* The tile fills the frame; the frame keeps the selection chrome. */
+      .frame > .tile {
+        position: absolute;
+        inset: 0;
+        aspect-ratio: auto;
+        border: 0;
+        border-radius: 10px;
+        box-shadow: none;
       }
       .kv {
         position: absolute;
@@ -491,16 +501,17 @@
       }
       .handle {
         position: absolute;
+        z-index: 5;
         width: 9px;
         height: 9px;
         border-radius: 3px;
         background: var(--brand);
         box-shadow: 0 0 0 2px #0a0b0d;
       }
-      .handle.tl { left: -5px; top: -5px; }
-      .handle.tr { right: -5px; top: -5px; }
-      .handle.bl { left: -5px; bottom: -5px; }
-      .handle.br { right: -5px; bottom: -5px; }
+      .handle.tl { left: 4px; top: 4px; }
+      .handle.tr { right: 4px; top: 4px; }
+      .handle.bl { left: 4px; bottom: 4px; }
+      .handle.br { right: 4px; bottom: 4px; }
 
       .size-chip {
         position: absolute;
@@ -837,10 +848,10 @@
         margin-bottom: 9px;
       }
       .asset:nth-child(1) .sw {
-        background: linear-gradient(135deg, #1b2434, #33224a);
+        background: radial-gradient(120% 90% at 50% 30%, #ad171d, #5d0a10 55%, #1a0305);
       }
       .asset:nth-child(2) .sw {
-        background: radial-gradient(circle at 35% 35%, #ffe27a, #ff8a3d 50%, #d4407a);
+        background: radial-gradient(circle at 36% 30%, #fff3bd, #f6c33c 42%, #c9860f 72%, #8a5606);
       }
       .asset:nth-child(3) .sw {
         background: #fff;
@@ -910,28 +921,14 @@
         text-align: center;
         flex: 1 1 150px;
         display: grid;
-        grid-template-rows: 118px auto auto;
+        grid-template-rows: 132px auto auto;
         justify-items: center;
         align-items: center;
         row-gap: 4px;
       }
-      .size .box {
-        background: linear-gradient(135deg, #1b2434, #3a2740);
-        border-radius: 6px;
+      .size .tile {
         width: var(--w, 108px);
         max-width: 100%;
-        position: relative;
-        overflow: hidden;
-      }
-      .size .box::after {
-        content: '';
-        position: absolute;
-        right: -10%;
-        bottom: -18%;
-        width: 58%;
-        aspect-ratio: 1;
-        border-radius: 45% 55% 50% 50%;
-        background: radial-gradient(circle at 35% 35%, #ffe27a, #ff8a3d 50%, #d4407a);
       }
       .size b {
         display: block;
@@ -941,6 +938,523 @@
       .size span {
         font-size: 11.5px;
         color: var(--muted-dim);
+      }
+
+      /* ---------- game shelf ---------- */
+
+      .shelf {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      @media (max-width: 560px) {
+        .shelf {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+      }
+
+      .shelf-note {
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--muted-dim);
+        text-align: center;
+      }
+
+      /* ---------- casino game tiles ----------
+         Each tile is the thumbnail anatomy the app renders: background, key
+         visual, gradient band, game logotype, provider badge, coloured stroke
+         and glow from the palette. Art is CSS/SVG only — no image requests.
+         Type and art scale with the tile via container units, so the same
+         markup works at 96px in the size row and at 260px in the shelf. */
+
+      .tile {
+        container-type: inline-size;
+        position: relative;
+        aspect-ratio: 3 / 4;
+        border-radius: 13px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #0a0c11;
+        border: 1.5px solid var(--stroke, #f5b301);
+        box-shadow: 0 0 26px -6px var(--glow, rgb(255 190 60 / 0.5)), 0 16px 34px -18px #000,
+          inset 0 0 0 1px rgb(255 255 255 / 0.07);
+      }
+      /* Glass gloss across the top third. */
+      .tile::after {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 42%;
+        background: linear-gradient(180deg, rgb(255 255 255 / 0.12), transparent);
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .t-bg,
+      .t-art,
+      .t-vig,
+      .t-band {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* Radial house light + vignette, the same treatment on every game. */
+      .t-vig {
+        background: radial-gradient(115% 78% at 50% 22%, transparent 38%, rgb(0 0 0 / 0.62) 100%);
+      }
+
+      .t-band {
+        top: auto;
+        height: 56%;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          var(--tint) 40%,
+          rgb(0 0 0 / 0.72) 72%,
+          rgb(0 0 0 / 0.95) 100%
+        );
+      }
+
+      /* Game logotype — gold foil with a bevel, slot-cabinet italic. */
+      .t-logo {
+        position: absolute;
+        left: 7%;
+        right: 7%;
+        bottom: 17%;
+        text-align: center;
+        transform: skewX(-5deg);
+      }
+      .t-logo b,
+      .t-logo i {
+        display: block;
+        font-style: normal;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 0.92;
+        text-transform: uppercase;
+        background: linear-gradient(
+          180deg,
+          #fffbe6 0%,
+          #ffe27a 34%,
+          #f0b429 52%,
+          #b3730c 62%,
+          #ffe89a 82%,
+          #d69412 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(90 48 4 / 0.9)) drop-shadow(0 3px 5px rgb(0 0 0 / 0.65));
+      }
+      .t-logo b {
+        font-size: 15.5cqw;
+      }
+      .t-logo i {
+        font-size: 10cqw;
+        letter-spacing: 0.02em;
+      }
+      /* Silver-white variant, for the games whose logo is a knockout. */
+      .t-logo.ice b,
+      .t-logo.ice i {
+        background-image: linear-gradient(180deg, #ffffff 0%, #dbe8ff 45%, #8fb2e8 60%, #ffffff 88%);
+      }
+
+      /* Provider badge — pill, bottom-centre, the app's default position. */
+      .t-prov {
+        position: absolute;
+        left: 50%;
+        bottom: 5.5%;
+        transform: translateX(-50%);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+        padding: 0.42em 0.95em;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.22);
+        background: rgb(8 10 14 / 0.55);
+        backdrop-filter: blur(3px);
+        font-size: 4.6cqw;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: rgb(255 255 255 / 0.86);
+        white-space: nowrap;
+      }
+      .t-prov::before {
+        content: '';
+        width: 0.42em;
+        height: 0.42em;
+        border-radius: 999px;
+        background: var(--stroke);
+      }
+
+      /* Landscape cut — the app splits KV-left / logo-right above 1.2 ratio. */
+      .tile.land .t-art {
+        right: 40%;
+      }
+      .tile.land .t-band {
+        inset: 0 0 0 auto;
+        width: 62%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          var(--tint) 42%,
+          rgb(0 0 0 / 0.72) 74%,
+          rgb(0 0 0 / 0.92) 100%
+        );
+      }
+      .tile.land .t-logo {
+        left: 46%;
+        right: 4%;
+        top: 27%;
+        bottom: auto;
+      }
+      .tile.land .t-logo b {
+        font-size: 8.2cqw;
+      }
+      .tile.land .t-logo i {
+        font-size: 5.2cqw;
+      }
+      .tile.land .medallion {
+        font-size: 7cqw;
+      }
+      .tile.land .c3 {
+        display: none;
+      }
+      .tile.land .t-prov {
+        left: auto;
+        right: 5%;
+        bottom: 14%;
+        transform: none;
+        font-size: 2.6cqw;
+      }
+
+      /* Mini cut — the size row; badge and gloss drop out at thumbnail scale. */
+      .tile.mini {
+        border-radius: 7px;
+        border-width: 1px;
+        box-shadow: 0 0 14px -4px var(--glow), 0 8px 18px -12px #000;
+      }
+      .tile.mini .t-prov,
+      .tile.mini .rays {
+        display: none;
+      }
+
+      /* Shared art primitives ------------------------------------------- */
+
+      /* Light rays fanning from behind the key visual. */
+      .rays {
+        position: absolute;
+        left: 50%;
+        top: 34%;
+        width: 190%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        background: repeating-conic-gradient(
+          from 0deg,
+          rgb(255 236 176 / 0.16) 0deg 7deg,
+          transparent 7deg 16deg
+        );
+        mask-image: radial-gradient(circle, #000 8%, transparent 62%);
+        animation: turn 46s linear infinite;
+      }
+      @keyframes turn {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      /* Gold coin. */
+      .coin {
+        position: absolute;
+        border-radius: 999px;
+        background: radial-gradient(circle at 34% 28%, #fff3bd, #f6c33c 42%, #c9860f 74%, #8a5606 100%);
+        box-shadow: inset 0 0 0 0.14em #ffe89a, inset 0 -0.18em 0.3em rgb(120 70 0 / 0.75),
+          0 0.12em 0.35em rgb(0 0 0 / 0.55);
+        display: grid;
+        place-items: center;
+        color: #7a4a06;
+        font-weight: 700;
+      }
+
+      /* Casino chip. */
+      .chip {
+        position: absolute;
+        border-radius: 999px;
+        background: repeating-conic-gradient(
+          from 12deg,
+          #f6f7fb 0deg 14deg,
+          var(--chip, #d61c4e) 14deg 45deg
+        );
+        box-shadow: 0 0.12em 0.4em rgb(0 0 0 / 0.6);
+      }
+      .chip::after {
+        content: '';
+        position: absolute;
+        inset: 18%;
+        border-radius: 999px;
+        background: var(--chip, #d61c4e);
+        box-shadow: inset 0 0 0 0.1em rgb(255 255 255 / 0.75);
+      }
+
+      /* Playing card. */
+      .card-pip {
+        position: absolute;
+        border-radius: 0.5em;
+        background: linear-gradient(160deg, #ffffff, #dfe3ec);
+        box-shadow: 0 0.25em 0.5em rgb(0 0 0 / 0.55);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: #12161d;
+      }
+      .card-pip.red {
+        color: #cf1023;
+      }
+
+      /* Reel window. */
+      .reel {
+        position: absolute;
+        border-radius: 0.35em;
+        background: linear-gradient(180deg, #10131b, #1b2130 60%, #0c0f16);
+        box-shadow: inset 0 0 0 0.09em rgb(255 255 255 / 0.14), inset 0 0.5em 1em rgb(0 0 0 / 0.7);
+        display: grid;
+        place-items: center;
+      }
+
+      /* Fortune Dragon 88 ------------------------------------------------ */
+      .g-dragon .t-bg {
+        background: radial-gradient(88% 66% at 50% 30%, #ad171d 0%, #5d0a10 46%, #1a0305 100%);
+      }
+      .g-dragon .gate {
+        position: absolute;
+        left: 50%;
+        bottom: 41%;
+        width: 82%;
+        transform: translateX(-50%);
+        fill: #43090c;
+        filter: drop-shadow(0 -0.06em 0 rgb(255 190 90 / 0.35));
+      }
+      .g-dragon .medallion {
+        left: 50%;
+        top: 32%;
+        transform: translate(-50%, -50%);
+        height: 36%;
+        width: auto;
+        aspect-ratio: 1;
+        font-size: 16cqw;
+        color: #8e1013;
+        text-shadow: 0 0.06em 0 rgb(255 238 180 / 0.65);
+      }
+      .g-dragon .c2 { left: 7%; top: 42%; width: 19%; aspect-ratio: 1; }
+      .g-dragon .c3 { right: 8%; top: 38%; width: 15%; aspect-ratio: 1; }
+      .g-dragon .c4 { left: 27%; top: 51%; width: 13%; aspect-ratio: 1; }
+      .g-dragon .c5 { right: 24%; top: 53%; width: 11%; aspect-ratio: 1; }
+
+      /* Royal Roulette --------------------------------------------------- */
+      .g-roulette .t-bg {
+        background: radial-gradient(80% 62% at 50% 34%, #1f7a48 0%, #0c4127 48%, #04170e 100%);
+      }
+      .g-roulette .wheel {
+        position: absolute;
+        left: 50%;
+        top: 33%;
+        width: 62%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background: repeating-conic-gradient(from -9deg, #c1121f 0deg 18deg, #101318 18deg 36deg);
+        box-shadow: 0 0 0 0.5em #d9a441, 0 0 0 0.62em #8a5f16, 0 0.4em 1.2em rgb(0 0 0 / 0.7),
+          inset 0 0 1.4em rgb(0 0 0 / 0.75);
+        animation: turn 28s linear infinite;
+      }
+      .g-roulette .wheel::before {
+        content: '';
+        position: absolute;
+        inset: 26%;
+        border-radius: 999px;
+        background: radial-gradient(circle at 36% 30%, #f6d479, #c08d24 55%, #7a5310);
+        box-shadow: inset 0 0 0 0.12em rgb(255 240 190 / 0.6);
+      }
+      .g-roulette .ball {
+        position: absolute;
+        left: 66%;
+        top: 16%;
+        width: 8%;
+        aspect-ratio: 1;
+        border-radius: 999px;
+        background: radial-gradient(circle at 32% 28%, #fff, #b9c2d0);
+        box-shadow: 0 0.1em 0.3em rgb(0 0 0 / 0.7);
+      }
+      .g-roulette .k1 { left: 3%; top: 47%; width: 22%; aspect-ratio: 1; --chip: #c1121f; }
+      .g-roulette .k2 { left: 14%; top: 53%; width: 20%; aspect-ratio: 1; --chip: #123c8a; }
+      .g-roulette .k3 { right: 4%; top: 49%; width: 21%; aspect-ratio: 1; --chip: #0e6b3d; }
+
+      /* Neon Sevens ------------------------------------------------------ */
+      .g-sevens .t-bg {
+        background: radial-gradient(80% 60% at 50% 32%, #1b2f78 0%, #0b1440 48%, #05061a 100%);
+      }
+      .g-sevens .cab {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: 14%;
+        height: 40%;
+        border-radius: 0.6em;
+        background: linear-gradient(180deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.02));
+        box-shadow: 0 0 1.4em rgb(255 47 208 / 0.55), inset 0 0 0 0.12em rgb(255 96 220 / 0.75);
+      }
+      .g-sevens .r1 { left: 12%; top: 18%; width: 22%; height: 32%; }
+      .g-sevens .r2 { left: 39%; top: 18%; width: 22%; height: 32%; }
+      .g-sevens .r3 { right: 12%; top: 18%; width: 22%; height: 32%; }
+      .g-sevens .reel span {
+        font-size: 15cqw;
+        font-weight: 700;
+        font-style: italic;
+        background: linear-gradient(180deg, #fffbe6, #ffd24a 45%, #c8890f);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 0.18em rgb(255 190 60 / 0.85));
+      }
+      .g-sevens .bulbs {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: 55%;
+        height: 3%;
+        background: repeating-linear-gradient(
+          90deg,
+          rgb(255 214 90 / 0.95) 0 6%,
+          transparent 6% 14%
+        );
+        filter: drop-shadow(0 0 0.3em rgb(255 200 80 / 0.8));
+      }
+
+      /* Candy Cascade ---------------------------------------------------- */
+      .g-candy .t-bg {
+        background: radial-gradient(82% 62% at 50% 30%, #ff7ad1 0%, #a02bb8 45%, #3d0a58 100%);
+      }
+      .g-candy .pop {
+        position: absolute;
+        left: 50%;
+        top: 30%;
+        width: 44%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%) rotate(-8deg);
+        border-radius: 999px;
+        background: repeating-conic-gradient(#ffffff 0deg 30deg, #ff3d8b 30deg 60deg);
+        box-shadow: inset 0 -0.25em 0.6em rgb(120 0 60 / 0.5), 0 0.35em 0.8em rgb(0 0 0 / 0.45);
+      }
+      .g-candy .pop::after {
+        content: '';
+        position: absolute;
+        left: 18%;
+        top: 12%;
+        width: 34%;
+        height: 26%;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.55);
+        filter: blur(0.12em);
+      }
+      .g-candy .stick {
+        position: absolute;
+        left: 49%;
+        top: 46%;
+        width: 4%;
+        height: 20%;
+        border-radius: 0.3em;
+        background: linear-gradient(90deg, #d9b98a, #fff3dc 45%, #b8925f);
+      }
+      .g-candy .drop {
+        position: absolute;
+        border-radius: 46% 46% 52% 52%;
+        box-shadow: inset 0 -0.2em 0.4em rgb(0 0 0 / 0.28), 0 0.2em 0.4em rgb(0 0 0 / 0.4);
+      }
+      .g-candy .d1 { left: 7%; top: 44%; width: 20%; aspect-ratio: 1; background: radial-gradient(circle at 34% 28%, #fff, #4ad6ff 40%, #1276c9); }
+      .g-candy .d2 { right: 8%; top: 40%; width: 17%; aspect-ratio: 1; background: radial-gradient(circle at 34% 28%, #fff, #ffe066 40%, #e09a12); }
+      .g-candy .d3 { right: 20%; top: 56%; width: 13%; aspect-ratio: 1; background: radial-gradient(circle at 34% 28%, #fff, #9dff7a 40%, #2f9e2a); }
+      .g-candy .d4 { left: 24%; top: 58%; width: 12%; aspect-ratio: 1; background: radial-gradient(circle at 34% 28%, #fff, #ff9ce8 40%, #c62aa0); }
+
+      /* Sun Temple ------------------------------------------------------- */
+      .g-aztec .t-bg {
+        background: radial-gradient(78% 60% at 50% 30%, #12a58f 0%, #0a5b57 46%, #041d22 100%);
+      }
+      .g-aztec .sun {
+        position: absolute;
+        left: 50%;
+        top: 29%;
+        width: 42%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background: radial-gradient(circle at 38% 32%, #fff4c4, #ffc93c 46%, #d5860d 100%);
+        box-shadow: 0 0 1.6em rgb(255 200 80 / 0.7), inset 0 -0.2em 0.5em rgb(140 80 0 / 0.6);
+      }
+      .g-aztec .glyph {
+        position: absolute;
+        left: 50%;
+        top: 29%;
+        width: 20%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 0.2em;
+        border-radius: 999px;
+        background: repeating-radial-gradient(
+          circle,
+          rgb(122 71 8 / 0.55) 0 0.055em,
+          transparent 0.055em 0.24em
+        );
+        opacity: 0.85;
+      }
+      .g-aztec .steps {
+        position: absolute;
+        left: 50%;
+        bottom: 33%;
+        width: 92%;
+        transform: translateX(-50%);
+        fill: #05413c;
+        filter: drop-shadow(0 -0.05em 0 rgb(255 210 110 / 0.4));
+      }
+
+      /* Rocket Crash ----------------------------------------------------- */
+      .g-crash .t-bg {
+        background: radial-gradient(76% 58% at 50% 32%, #4b2ad6 0%, #23134f 46%, #08061c 100%);
+      }
+      .g-crash .grid-bg {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+        background-size: 14% 12%;
+        mask-image: linear-gradient(180deg, transparent, #000 40%, transparent 85%);
+      }
+      .g-crash .curve {
+        position: absolute;
+        inset: 0;
+        fill: none;
+        stroke: #4ade80;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 0.4em rgb(74 222 128 / 0.9));
+      }
+      .g-crash .rocket {
+        position: absolute;
+        right: 12%;
+        top: 12%;
+        width: 30%;
+        transform: rotate(6deg);
+      }
+      .g-crash .mult {
+        position: absolute;
+        left: 9%;
+        top: 15%;
+        font-size: 13cqw;
+        font-weight: 700;
+        font-style: italic;
+        color: #eaffef;
+        text-shadow: 0 0 0.35em rgb(74 222 128 / 0.9), 0 0.06em 0 rgb(0 0 0 / 0.5);
       }
 
       /* ---------- cta ---------- */
@@ -1066,12 +1580,12 @@
       <div class="hero" id="top">
         <div class="hero-grid" aria-hidden="true"></div>
         <div class="wrap hero-inner">
-          <span class="pill"><i class="dot" aria-hidden="true"></i> thumbs.store — design studio</span>
-          <h1>One brand.<br />Every client. <em>No copy-paste.</em></h1>
+          <span class="pill"><i class="dot" aria-hidden="true"></i> thumbs.store — casino thumbnail studio</span>
+          <h1>One template.<br />Every game. <em>Every&nbsp;client.</em></h1>
           <p class="lede">
-            thumbs.store is a design editor built on shared brand assets and branches. Upload the
-            background, key visual and logotype once — every frame on every branch references them
-            by kind, so swapping one asset updates them all.
+            thumbs.store is the thumbnail editor for casino lobbies. One template drives every game
+            tile — background, key visual, logotype, provider badge — across every aspect size and
+            every client branch. Swap a shared asset and the whole catalogue re-renders.
           </p>
           <div class="cta-row">
             <a class="btn btn-primary btn-lg" href="/">Open the editor</a>
@@ -1095,27 +1609,35 @@
                 <div class="rail-label">Layers</div>
                 <div class="layer"><i></i> Background</div>
                 <div class="layer" data-on><i></i> Key visual</div>
-                <div class="layer"><i></i> Logotype</div>
-                <div class="layer"><i></i> Headline</div>
-                <div class="layer"><i></i> Subline</div>
+                <div class="layer"><i></i> Game logotype</div>
+                <div class="layer"><i></i> Light band</div>
+                <div class="layer"><i></i> Provider badge</div>
                 <div class="rail-label">Branch</div>
-                <div class="layer"><i></i> acme · fork of main</div>
+                <div class="layer"><i></i> acme-casino · fork of main</div>
               </aside>
 
               <div class="mock-canvas">
                 <div class="frame">
-                  <div class="kv" aria-hidden="true"></div>
-                  <div class="frame-logo"><i aria-hidden="true"></i> ACME</div>
-                  <div class="frame-copy">
-                    <b>Ship the whole set in one pass</b>
-                    <span>Shared assets · per-client layout</span>
+                  <div class="tile land g-dragon" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5)">
+                    <div class="t-bg"></div>
+                    <div class="rays" aria-hidden="true"></div>
+                    <div class="t-art">
+                      <div class="coin medallion">88</div>
+                      <div class="coin c2"></div>
+                      <div class="coin c3"></div>
+                      <div class="coin c4"></div>
+                    </div>
+                    <div class="t-vig"></div>
+                    <div class="t-band"></div>
+                    <div class="t-logo"><b>Dragon</b><i>Gold 88</i></div>
+                    <div class="t-prov">NOVA PLAY</div>
                   </div>
                   <span class="handle tl" aria-hidden="true"></span>
                   <span class="handle tr" aria-hidden="true"></span>
                   <span class="handle bl" aria-hidden="true"></span>
                   <span class="handle br" aria-hidden="true"></span>
                 </div>
-                <span class="size-chip">1920 × 1080 · OG</span>
+                <span class="size-chip">1920 × 1080 · 16:9 · Dragon Gold 88</span>
               </div>
 
               <aside class="mock-props">
@@ -1128,8 +1650,8 @@
                   <div class="track"><i style="right: 46%"></i></div>
                 </div>
                 <div class="prop">
-                  <label>Opacity <b>100%</b></label>
-                  <div class="track"><i style="right: 4%"></i></div>
+                  <label>Band opacity <b>62%</b></label>
+                  <div class="track"><i style="right: 38%"></i></div>
                 </div>
                 <div class="fields">
                   <div class="field"><b>X</b>612</div>
@@ -1154,18 +1676,152 @@
         <div class="wrap">
           <div class="strip reveal">
             <div>
-              <b>1 upload</b>
-              <p>Replace the key visual once and every frame that references it re-renders — on every branch.</p>
+              <b>1 template</b>
+              <p>Set the master layout per aspect once. Nine games in ten ship with no per-thumbnail work at all.</p>
             </div>
             <div>
-              <b>∞ clients</b>
-              <p>Fork a branch per client. Their layouts diverge; the core brand stays shared.</p>
+              <b>∞ games</b>
+              <p>Add a title and it inherits the layout — key visual, logotype and provider badge in place.</p>
             </div>
             <div>
               <b>0 stale files</b>
-              <p>No pile of one-off design files drifting out of date every time the product changes.</p>
+              <p>No pile of one-off design files drifting out of date every time the lobby changes.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- GAME SHELF -->
+      <section id="games" style="padding: 34px 0 0">
+        <div class="wrap">
+          <div class="section-head reveal" style="max-width: 700px">
+            <div class="eyebrow">The output</div>
+            <h2>Six games. One template.</h2>
+            <p>
+              Every tile is the same layout: the shared background treatment, the game's key visual,
+              its logotype and the provider badge, over a light band tinted from the palette. Only
+              the artwork and the colour change per game — add a title and it inherits the rest.
+            </p>
+          </div>
+
+          <div class="shelf reveal">
+            <!-- Fortune Dragon 88 -->
+            <figure class="tile g-dragon" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5)">
+              <div class="t-bg"></div>
+              <div class="rays" aria-hidden="true"></div>
+              <div class="t-art">
+                <svg class="gate" viewBox="0 0 120 62" aria-hidden="true">
+                  <path d="M2 20Q60 0 118 20L110 26Q60 8 10 26Z" />
+                  <path d="M16 32Q60 17 104 32L98 37Q60 24 22 37Z" />
+                  <rect x="24" y="30" width="8" height="32" />
+                  <rect x="88" y="30" width="8" height="32" />
+                </svg>
+                <div class="coin medallion">88</div>
+                <div class="coin c2"></div>
+                <div class="coin c3"></div>
+                <div class="coin c4"></div>
+                <div class="coin c5"></div>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo"><b>Dragon</b><i>Gold 88</i></div>
+              <figcaption class="t-prov">NOVA PLAY</figcaption>
+            </figure>
+
+            <!-- Royal Roulette -->
+            <figure class="tile g-roulette" style="--tint: rgb(9 78 46 / 0.68); --stroke: #d9a441; --glow: rgb(90 220 150 / 0.4)">
+              <div class="t-bg"></div>
+              <div class="t-art">
+                <div class="wheel"></div>
+                <div class="ball"></div>
+                <div class="chip k1"></div>
+                <div class="chip k2"></div>
+                <div class="chip k3"></div>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo"><b>Royal</b><i>Roulette</i></div>
+              <figcaption class="t-prov">AURUM LIVE</figcaption>
+            </figure>
+
+            <!-- Neon Sevens -->
+            <figure class="tile g-sevens" style="--tint: rgb(28 26 120 / 0.62); --stroke: #ff2fd0; --glow: rgb(255 47 208 / 0.45)">
+              <div class="t-bg"></div>
+              <div class="t-art">
+                <div class="cab"></div>
+                <div class="reel r1"><span>7</span></div>
+                <div class="reel r2"><span>7</span></div>
+                <div class="reel r3"><span>7</span></div>
+                <div class="bulbs"></div>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo"><b>Neon</b><i>Sevens</i></div>
+              <figcaption class="t-prov">REELFORGE</figcaption>
+            </figure>
+
+            <!-- Candy Cascade -->
+            <figure class="tile g-candy" style="--tint: rgb(140 20 110 / 0.6); --stroke: #ff6bd0; --glow: rgb(255 110 200 / 0.45)">
+              <div class="t-bg"></div>
+              <div class="t-art">
+                <div class="stick"></div>
+                <div class="pop"></div>
+                <div class="drop d1"></div>
+                <div class="drop d2"></div>
+                <div class="drop d3"></div>
+                <div class="drop d4"></div>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo ice"><b>Candy</b><i>Cascade</i></div>
+              <figcaption class="t-prov">NOVA PLAY</figcaption>
+            </figure>
+
+            <!-- Sun Temple -->
+            <figure class="tile g-aztec" style="--tint: rgb(6 82 78 / 0.65); --stroke: #12c2c2; --glow: rgb(20 200 190 / 0.42)">
+              <div class="t-bg"></div>
+              <div class="rays" aria-hidden="true"></div>
+              <div class="t-art">
+                <div class="sun"></div>
+                <div class="glyph"></div>
+                <svg class="steps" viewBox="0 0 120 44" aria-hidden="true">
+                  <path d="M52 2H68V10H78V18H88V26H98V34H110V44H10V34H22V26H32V18H42V10H52Z" />
+                </svg>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo"><b>Sun</b><i>Temple</i></div>
+              <figcaption class="t-prov">MESA GAMING</figcaption>
+            </figure>
+
+            <!-- Rocket Crash -->
+            <figure class="tile g-crash" style="--tint: rgb(56 24 130 / 0.62); --stroke: #7a33ff; --glow: rgb(122 51 255 / 0.5)">
+              <div class="t-bg"></div>
+              <div class="grid-bg" aria-hidden="true"></div>
+              <div class="t-art">
+                <svg class="curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M6 82C30 80 52 66 66 40" />
+                </svg>
+                <div class="mult">12.4×</div>
+                <svg class="rocket" viewBox="0 0 60 96" aria-hidden="true">
+                  <path d="M30 2c14 16 18 36 16 54H14C12 38 16 18 30 2Z" fill="#e8edf7" />
+                  <path d="M30 2c9 10 14 22 15 34l-15 4Z" fill="#b9c6dd" />
+                  <circle cx="30" cy="30" r="7.5" fill="#0b1020" stroke="#7fd6ff" stroke-width="2.4" />
+                  <path d="M14 44 3 64l13-7Zm32 0 11 20-13-7Z" fill="#7a33ff" />
+                  <path d="M22 58q8 26 16 0-8 8-16 0Z" fill="#ffb340" />
+                  <path d="M25 58q5 16 10 0-5 5-10 0Z" fill="#fff0b8" />
+                </svg>
+              </div>
+              <div class="t-vig"></div>
+              <div class="t-band"></div>
+              <div class="t-logo ice"><b>Rocket</b><i>Crash</i></div>
+              <figcaption class="t-prov">VELO ORIGINALS</figcaption>
+            </figure>
+          </div>
+
+          <p class="shelf-note">
+            Same template, six palettes · 3:4 shown · the 16:9 and 1:1 cuts come from the same layout
+          </p>
         </div>
       </section>
 
@@ -1192,8 +1848,8 @@
               </div>
               <h3>Shared brand assets</h3>
               <p>
-                Drag-and-drop the background, key visual and logotype. Frames reference them by kind,
-                never by copy — so a replacement propagates everywhere at once.
+                Drag-and-drop the background, key visual and logotype. Every game references them by
+                kind, never by copy — so a replacement propagates across the catalogue at once.
               </p>
               <div class="tags"><span class="tag">background</span><span class="tag">key visual</span><span class="tag">logo</span></div>
             </article>
@@ -1241,10 +1897,11 @@
               </div>
               <h3>One size, then all of them</h3>
               <p>
-                Frames are sized canvases — OG image, square, story, banner. The scaling model is
-                shared between the live renderer and the export, so what you place is what ships.
+                Frames are sized canvases — the 3:4 lobby tile, the 16:9 hero, the 1:1 social cut.
+                The scaling model is shared between the live renderer and the export, so what you
+                place is what ships.
               </p>
-              <div class="tags"><span class="tag">OG</span><span class="tag">square</span><span class="tag">story</span><span class="tag">banner</span></div>
+              <div class="tags"><span class="tag">3:4</span><span class="tag">16:9</span><span class="tag">1:1</span><span class="tag">9:16</span></div>
             </article>
 
             <article class="card reveal">
@@ -1309,14 +1966,14 @@
                 <span class="n">2</span>
                 <div>
                   <h3>Build the template once</h3>
-                  <p>Place the assets, the headline and the supporting copy on each size. That layout is your starting point.</p>
+                  <p>Place the key visual, the game logotype and the provider badge on each aspect. That layout is your starting point.</p>
                 </div>
               </div>
               <div class="step">
                 <span class="n">3</span>
                 <div>
                   <h3>Fork a branch per client</h3>
-                  <p>The fork copies the frames and keeps the assets shared. Tune the layout for that client only.</p>
+                  <p>The fork copies the catalogue and keeps the assets shared. Tune the layout for that operator only.</p>
                 </div>
               </div>
               <div class="step">
@@ -1337,9 +1994,9 @@
               </div>
               <div class="tree-title">Per-branch layouts</div>
               <div class="branch-list">
-                <div class="branch" data-main><b>main</b><span>12 frames</span></div>
-                <div class="branch"><b>acme</b><span>fork of main · 12 frames</span></div>
-                <div class="branch"><b>beta</b><span>fork of main · 8 frames</span></div>
+                <div class="branch" data-main><b>main</b><span>128 games</span></div>
+                <div class="branch"><b>acme-casino</b><span>fork of main · 128 games</span></div>
+                <div class="branch"><b>starplay</b><span>fork of main · 64 games</span></div>
               </div>
             </div>
           </div>
@@ -1353,19 +2010,20 @@
         <div class="wrap">
           <div class="section-head reveal">
             <div class="eyebrow">Frames</div>
-            <h2>Every size the campaign asks for</h2>
+            <h2>Every cut the lobby asks for</h2>
             <p>
-              A frame is a sized canvas plus its layers. Add the ones you need, lay them out once,
-              and keep them in step with the brand for as long as the client is around.
+              One game, five aspects. The template holds a layout per size — portrait stacks the key
+              visual over the logotype, landscape splits it key-visual-left and logo-right — so a new
+              size is a layout you set once, not a redraw per game.
             </p>
           </div>
 
           <div class="sizes reveal">
-            <div class="size"><div class="box" style="--w: 128px; aspect-ratio: 16/9"></div><b>OG image</b><span>1920 × 1080</span></div>
-            <div class="size"><div class="box" style="--w: 100px; aspect-ratio: 1/1"></div><b>Square</b><span>1080 × 1080</span></div>
-            <div class="size"><div class="box" style="--w: 62px; aspect-ratio: 9/16"></div><b>Story</b><span>1080 × 1920</span></div>
-            <div class="size"><div class="box" style="--w: 140px; aspect-ratio: 4/1"></div><b>Banner</b><span>1600 × 400</span></div>
-            <div class="size"><div class="box" style="--w: 84px; aspect-ratio: 4/5"></div><b>Portrait</b><span>1080 × 1350</span></div>
+            <div class="size"><div class="tile mini g-dragon" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5); --w: 96px; aspect-ratio: 3/4"><div class="t-bg"></div><div class="t-art"><div class="coin medallion">88</div><div class="coin c2"></div><div class="coin c3"></div></div><div class="t-vig"></div><div class="t-band"></div><div class="t-logo"><b>Dragon</b><i>Gold 88</i></div></div><b>Game tile · 3:4</b><span>1080 × 1440</span></div>
+            <div class="size"><div class="tile mini g-dragon land" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5); --w: 150px; aspect-ratio: 16/9"><div class="t-bg"></div><div class="t-art"><div class="coin medallion">88</div><div class="coin c2"></div><div class="coin c3"></div></div><div class="t-vig"></div><div class="t-band"></div><div class="t-logo"><b>Dragon</b><i>Gold 88</i></div></div><b>Lobby · 16:9</b><span>1920 × 1080</span></div>
+            <div class="size"><div class="tile mini g-dragon" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5); --w: 112px; aspect-ratio: 1/1"><div class="t-bg"></div><div class="t-art"><div class="coin medallion">88</div><div class="coin c2"></div><div class="coin c3"></div></div><div class="t-vig"></div><div class="t-band"></div><div class="t-logo"><b>Dragon</b><i>Gold 88</i></div></div><b>Social · 1:1</b><span>1080 × 1080</span></div>
+            <div class="size"><div class="tile mini g-dragon" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5); --w: 70px; aspect-ratio: 9/16"><div class="t-bg"></div><div class="t-art"><div class="coin medallion">88</div><div class="coin c2"></div><div class="coin c3"></div></div><div class="t-vig"></div><div class="t-band"></div><div class="t-logo"><b>Dragon</b><i>Gold 88</i></div></div><b>Story · 9:16</b><span>1080 × 1920</span></div>
+            <div class="size"><div class="tile mini g-dragon land" style="--tint: rgb(160 14 20 / 0.62); --stroke: #f5b301; --glow: rgb(255 120 30 / 0.5); --w: 160px; aspect-ratio: 2/1"><div class="t-bg"></div><div class="t-art"><div class="coin medallion">88</div><div class="coin c2"></div><div class="coin c3"></div></div><div class="t-vig"></div><div class="t-band"></div><div class="t-logo"><b>Dragon</b><i>Gold 88</i></div></div><b>Promo · 2:1</b><span>1600 × 800</span></div>
           </div>
         </div>
       </section>
