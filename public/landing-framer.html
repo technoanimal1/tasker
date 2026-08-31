@@ -154,21 +154,36 @@
         border-radius: 20px;
         padding: 12px 24px;
       }
-      .wordmark {
+      .brand {
         display: flex;
-        align-items: baseline;
-        gap: 6px;
-        font-family: var(--display);
-        font-size: 24px;
-        letter-spacing: -0.02em;
-        color: #fff;
+        align-items: center;
+        gap: 8px;
+        flex: none;
       }
-      .wordmark i {
+      .brand-mark { width: 28px; height: 26px; flex: none; }
+      .brand-lock { display: flex; flex-direction: column; gap: 4px; }
+      .brand-word { width: 143px; height: 14px; display: block; }
+      .brand-sub {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        width: 143px;
+        line-height: 1;
+      }
+      .brand-sub i {
+        font-family: var(--display);
+        font-style: italic;
+        font-weight: 500;
+        font-size: 10px;
+        color: rgb(255 240 80);
+      }
+      .brand-sub b {
         font-family: var(--bit);
-        font-style: normal;
-        font-size: 12px;
-        color: var(--yellow);
-        letter-spacing: 0.04em;
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #fff;
       }
       .nav-cta { display: flex; gap: 8px; }
 
@@ -1495,7 +1510,30 @@
   <body>
     <div class="navwrap">
       <nav>
-        <a class="wordmark" href="https://www.thumbs.store/">THUMBS<i>.STORE</i></a>
+        <a class="brand" href="https://www.thumbs.store/" aria-label="thumbs.store — home">
+          <!-- Mark + wordmark: the site's own SVGs, paths unchanged (ids renamed
+               only so they can't collide when this page is embedded). -->
+          <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true">
+            <g clip-path="url(#ts-brand-mark-clip)">
+              <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+            </g>
+            <defs><clipPath id="ts-brand-mark-clip"><rect width="46.8486" height="43" fill="white"/></clipPath></defs>
+          </svg>
+          <span class="brand-lock">
+            <svg class="brand-word" viewBox="0 0 239 24" fill="none" aria-hidden="true">
+              <g clip-path="url(#ts-brand-word-clip)">
+                <path d="M165.069 23.822V0H188.822C189.014 0 190.279 0.37239 190.534 0.479179C192.308 1.21574 197.53 6.04039 199.159 7.5984C202.297 10.5967 202.182 13.3403 199.093 16.2975C197.428 17.8912 192.461 22.5104 190.627 23.3018C190.334 23.4277 189.197 23.822 188.956 23.822H165.066H165.069ZM196.147 9.58357V7.18768C196.147 6.30873 194.318 4.79179 193.477 4.79179H170.271V9.58357H196.147ZM196.147 14.3754H170.271V19.0302H193.614C194.079 19.0302 195.232 18.2033 195.533 17.8008C195.69 17.5927 196.147 16.6727 196.147 16.4974V14.3754Z" fill="white"/>
+                <path d="M238.999 0V4.79179H210.591C210.037 4.79179 208.885 5.56669 208.545 6.03217C208.455 6.15539 207.921 7.12196 207.921 7.18768V9.58357H238.999V12.1164C238.999 14.2631 234.377 18.4799 232.772 19.9913C231.453 21.2345 228.901 23.822 227.02 23.822H202.718V19.0302H231.264C231.658 19.0302 232.688 18.3402 232.978 18.0062C233.18 17.7734 233.797 16.7247 233.797 16.4974V14.3754H202.718V11.5687C202.718 11.2456 203.315 9.97787 203.518 9.63012C204.567 7.82567 209.449 3.16258 211.207 1.71135C212.036 1.02681 213.901 0.00273816 214.974 0.00273816H239.002L238.999 0Z" fill="white"/>
+                <path d="M142.068 0V4.92869C143.749 3.61164 145.321 1.18015 147.369 0.440844C147.695 0.323103 148.845 0 149.119 0H162.878V23.822H157.676V4.79179H144.875C144.483 4.79179 143.38 5.35859 143.076 5.66252C142.583 6.15539 142.068 7.33006 142.068 8.00913V23.822H136.866V4.79179H124.065C123.512 4.79179 122.359 5.56669 122.019 6.03217C121.929 6.15539 121.395 7.12196 121.395 7.18768V23.822H116.192V11.5687C116.192 11.2456 116.789 9.97787 116.992 9.63012C118.041 7.82567 122.923 3.16258 124.681 1.71135C125.51 1.02681 127.375 0.00273816 128.448 0.00273816H142.071L142.068 0Z" fill="white"/>
+                <path d="M44.3157 0V6.77695C44.3157 6.89196 44.6306 7.70793 44.7209 7.8777C45.3343 9.01677 46.4624 9.45214 47.6863 9.56714C52.5685 10.0272 58.1215 9.15916 63.0064 9.58083C65.9389 9.83274 68.0802 12.9187 70.3255 14.515V0H75.528V23.822H70.3255V17.182C70.3255 15.9169 68.8606 14.5533 67.6448 14.3863C62.7462 14.1426 57.5985 14.6683 52.7273 14.3808C48.6693 14.1399 47.5823 11.8562 44.7264 9.64929C44.5895 9.5425 44.5512 9.38642 44.3157 9.44393V23.8193H39.1132V0H44.3157Z" fill="white"/>
+                <path d="M108.799 0H114.002V23.822H108.799V18.8933C106.316 21.0127 105.089 23.5756 101.48 23.8275C98.2985 24.0493 93.1399 24.0657 89.9691 23.8275C88.4302 23.7125 87.3705 23.2278 86.2068 22.2503C84.7994 21.0647 79.041 15.4186 78.351 14.0878C78.0197 13.4471 77.5816 11.9932 77.5816 11.2977V0H82.7157L82.921 0.205362V16.7712C82.921 17.5708 84.835 19.1452 85.7304 19.0275C92.2116 18.5921 99.4705 19.6135 105.861 19.0357C107.203 18.9152 108.799 17.6365 108.799 16.2236V0Z" fill="white"/>
+                <path d="M21.452 0V4.79179C21.6902 4.85203 21.7258 4.69321 21.8627 4.58642C23.8123 3.09412 25.447 0 28.3659 0H36.8542L37.0595 0.205362V4.79179H24.1217C23.826 4.79179 22.8129 5.31751 22.5445 5.54204C22.2214 5.81038 21.452 6.96041 21.452 7.32459V23.822H16.2495V4.79179H0.641968V0H21.452Z" fill="white"/>
+              </g>
+              <defs><clipPath id="ts-brand-word-clip"><rect width="238.357" height="24" fill="white" transform="translate(0.641968)"/></clipPath></defs>
+            </svg>
+            <span class="brand-sub"><i>.store</i><b>By Cubicle</b></span>
+          </span>
+        </a>
         <div class="nav-cta">
           <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
           <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
