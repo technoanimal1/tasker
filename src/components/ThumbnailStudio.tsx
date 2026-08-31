@@ -7,14 +7,12 @@ import {
   FRAME_SIZES,
   FRAME_DESIGN_KEYS,
   ANIM_PRESETS,
-  ALIGN9,
   branchParams,
   defaultLayout,
   effectiveParams,
   frameSize,
   resolveGrad,
   withDefaults,
-  type Align9,
   type AssetUrls,
   type GradientParams,
   type ParamOverride,
@@ -27,6 +25,7 @@ import { FONT_OPTIONS, WEIGHT_OPTIONS, ensureFont } from '../lib/fonts'
 import type { Branch } from '../lib/types'
 import type { Role } from '../hooks/useProfile'
 import { ThumbnailCard } from './Thumbnail'
+import { KvControls, LogoControls } from './LayoutControls'
 import { LazyMount } from './LazyMount'
 import { GridTile } from './GridTile'
 import { LoadingScreen, Spinner } from './Spinner'
@@ -394,17 +393,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       })
     }
   }
-  function setLogo(patch: Partial<TemplateParams['logo']>) {
-    if (editingBranch) return // logo geometry is designer-only
-    setLiveGrid(true)
-    if (scope === 'global') setParams((prev) => (prev ? { ...prev, logo: { ...prev.logo, ...patch } } : prev))
-    else if (selectedId)
-      setOverrides((o) => {
-        const cur = o[selectedId] ?? {}
-        return { ...o, [selectedId]: { ...cur, logo: { ...(cur.logo ?? {}), ...patch } } }
-      })
-  }
-
   async function handleSave() {
     if (!params) return
     setSaving(true)
@@ -578,10 +566,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   }
 
   const p = activeParams
-  // When a per-size layout is active it drives KV/logo placement; the legacy fine
-  // sliders (KV Size/Lift, Logo X/Y/W/H) are then inert, so hide them and let the
-  // Layout section own placement (click "Auto" there to fall back to the sliders).
-  const layoutActive = !!p.layouts?.[p.sizeKey]
   // Aspect used for rendering the grid/preview — a view-only override wins over
   // the saved sizeKey, so you can preview every thumbnail at another size without
   // editing the template.
@@ -1293,53 +1277,35 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             )
           })()}
 
-          {showDesignerSections && !layoutActive && (
-            <Section title="Key visual">
-              <Slider label="Size" min={20} max={300} value={p.kvSizePct} onChange={(v) => set('kvSizePct', v)} fmt={(v) => `${Math.round(v)}%`} />
-              <Slider label="Lift" min={-15} max={45} value={p.kvBottomPct} onChange={(v) => set('kvBottomPct', v)} fmt={(v) => `${Math.round(v)}%`} />
-            </Section>
-          )}
-
           {showDesignerSections && (() => {
+            // Same editing surface as the Template controller (shared controls);
+            // only the storage target differs (template per size vs. this thumb).
             const lay = p.layouts?.[p.sizeKey] ?? defaultLayout(p.sizeKey)
             const hasLayout = scope === 'global' ? !!params.layouts?.[p.sizeKey] : !!selOv.layouts?.[p.sizeKey]
             return (
-              <Section title={`Layout · ${p.sizeKey}`}>
-                <Row label="Key visual">
-                  <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
-                </Row>
-                <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                <div className="grid grid-cols-2 gap-2">
-                  <Slider label="KV X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                  <Slider label="KV Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                </div>
-                <Row label="Center on artwork">
-                  <input
-                    type="checkbox"
-                    checked={p.kvAutoCenter ?? true}
-                    onChange={(e) => set('kvAutoCenter', e.target.checked)}
-                    className="h-4 w-4 accent-accent"
+              <>
+                <Section title={`Key visual · ${p.sizeKey}`}>
+                  <KvControls
+                    lay={lay}
+                    autoCenter={p.kvAutoCenter ?? true}
+                    onLayout={setLayout}
+                    onAutoCenter={(v) => set('kvAutoCenter', v)}
                   />
-                </Row>
-                <Row label="Logo">
-                  <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
-                </Row>
-                <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                <div className="grid grid-cols-2 gap-2">
-                  <Slider label="Logo X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => setLayout({ logoDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                  <Slider label="Logo Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => setLayout({ logoDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] text-zinc-500">
-                    {scope === 'global' ? 'Saved per size · applies to all thumbnails.' : `Placement for “${selected?.name}” · this size.`}
-                  </p>
-                  {hasLayout && (
-                    <button onClick={resetLayout} className="text-[11px] text-zinc-400 underline hover:text-zinc-200">
-                      Auto
-                    </button>
-                  )}
-                </div>
-              </Section>
+                </Section>
+                <Section title={`Logo · ${p.sizeKey}`}>
+                  <LogoControls lay={lay} onLayout={setLayout} />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] text-zinc-500">
+                      {scope === 'global' ? 'Saved per size · applies to all thumbnails.' : `Placement for “${selected?.name}” · this size.`}
+                    </p>
+                    {hasLayout && (
+                      <button onClick={resetLayout} className="text-[11px] text-zinc-400 underline hover:text-zinc-200">
+                        Auto
+                      </button>
+                    )}
+                  </div>
+                </Section>
+              </>
             )
           })()}
 
@@ -1424,15 +1390,6 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   </Row>
                 </>
               )}
-            </Section>
-          )}
-
-          {showDesignerSections && !layoutActive && (
-            <Section title="Logo placement">
-              <Slider label="X" min={-0.1} max={1} step={0.005} value={p.logo.xPct} onChange={(v) => setLogo({ xPct: v })} fmt={pctFmt} />
-              <Slider label="Y" min={0} max={1} step={0.005} value={p.logo.yPct} onChange={(v) => setLogo({ yPct: v })} fmt={pctFmt} />
-              <Slider label="Width" min={0.1} max={2} step={0.005} value={p.logo.wPct} onChange={(v) => setLogo({ wPct: v, xPct: p.logo.xPct + (p.logo.wPct - v) / 2 })} fmt={pctFmt} />
-              <Slider label="Height" min={0.05} max={1.5} step={0.005} value={p.logo.hPct} onChange={(v) => setLogo({ hPct: v, yPct: p.logo.yPct + (p.logo.hPct - v) / 2 })} fmt={pctFmt} />
             </Section>
           )}
 
@@ -1595,31 +1552,6 @@ function Seg({
           } disabled:opacity-40`}
         >
           {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) => void }) {
-  return (
-    <div className="grid grid-cols-3 gap-0.5 rounded-lg border border-zinc-700 bg-zinc-800/50 p-1.5">
-      {ALIGN9.map((a) => (
-        <button
-          key={a}
-          onClick={() => onChange(a)}
-          className={`grid h-6 w-8 place-items-center rounded transition ${value === a ? 'bg-zinc-700/60' : 'hover:bg-zinc-700/30'}`}
-          title={a}
-        >
-          {value === a ? (
-            <span className="flex flex-col items-center gap-[2px]">
-              <i className="block h-[2px] w-2.5 rounded-full bg-accent" />
-              <i className="block h-[2px] w-3.5 rounded-full bg-accent" />
-              <i className="block h-[2px] w-2 rounded-full bg-accent" />
-            </span>
-          ) : (
-            <span className="h-1 w-1 rounded-full bg-zinc-600" />
-          )}
         </button>
       ))}
     </div>

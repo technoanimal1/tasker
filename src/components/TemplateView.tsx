@@ -3,7 +3,6 @@ import { useTemplate } from '../hooks/useTemplate'
 import { useThumbnailsData } from '../hooks/useThumbnailsData'
 import { useFigmaAssets } from '../hooks/useFigmaAssets'
 import {
-  ALIGN9,
   FRAME_SIZES,
   GRAD_DIRS,
   PROVIDER_CASES,
@@ -11,12 +10,12 @@ import {
   defaultLayout,
   resolveGrad,
   withDefaults,
-  type Align9,
   type GradientParams,
   type ProviderPos,
   type SizeLayout,
   type TemplateParams,
 } from '../lib/thumb'
+import { KvControls, LogoControls } from './LayoutControls'
 import { ThumbnailCard } from './Thumbnail'
 import { LoadingScreen, Spinner } from './Spinner'
 import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Undo2, Redo2, RotateCcw } from 'lucide-react'
@@ -351,35 +350,17 @@ export function TemplateView() {
             </Row>
           )}
 
-          <Section title={`Logo position · ${sizeKey}`}>
-            <LogoPresetBar value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
-            <Row label="Fine (9-point)">
-              <AlignGrid value={lay.logoAlign} onChange={(a) => setLayout({ logoAlign: a })} />
-            </Row>
-            <Slider label="Logo size" min={0.1} max={3} step={0.02} value={lay.logoScale} onChange={(v) => setLayout({ logoScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-            <div className="grid grid-cols-2 gap-2">
-              <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.logoDX ?? 0} onChange={(v) => setLayout({ logoDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-              <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.logoDY ?? 0} onChange={(v) => setLayout({ logoDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-            </div>
+          <Section title={`Key visual · ${sizeKey}`}>
+            <KvControls
+              lay={lay}
+              autoCenter={params.kvAutoCenter ?? true}
+              onLayout={setLayout}
+              onAutoCenter={(v) => setP({ kvAutoCenter: v })}
+            />
           </Section>
 
-          <Section title={`Key visual · ${sizeKey}`}>
-            <Row label="Position">
-              <AlignGrid value={lay.kvAlign} onChange={(a) => setLayout({ kvAlign: a })} />
-            </Row>
-            <Slider label="KV size" min={0.3} max={5} step={0.02} value={lay.kvScale} onChange={(v) => setLayout({ kvScale: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-            <div className="grid grid-cols-2 gap-2">
-              <Slider label="Offset X" min={-0.5} max={0.5} step={0.01} value={lay.kvDX ?? 0} onChange={(v) => setLayout({ kvDX: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-              <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => setLayout({ kvDY: v })} fmt={(v) => `${Math.round(v * 100)}%`} />
-            </div>
-            <Row label="Center on artwork">
-              <input
-                type="checkbox"
-                checked={params.kvAutoCenter ?? true}
-                onChange={(e) => setP({ kvAutoCenter: e.target.checked })}
-                className="h-4 w-4 accent-accent"
-              />
-            </Row>
+          <Section title={`Logo · ${sizeKey}`}>
+            <LogoControls lay={lay} onLayout={setLayout} />
           </Section>
 
           <Section title={`Gradient · ${sizeKey}`}>
@@ -500,60 +481,6 @@ export function TemplateView() {
           </p>
         </aside>
       </div>
-    </div>
-  )
-}
-
-// ── small quick logo-position bar (5 common spots) ───────────────────────────
-const LOGO_PRESETS: { align: Align9; dot: [number, number] }[] = [
-  { align: 'tc', dot: [0.5, 0.16] },
-  { align: 'ml', dot: [0.18, 0.5] },
-  { align: 'mc', dot: [0.5, 0.5] },
-  { align: 'mr', dot: [0.82, 0.5] },
-  { align: 'bc', dot: [0.5, 0.84] },
-]
-
-function LogoPresetBar({ value, onChange }: { value: Align9; onChange: (a: Align9) => void }) {
-  return (
-    <div className="flex gap-2">
-      {LOGO_PRESETS.map((p) => {
-        const active = value === p.align
-        return (
-          <button
-            key={p.align}
-            onClick={() => onChange(p.align)}
-            className={`relative h-11 flex-1 rounded-md border transition ${
-              active ? 'border-accent bg-accent/10' : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-500'
-            }`}
-          >
-            <span
-              className={`absolute h-2.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] ${active ? 'bg-accent' : 'bg-zinc-400'}`}
-              style={{ left: `${p.dot[0] * 100}%`, top: `${p.dot[1] * 100}%` }}
-            />
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) => void }) {
-  return (
-    <div className="grid grid-cols-3 gap-0.5 rounded-md bg-zinc-800/70 p-0.5">
-      {ALIGN9.map((a) => {
-        const active = value === a
-        return (
-          <button
-            key={a}
-            onClick={() => onChange(a)}
-            className={`grid h-6 w-6 place-items-center rounded-[3px] transition ${
-              active ? 'bg-accent' : 'hover:bg-zinc-700'
-            }`}
-          >
-            <span className={`h-2 w-2 rounded-[1px] ${active ? 'bg-zinc-900' : 'bg-zinc-500'}`} />
-          </button>
-        )
-      })}
     </div>
   )
 }
