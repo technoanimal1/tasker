@@ -66,6 +66,13 @@ cp .env.example .env   # set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (thumb
 npm run dev            # http://localhost:5173
 ```
 
+## Landing page
+
+A standalone marketing page lives at [`public/landing.html`](public/landing.html)
+— no build step, no dependencies. Vite copies `public/` verbatim, so it is served
+at `/landing.html` in dev and in the deployed build; the CTAs point back at `/`
+(the app).
+
 ## Scripts
 
 - `npm run dev` — dev server
