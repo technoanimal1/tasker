@@ -126,6 +126,23 @@ function drawParticle(ctx: CanvasRenderingContext2D, p: Particle, unit: number, 
       ctx.stroke()
       break
     }
+    case 'flame': {
+      // same tongue as the DOM: elongated, white-hot core cooling outward
+      const h = d * p.stretch
+      ctx.translate(0, h * 0.22) // match the DOM's base anchoring
+      ctx.scale(1, p.stretch)
+      const g = ctx.createRadialGradient(0, d * 0.12, 0, 0, d * 0.12, d / 2)
+      g.addColorStop(0, `hsla(${p.hue + 12},100%,${Math.min(98, p.light + 16)}%,0.98)`)
+      g.addColorStop(0.3, `hsla(${p.hue + 4},100%,${p.light}%,0.9)`)
+      g.addColorStop(0.58, `hsla(${p.hue - 12},100%,${Math.max(45, p.light - 20)}%,0.55)`)
+      g.addColorStop(0.8, `hsla(${p.hue - 24},100%,${Math.max(32, p.light - 34)}%,0.18)`)
+      g.addColorStop(1, `hsla(${p.hue - 30},100%,30%,0)`)
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.arc(0, 0, d / 2, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
     case 'ember': {
       const g = ctx.createRadialGradient(0, 0, 0, 0, 0, d / 2)
       g.addColorStop(0, `hsla(${p.hue},100%,72%,0.95)`)

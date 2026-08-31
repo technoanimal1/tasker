@@ -1591,7 +1591,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                               {c.speed && (
                                 <div className="grid grid-cols-2 gap-2">
                                   <Slider
-                                    label={fxL.fx === 'fire' ? 'Rise' : 'Fall'}
+                                    label={fxL.fx === 'fire' ? 'Rise' : fxL.fx === 'coins' ? 'Launch' : 'Fall'}
                                     min={0.2}
                                     max={3}
                                     step={0.05}

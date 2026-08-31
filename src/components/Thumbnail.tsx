@@ -425,15 +425,15 @@ function ParticleLayer({ layer, phase, W, H }: { layer: FxLayer; phase: number; 
   const additive = fxAdditive(layer.fx)
   return (
     <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        mixBlendMode: additive ? 'screen' : undefined,
-      }}
+      // `isolation` keeps the blending inside the card. The blend goes on each
+      // PARTICLE, not the container: a container-level mix-blend-mode composites
+      // the finished layer against the backdrop, so overlapping particles would
+      // never build on each other — and canvas 'lighter' does exactly that, so
+      // the preview would drift from the export.
+      style={{ position: 'absolute', inset: 0, pointerEvents: 'none', isolation: 'isolate' }}
     >
       {parts.map((p: Particle, i: number) => (
-        <div key={i} style={particleStyle(p, unit, W, H)} />
+        <div key={i} style={{ ...particleStyle(p, unit, W, H), mixBlendMode: additive ? 'plus-lighter' : undefined }} />
       ))}
     </div>
   )
@@ -466,6 +466,19 @@ function particleStyle(p: Particle, unit: number, W: number, H: number): CSSProp
           : 'radial-gradient(circle at 66% 72%, #f2d485 0%, #e0b431 42%, #bf8b12 76%, #8f6210 100%)',
         // inset ring = the coin's thickness; brightens as it turns edge-on
         boxShadow: `inset 0 0 0 ${d * 0.07}px rgba(255,244,190,${0.35 + 0.5 * edgeOn}), 0 0 ${d * (0.3 + 0.3 * edgeOn)}px rgba(255,196,60,${0.45 + 0.35 * edgeOn})`,
+      }
+    }
+    case 'flame': {
+      // A tall tongue: elongated, rounded at the top, tapered at the base,
+      // with a white-hot core that cools outward. Additive blending (set on the
+      // layer) is what makes overlapping tongues build into a fire.
+      const h = d * p.stretch
+      return {
+        ...base,
+        height: h,
+        top: p.y * H - h * 0.72, // anchor nearer the tongue's base
+        borderRadius: '50% 50% 42% 42% / 62% 62% 38% 38%',
+        background: `radial-gradient(ellipse 58% 52% at 50% 76%, hsla(${p.hue + 12},100%,${Math.min(98, p.light + 16)}%,0.98) 0%, hsla(${p.hue + 4},100%,${p.light}%,0.9) 30%, hsla(${p.hue - 12},100%,${Math.max(45, p.light - 20)}%,0.55) 58%, hsla(${p.hue - 24},100%,${Math.max(32, p.light - 34)}%,0.18) 80%, hsla(${p.hue - 30},100%,30%,0) 100%)`,
       }
     }
     case 'ember':

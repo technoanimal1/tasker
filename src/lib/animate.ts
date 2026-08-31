@@ -159,7 +159,7 @@ export function motionFor(layer: MoLayer | undefined, phase: number): Xform {
 // each particle's progress is frac(phase + offset), which is continuous across
 // the 1 → 0 wrap.
 
-export type ParticleKind = 'coin' | 'ember' | 'spark' | 'confetti'
+export type ParticleKind = 'coin' | 'ember' | 'spark' | 'confetti' | 'flame'
 
 export interface Particle {
   kind: ParticleKind
@@ -174,6 +174,10 @@ export interface Particle {
   flip: number
   /** Secondary tumble axis, so a coin isn't a flat spinning disc. */
   tilt: number
+  /** Vertical elongation — flames are tall tongues, not round blobs. */
+  stretch: number
+  /** HSL lightness, so a flame can run white-hot at its base. */
+  light: number
 }
 
 /** Particles that read best drawn additively (embers, sparkles). */
@@ -221,35 +225,74 @@ export function fxParticles(layer: FxLayer, phase: number): Particle[] {
     const t = frac(phase * cycles + r1) // this particle's own 0..1 progress
     switch (layer.fx) {
       case 'coins': {
-        // 3D coin shower: falls, sways, and tumbles about two axes
-        const sway = 0.045 * drift * k * Math.sin((t * 4 + r2 * 6.283) * Math.PI)
-        const spin = r4 * 6.283 + t * (6 + 10 * r3) * tumble
+        // Jackpot burst: launched up from just under the bottom edge, flying
+        // out sideways at constant speed while gravity pulls it back down.
+        // The height is a true parabola 4·A·t·(1−t) — apex at mid-flight,
+        // returning to the launch line exactly at t = 1, so the loop is seamless
+        // and the motion is genuine constant acceleration.
+        const apex = (0.45 + 0.75 * r3) * speed
+        const h = 4 * apex * t * (1 - t)
+        const vx = (r2 - 0.5) * 1.1 * drift // outward velocity, both directions
+        const spin = r4 * 6.283 + t * (7 + 11 * r3) * tumble
         out.push({
           kind: 'coin',
-          x: 0.04 + r2 * 0.92 + sway,
-          y: -pad + t * (1 + 2 * pad),
+          x: 0.5 + (r4 - 0.5) * 0.22 + vx * t, // small spread at the muzzle
+          y: 1.08 - h,
           size: (0.05 + 0.05 * r3) * sizeMul,
-          rot: spin * 0.18, // slow in-plane roll, separate from the face flip
+          rot: spin * 0.18,
           opacity: edgeFade(t),
           hue: 45,
           flip: Math.cos(spin),
           tilt: Math.cos(spin * 0.37 + r2 * 6.283),
+          stretch: 1,
+          light: 60,
         })
         break
       }
       case 'fire': {
-        // embers rising, shrinking and cooling as they go
-        const swayF = 0.07 * drift * k * Math.sin((t * 3 + r2 * 6.283) * Math.PI)
+        // Real flames are tall tongues, not round dots: each one rises a short
+        // way, narrows and elongates as it goes, wobbles more the higher it
+        // gets (turbulence), flickers, and cools from white-yellow at the base
+        // to deep red at the tip. A minority spawn as embers drifting higher.
+        const ember = r4 > 0.78
+        const rise = (ember ? 0.4 + 0.3 * r3 : 0.3 + 0.32 * r3) * speed
+        const wob = loopNoise(t * 2 + r2, i) * 0.05 * drift
+        if (ember) {
+          out.push({
+            kind: 'ember',
+            x: 0.12 + r2 * 0.76 + wob * t,
+            y: 1.02 - t * rise,
+            size: (0.008 + 0.014 * r3) * sizeMul * (1 - 0.5 * t),
+            rot: 0,
+            opacity: edgeFade(t) * (1 - 0.7 * t) * Math.min(1, k),
+            hue: 22 + 26 * r3,
+            flip: 1,
+            tilt: 0,
+            stretch: 1,
+            light: 62,
+          })
+          break
+        }
+        const flicker = 0.78 + 0.22 * loopNoise(t * 3 + r3, i + 17)
+        // A fire is a BODY, not a field of dots: tongues start wide across the
+        // base and converge toward the centre as they rise, giving the whole
+        // effect a tapered silhouette. Big, heavily overlapping, near-opaque
+        // tongues accumulate through the additive blend into a hot core.
+        const spread = 0.18 + r2 * 0.64
+        const cx = 0.5 + (spread - 0.5) * (1 - 0.62 * t) // converge while rising
         out.push({
-          kind: 'ember',
-          x: 0.06 + r2 * 0.88 + swayF,
-          y: 1.06 - t * (0.55 + 0.5 * r3) * speed,
-          size: (0.012 + 0.022 * r3) * sizeMul * (1 - 0.55 * t),
+          kind: 'flame',
+          x: cx + wob * t,
+          y: 1.04 - t * rise,
+          size: (0.1 + 0.085 * r3) * sizeMul * (1 - 0.62 * t) * flicker,
           rot: 0,
-          opacity: edgeFade(t) * (1 - 0.65 * t) * Math.min(1, k),
-          hue: 18 + 34 * r4,
+          // stays bright well up the tongue, then drops away at the tip
+          opacity: edgeFade(t) * (1 - 0.55 * t) * Math.min(1, k),
+          hue: 48 - 40 * t, // yellow → deep red as it cools
           flip: 1,
           tilt: 0,
+          stretch: 1.5 + 1.5 * t,
+          light: 82 - 34 * t, // white-hot base
         })
         break
       }
@@ -267,6 +310,8 @@ export function fxParticles(layer: FxLayer, phase: number): Particle[] {
           hue: 48,
           flip: 1,
           tilt: 0,
+          stretch: 1,
+          light: 92,
         })
         break
       }
@@ -284,6 +329,8 @@ export function fxParticles(layer: FxLayer, phase: number): Particle[] {
           hue: Math.floor(r4 * 360),
           flip: Math.cos(spinC * 0.7),
           tilt: 0,
+          stretch: 1,
+          light: 62,
         })
         break
       }
