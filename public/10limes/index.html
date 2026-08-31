@@ -138,6 +138,8 @@
   .section-head .sub { margin: 0.6rem 0 0; color: var(--muted); }
 
   .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .cards-3x2 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 860px) { .cards-3x2 { grid-template-columns: repeat(2, 1fr); } }
   .card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 1.25rem;
@@ -175,7 +177,7 @@
 <main>
   <div class="wrap hero" id="games">
     <div class="hero-grid">
-      <h1>Instant games that become yours.<br>
+      <h1>First person original games that become yours.<br>
         <span class="dim">Provably fair. Fully branded. Live in days.</span></h1>
       <p class="hero-copy">Leading online casinos choose 10LIMES for white-label originals that match
         your brand, with new titles shipping automatically.</p>
@@ -213,7 +215,7 @@
       <div class="section-head">
         <h2>Everything ships ready.<br><span class="dim">Built for operators from day one.</span></h2>
       </div>
-      <div class="cards">
+      <div class="cards cards-3x2">
         <div class="card"><h3>White-Label Theming</h3><p>Colours, typography, and backgrounds. Every game ships looking like it was built in-house.</p></div>
         <div class="card"><h3>Configurable RTP</h3><p>Set house edge per game. Fine-tune risk and revenue to match your market.</p></div>
         <div class="card"><h3>Provably Fair</h3><p>Every round cryptographically verifiable. Players can check any outcome, any time.</p></div>
@@ -272,18 +274,37 @@
     { name: 'Duel',      slug: 'duel',      url: BASE + 'dice',          thumb: 'thumbs/duel.svg' },
     { name: 'Hi Lo',     slug: 'hilo',      url: BASE + 'hilo/?lang=ka', thumb: 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/sign/test-web/hilo.png?token=eyJraWQiOiIxNzU1NTkxNi0zNWZlLTQwY2ItYTI5OC04MWVjMWI5N2EwYWEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0ZXN0LXdlYi9oaWxvLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgyMTI2NDEsImV4cCI6MTgxOTc0ODY0MX0.VWcecw9QamRNsbkSFF_FZrJ_k_89TrjHJ568nRXEDZg' },
     { name: 'Goat Hunt', slug: 'goat-hunt', url: BASE + 'moles',         thumb: 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/sign/test-web/goat%20hunt.png?token=eyJraWQiOiIxNzU1NTkxNi0zNWZlLTQwY2ItYTI5OC04MWVjMWI5N2EwYWEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0ZXN0LXdlYi9nb2F0IGh1bnQucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODIxMjYzNSwiZXhwIjoxODE5NzQ4NjM1fQ.-0LcwgjKzDFdbps03ZtKXyiQZV2aetRg_5lL6SIL7WY' },
-    // Remaining titles with grey placeholder thumbnails.
-    { name: 'Dice',      slug: 'dice',      url: BASE + 'dice',      thumb: 'thumbs/dice.svg' },
-    { name: 'Crash',     slug: 'crash',     url: BASE + 'crash',     thumb: 'thumbs/crash.svg' },
-    { name: 'Mines',     slug: 'mines',     url: BASE + 'mines',     thumb: 'thumbs/mines.svg' },
-    { name: 'Plinko',    slug: 'plinko',    url: BASE + 'plinko',    thumb: 'thumbs/plinko.svg' },
-    { name: 'Limbo',     slug: 'limbo',     url: BASE + 'limbo',     thumb: 'thumbs/limbo.svg' },
-    { name: 'Keno',      slug: 'keno',      url: BASE + 'keno',      thumb: 'thumbs/keno.svg' },
-    { name: 'Wheel',     slug: 'wheel',     url: BASE + 'wheel',     thumb: 'thumbs/wheel.svg' },
-    { name: 'Towers',    slug: 'towers',    url: BASE + 'towers',    thumb: 'thumbs/towers.svg' },
-    { name: 'Coin Flip', slug: 'coinflip',  url: BASE + 'coinflip',  thumb: 'thumbs/coinflip.svg' },
-    { name: 'Roulette',  slug: 'roulette',  url: BASE + 'roulette',  thumb: 'thumbs/roulette.svg' },
+    // Remaining titles: thumb omitted -> a grey placeholder is generated at runtime.
+    { name: 'Dice',      slug: 'dice',      url: BASE + 'dice' },
+    { name: 'Crash',     slug: 'crash',     url: BASE + 'crash' },
+    { name: 'Mines',     slug: 'mines',     url: BASE + 'mines' },
+    { name: 'Plinko',    slug: 'plinko',    url: BASE + 'plinko' },
+    { name: 'Limbo',     slug: 'limbo',     url: BASE + 'limbo' },
+    { name: 'Keno',      slug: 'keno',      url: BASE + 'keno' },
+    { name: 'Wheel',     slug: 'wheel',     url: BASE + 'wheel' },
+    { name: 'Towers',    slug: 'towers',    url: BASE + 'towers' },
+    { name: 'Coin Flip', slug: 'coinflip',  url: BASE + 'coinflip' },
+    { name: 'Roulette',  slug: 'roulette',  url: BASE + 'roulette' },
   ];
+
+  const PLACEHOLDER_WORDS = ['LOREM', 'IPSUM', 'DOLOR', 'AMET', 'TEMPUS', 'NOVA', 'PIXEL', 'ORBIT', 'VERTEX', 'ECHO'];
+  function placeholderThumb(name, i) {
+    const word = PLACEHOLDER_WORDS[i % 10] + ' ' + PLACEHOLDER_WORDS[(i + 3) % 10];
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">'
+      + '<defs><clipPath id="r"><rect width="900" height="1200" rx="44"/></clipPath>'
+      + '<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#242424"/></linearGradient></defs>'
+      + '<g clip-path="url(#r)"><rect width="900" height="1200" fill="url(#g)"/>'
+      + '<polygon points="840,0 900,0 900,60" fill="#565656"/>'
+      + '<polygon points="710,0 780,0 900,120 900,190" fill="#565656"/>'
+      + '<polygon points="0,1140 0,1200 60,1200" fill="#565656"/>'
+      + '<polygon points="0,1010 0,1080 120,1200 190,1200" fill="#565656"/>'
+      + '<text x="450" y="560" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="96" fill="#a8a8a8">' + name.toUpperCase() + '</text>'
+      + '<text x="450" y="650" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="42" letter-spacing="6" fill="#6d6d6d">' + word + '</text>'
+      + '<text x="450" y="1080" text-anchor="middle" font-family="Arial" font-size="30" letter-spacing="4" fill="#5a5a5a">PLACEHOLDER</text>'
+      + '</g></svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
 
   const frame = document.getElementById('demo-frame');
   const title = document.getElementById('demo-title');
@@ -310,7 +331,7 @@
     btn.setAttribute('role', 'listitem');
     btn.setAttribute('aria-label', 'Play ' + game.name + ' demo');
     const img = document.createElement('img');
-    img.src = game.thumb;
+    img.src = game.thumb || placeholderThumb(game.name, i);
     img.alt = game.name + ' thumbnail';
     img.loading = 'lazy';
     img.width = 300; img.height = 400;
