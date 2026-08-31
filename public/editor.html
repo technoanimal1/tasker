@@ -1,0 +1,1387 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>thumbs.store — thumbnail editor (embeddable)</title>
+    <meta
+      name="description"
+      content="The thumbs.store thumbnail editor as a self-contained, responsive widget: drag the key visual, resize it, switch frame sizes, recolour the frame, export a PNG."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Demo page only — none of this is needed by the widget. */
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #06070a;
+        display: grid;
+        place-items: center;
+        padding: clamp(12px, 4vw, 48px);
+        box-sizing: border-box;
+      }
+      .demo-wrap {
+        width: 100%;
+        max-width: 1180px;
+      }
+    </style>
+
+    <!-- ===================================================================
+         WIDGET STYLES — copy this whole <style> block.
+         Everything is scoped under #ts-editor, so nothing leaks into (or
+         gets overridden by) the host page. Layout is driven by container
+         queries, so the widget responds to ITS OWN width — drop it in a
+         sidebar, a modal or a full-bleed section and it lays out correctly.
+         =================================================================== -->
+    <style>
+      #ts-editor {
+        /* Tokens — restyle the widget from here. */
+        --ts-bg: #0e1014;
+        --ts-panel: #14171c;
+        --ts-line: #23272f;
+        --ts-line-soft: #1a1e24;
+        --ts-text: #f4f4f5;
+        --ts-muted: #9aa1ac;
+        --ts-dim: #6b7280;
+        --ts-brand: #fff050;
+        --ts-radius: 16px;
+
+        container-type: inline-size;
+        container-name: ts;
+        width: 100%;
+        box-sizing: border-box;
+        color: var(--ts-text);
+        font-family: 'Google Sans Flex', system-ui, -apple-system, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      #ts-editor *,
+      #ts-editor *::before,
+      #ts-editor *::after {
+        box-sizing: border-box;
+      }
+      #ts-editor :focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+
+      #ts-editor .ts-shell {
+        border: 1px solid var(--ts-line);
+        border-radius: var(--ts-radius);
+        background: linear-gradient(180deg, var(--ts-panel), #0e1014);
+        box-shadow: 0 30px 70px -34px rgb(0 0 0 / 0.9);
+        overflow: hidden;
+      }
+
+      /* ---- title bar ---- */
+      #ts-editor .ts-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .ts-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      #ts-editor .ts-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #2a2f37;
+      }
+      #ts-editor .ts-tabs {
+        display: flex;
+        gap: 3px;
+        font-size: 12px;
+        color: var(--ts-dim);
+        overflow: hidden;
+      }
+      #ts-editor .ts-tabs span {
+        padding: 4px 10px;
+        border-radius: 7px;
+        white-space: nowrap;
+      }
+      #ts-editor .ts-tabs span[data-on] {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-live {
+        margin-left: auto;
+        flex: none;
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: #0a0b0d;
+        background: var(--ts-brand);
+        border-radius: 999px;
+        padding: 3px 9px;
+        white-space: nowrap;
+      }
+
+      /* ---- body grid ---- */
+      #ts-editor .ts-body {
+        display: grid;
+        grid-template-columns: minmax(148px, 178px) minmax(0, 1fr) minmax(168px, 206px);
+      }
+      #ts-editor .ts-rail {
+        border-right: 1px solid var(--ts-line-soft);
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .ts-label {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ts-dim);
+        margin: 6px 4px 2px;
+      }
+      #ts-editor .layer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        background: none;
+        font: inherit;
+        font-size: 12.5px;
+        color: var(--ts-muted);
+        text-align: left;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .layer i {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background: #2b313a;
+        flex: none;
+      }
+      #ts-editor .layer:hover {
+        background: rgb(255 255 255 / 0.05);
+      }
+      #ts-editor .layer[data-on] {
+        background: rgb(255 240 80 / 0.09);
+        border-color: rgb(255 240 80 / 0.3);
+        color: var(--ts-text);
+      }
+      #ts-editor .layer[data-on] i {
+        background: var(--ts-brand);
+      }
+
+      #ts-editor .ts-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 2px 4px;
+      }
+      #ts-editor .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1px solid rgb(255 255 255 / 0.18);
+        padding: 0;
+        cursor: pointer;
+      }
+      #ts-editor .swatch[aria-pressed='true'] {
+        box-shadow: 0 0 0 2px var(--ts-panel), 0 0 0 3.5px var(--ts-brand);
+      }
+
+      /* ---- canvas ---- */
+      #ts-editor .ts-canvas {
+        position: relative;
+        display: grid;
+        place-items: start center;
+        min-width: 0;
+        /* A height of its own — the frame is fitted inside it, so the canvas
+           must not be sized by the frame in turn. */
+        height: clamp(320px, 62cqi, 560px);
+        padding: 20px 20px 58px;
+        background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+      #ts-editor .ts-frame {
+        position: relative;
+        aspect-ratio: var(--ar, 3 / 4);
+        max-width: 100%;
+        touch-action: none;
+        cursor: grab;
+        filter: drop-shadow(0 18px 36px rgb(0 0 0 / 0.8));
+      }
+      #ts-editor .ts-frame.dragging {
+        cursor: grabbing;
+      }
+      #ts-editor .ts-frame:focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 12px;
+      }
+
+      /* Frame chrome — Control Area frame: radius 16/244 and stroke 2.5/244
+         of the frame width (set in px by the script), light band on its edge,
+         colour glow + white overlay bloom, provider tab. */
+      #ts-editor .tile {
+        position: absolute;
+        inset: 0;
+        border-radius: 15px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #0a0c11;
+        border: 1px solid var(--accent, #ff4fa3);
+        container-type: inline-size;
+      }
+      #ts-editor .tile > .lay-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transform: scale(var(--bg-scale, 1));
+        transform-origin: center;
+      }
+      #ts-editor .tile > .lay-kv,
+      #ts-editor .tile > .lay-logo {
+        position: absolute;
+        object-fit: contain;
+      }
+      #ts-editor .tile > .lay-logo {
+        z-index: 2;
+      }
+      #ts-editor .t-band {
+        position: absolute;
+        z-index: 1;
+      }
+      #ts-editor .t-glow {
+        position: absolute;
+        left: 50%;
+        bottom: -5%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 34%;
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(2px);
+      }
+      #ts-editor .t-bloom {
+        position: absolute;
+        left: 50%;
+        bottom: -12.3%;
+        transform: translateX(-50%);
+        width: 81.1%;
+        height: 27.5%;
+        border-radius: 50%;
+        z-index: 1;
+        mix-blend-mode: overlay;
+        background: radial-gradient(closest-side, #ffffff, rgba(255, 255, 255, 0) 70%);
+      }
+      #ts-editor .t-prov {
+        position: absolute;
+        left: 50%;
+        bottom: 0.3%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45em 1.1em 0.55em;
+        border-radius: 3.3cqw 3.3cqw 0 0;
+        background: var(--accent);
+        font-size: 4cqw;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      /* Selection box + handles */
+      #ts-editor .ts-sel {
+        position: absolute;
+        border: 1.5px solid rgb(255 240 80 / 0.85);
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 6;
+      }
+      #ts-editor .ts-sel[data-fixed] .handle {
+        display: none;
+      }
+      #ts-editor .handle {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        background: var(--ts-brand);
+        box-shadow: 0 0 0 2px #0a0b0d;
+        pointer-events: auto;
+      }
+      #ts-editor .handle.tl { left: -5px; top: -5px; cursor: nwse-resize; }
+      #ts-editor .handle.tr { right: -5px; top: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.bl { left: -5px; bottom: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.br { right: -5px; bottom: -5px; cursor: nwse-resize; }
+
+      #ts-editor .ts-sizebar {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 26px;
+        display: flex;
+        gap: 3px;
+        max-width: calc(100% - 24px);
+        overflow-x: auto;
+        background: rgb(10 11 13 / 0.75);
+        border: 1px solid var(--ts-line);
+        border-radius: 999px;
+        padding: 3px;
+        scrollbar-width: none;
+      }
+      #ts-editor .ts-sizebar::-webkit-scrollbar {
+        display: none;
+      }
+      #ts-editor .size-btn {
+        border: 0;
+        background: none;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font: inherit;
+        font-size: 11.5px;
+        color: var(--ts-muted);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .size-btn[aria-pressed='true'] {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 7px;
+        margin: 0;
+        text-align: center;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+
+      /* ---- properties ---- */
+      #ts-editor .ts-props {
+        border-left: 1px solid var(--ts-line-soft);
+        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      #ts-editor .prop {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .prop label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+      #ts-editor .prop label b {
+        color: var(--ts-muted);
+        font-weight: 500;
+      }
+      #ts-editor .prop:not([data-dim]) label b {
+        color: var(--ts-brand);
+      }
+      #ts-editor input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--ts-brand) 0 var(--fill, 50%),
+          #22262d var(--fill, 50%) 100%
+        );
+        cursor: pointer;
+      }
+      #ts-editor input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+      }
+      #ts-editor input[type='range']::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 999px;
+        background: #fff;
+      }
+      #ts-editor .switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ts-muted);
+        cursor: pointer;
+      }
+      #ts-editor .switch input {
+        accent-color: var(--ts-brand);
+        width: 14px;
+        height: 14px;
+      }
+      #ts-editor .ts-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      #ts-editor .field {
+        border: 1px solid var(--ts-line);
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 11.5px;
+        color: var(--ts-muted);
+        background: rgb(255 255 255 / 0.02);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #ts-editor .field b {
+        display: block;
+        font-size: 9px;
+        color: var(--ts-dim);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+      }
+      #ts-editor .ts-actions {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #ts-editor .ts-reset {
+        border: 1px solid var(--ts-line);
+        border-radius: 9px;
+        height: 32px;
+        background: none;
+        font: inherit;
+        font-size: 12px;
+        color: var(--ts-muted);
+        cursor: pointer;
+      }
+      #ts-editor .ts-reset:hover {
+        color: var(--ts-text);
+        border-color: #333a44;
+      }
+      #ts-editor .ts-export {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        width: 100%;
+        height: 36px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--ts-brand);
+        color: #0a0b0d;
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      #ts-editor .ts-export:hover {
+        background: #fff77a;
+      }
+
+      /* ---- filmstrip + status ---- */
+      #ts-editor .ts-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 10px 12px;
+        border-top: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .film {
+        flex: 0 0 auto;
+        width: 54px;
+        aspect-ratio: 3 / 4;
+        border-radius: 7px;
+        overflow: hidden;
+        border: 1.5px solid transparent;
+        background: #14171c;
+        padding: 0;
+        opacity: 0.62;
+        cursor: pointer;
+      }
+      #ts-editor .film img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #ts-editor .film[aria-pressed='true'] {
+        opacity: 1;
+        border-color: var(--ts-brand);
+      }
+      #ts-editor .ts-note {
+        min-height: 18px;
+        margin: 0;
+        padding: 9px 12px 11px;
+        border-top: 1px solid var(--ts-line-soft);
+        font-size: 11.5px;
+        color: var(--ts-dim);
+        text-align: center;
+      }
+
+      /* ===== responsive: driven by the widget's own width ===== */
+
+      /* Tablet and down — one column: rail becomes a chip row above the
+         canvas, properties move underneath in two columns. */
+      @container ts (max-width: 860px) {
+        #ts-editor .ts-body {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #ts-editor .ts-rail {
+          border-right: 0;
+          border-bottom: 1px solid var(--ts-line-soft);
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 10px 12px;
+          scrollbar-width: none;
+        }
+        #ts-editor .ts-rail::-webkit-scrollbar {
+          display: none;
+        }
+        #ts-editor .ts-label {
+          display: none;
+        }
+        #ts-editor .ts-swatches {
+          padding-left: 4px;
+          border-left: 1px solid var(--ts-line-soft);
+        }
+        #ts-editor .ts-layers {
+          display: flex;
+          gap: 6px;
+          flex: none;
+        }
+        #ts-editor .layer {
+          width: auto;
+        }
+        #ts-editor .ts-swatches {
+          flex-wrap: nowrap;
+          flex: none;
+        }
+        #ts-editor .ts-props {
+          border-left: 0;
+          border-top: 1px solid var(--ts-line-soft);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px 16px;
+          align-items: end;
+        }
+        #ts-editor .ts-actions {
+          grid-column: 1 / -1;
+          flex-direction: row;
+        }
+        #ts-editor .ts-actions > * {
+          flex: 1;
+        }
+        #ts-editor .ts-fields {
+          grid-column: 1 / -1;
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      /* Phone — single-column controls, tighter chrome, no hint line. */
+      @container ts (max-width: 460px) {
+        #ts-editor .ts-canvas {
+          padding: 14px 14px 52px;
+          height: clamp(300px, 96cqi, 420px);
+        }
+        #ts-editor .ts-props {
+          grid-template-columns: 1fr;
+        }
+        #ts-editor .ts-fields {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        #ts-editor .ts-hint {
+          display: none;
+        }
+        #ts-editor .ts-tabs span:nth-child(n + 3) {
+          display: none;
+        }
+        #ts-editor .ts-live {
+          display: none;
+        }
+        #ts-editor .ts-shell {
+          border-radius: 12px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #ts-editor * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="demo-wrap">
+      <!-- =================================================================
+           WIDGET MARKUP — copy from here to the end of #ts-editor.
+           Every id is prefixed ts- and every class lives under #ts-editor.
+           ================================================================= -->
+      <div id="ts-editor">
+        <div class="ts-shell">
+          <div class="ts-bar">
+            <div class="ts-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="ts-tabs">
+              <span data-on>Thumbnails</span><span>Template</span><span>Frames</span><span>Brand assets</span>
+            </div>
+            <span class="ts-live">live · try it</span>
+          </div>
+
+          <div class="ts-body">
+            <aside class="ts-rail">
+              <div class="ts-label ts-label-layers" id="ts-layersLabel">Layers</div>
+              <div class="ts-layers" role="radiogroup" aria-labelledby="ts-layersLabel">
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="bg"><i></i> Background</button>
+                <button class="layer" type="button" role="radio" aria-checked="true" data-layer="kv" data-on><i></i> Key visual</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="logo"><i></i> Game logotype</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="band"><i></i> Light band</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="prov"><i></i> Provider badge</button>
+              </div>
+              <div class="ts-label" id="ts-paletteLabel">Frame colour</div>
+              <div class="ts-swatches" id="ts-swatches" role="group" aria-labelledby="ts-paletteLabel"></div>
+            </aside>
+
+            <div class="ts-canvas" id="ts-canvas">
+              <div
+                class="ts-frame"
+                id="ts-frame"
+                tabindex="0"
+                role="application"
+                aria-label="Thumbnail canvas — drag the selected layer, arrow keys nudge it, corner handles resize it"
+              >
+                <div class="tile" id="ts-tile">
+                  <img class="lay-bg" id="ts-layBg" alt="" decoding="async" />
+                  <div class="t-band" id="ts-layBand"></div>
+                  <div class="t-glow" id="ts-layGlow"></div>
+                  <div class="t-bloom" id="ts-layBloom"></div>
+                  <img class="lay-kv" id="ts-layKv" alt="The game's key visual" decoding="async" />
+                  <img class="lay-logo" id="ts-layLogo" alt="" decoding="async" />
+                  <div class="t-prov" id="ts-layProv">PRAGMATIC</div>
+                </div>
+                <div class="ts-sel" id="ts-sel">
+                  <span class="handle tl" data-h="tl"></span>
+                  <span class="handle tr" data-h="tr"></span>
+                  <span class="handle bl" data-h="bl"></span>
+                  <span class="handle br" data-h="br"></span>
+                </div>
+              </div>
+              <div class="ts-sizebar" id="ts-sizeBar" role="group" aria-label="Frame size"></div>
+              <p class="ts-hint">Drag to move · corner to resize · arrow keys to nudge</p>
+            </div>
+
+            <aside class="ts-props">
+              <div class="prop" data-for="kv">
+                <label for="ts-kvScale">Key visual scale <b id="ts-kvScaleVal">122%</b></label>
+                <input id="ts-kvScale" type="range" min="40" max="220" step="1" value="122" />
+              </div>
+              <div class="prop" data-for="logo">
+                <label for="ts-logoScale">Logo scale <b id="ts-logoScaleVal">38%</b></label>
+                <input id="ts-logoScale" type="range" min="10" max="120" step="1" value="38" />
+              </div>
+              <div class="prop" data-for="band">
+                <label for="ts-bandOpacity">Band opacity <b id="ts-bandVal">100%</b></label>
+                <input id="ts-bandOpacity" type="range" min="0" max="100" step="1" value="100" />
+              </div>
+              <label class="switch"><input type="checkbox" id="ts-provOn" checked /> <span>Provider badge</span></label>
+              <label class="switch"><input type="checkbox" id="ts-whiteOn" checked /> <span>White logotype</span></label>
+              <div class="ts-fields">
+                <div class="field"><b>X</b><span id="ts-fX">0</span></div>
+                <div class="field"><b>Y</b><span id="ts-fY">0</span></div>
+                <div class="field"><b>W</b><span id="ts-fW">0</span></div>
+                <div class="field"><b>H</b><span id="ts-fH">0</span></div>
+              </div>
+              <div class="ts-actions">
+                <button class="ts-reset" type="button" id="ts-resetBtn">Reset this size</button>
+                <button class="ts-export" type="button" id="ts-exportBtn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Export PNG
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div class="ts-strip" id="ts-filmstrip" role="group" aria-label="Pick a game"></div>
+          <p class="ts-note" id="ts-labNote" role="status"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         WIDGET SCRIPT — copy this whole <script>. No dependencies.
+         =================================================================== -->
+    <script>
+    ;(() => {
+      const lab = document.getElementById('ts-editor')
+      if (!lab) return
+      const $ = (id) => document.getElementById('ts-' + id)
+
+      const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
+      const GAMES = [
+        { name: 'Sweet Bonanza', slug: 'sweet-bonanza', id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y', accent: '#FF4FA3' },
+      ]
+      // Background zoom, as params.bgScale does it in the app.
+      const BG_SCALE = 1.2
+
+      // The studio's own frame sizes (FRAME_SIZES in src/lib/thumb.ts).
+      const SIZES = [
+        { key: '3:4', w: 900, h: 1200 },
+        { key: '2:3', w: 800, h: 1200 },
+        { key: '47:66', w: 940, h: 1320 },
+        { key: '16:9', w: 1280, h: 720 },
+      ]
+      // A slice of the dark palette (src/lib/palettes.ts).
+      const SWATCHES = ['#6C4FE8', '#FF4FA3', '#9B30FF', '#E8A33D', '#2FA4E7', '#F0C020', '#E23A2E', '#12C2C2', '#7ED321']
+      // The live template's per-size layouts (thumb_templates.params.layouts):
+      // a 9-point anchor, a scale on the layer's contain-fit, and a fine offset.
+      const TEMPLATE = {
+        '3:4': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.38, logoDX: 0, logoDY: 0.04 },
+        '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
+        '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
+        '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
+      }
+      // Light-band gradient per size (params.gradients, else the base values).
+      const GRAD = {
+        default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
+        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 63.7 }, // template 49 +30%
+      }
+      const LOGO_ASPECT_K = 2.2 // thumb.ts — a width-bound logo fits 2.2·scale·W
+
+      const el = {
+        frame: $('frame'), tile: $('tile'), bg: $('layBg'), band: $('layBand'), kv: $('layKv'),
+        logo: $('layLogo'), prov: $('layProv'), sel: $('sel'), sizeBar: $('sizeBar'),
+        glow: $('layGlow'), bloom: $('layBloom'),
+        strip: $('filmstrip'), swatches: $('swatches'), note: $('labNote'), canvas: $('canvas'),
+        kvScale: $('kvScale'), logoScale: $('logoScale'), bandOpacity: $('bandOpacity'),
+        kvScaleVal: $('kvScaleVal'), logoScaleVal: $('logoScaleVal'), bandVal: $('bandVal'),
+        provOn: $('provOn'), whiteOn: $('whiteOn'),
+        fX: $('fX'), fY: $('fY'), fW: $('fW'), fH: $('fH'),
+      }
+      const layerBtns = Array.from(lab.querySelectorAll('button.layer[data-layer]'))
+
+      const state = { g: 0, size: '3:4', accent: null, band: 1, prov: true, white: true, layer: 'kv', layouts: {} }
+
+      // The contain-fit needs the image's natural size, so re-place on load.
+      ;[el.kv, el.logo, el.bg].forEach((img) => img.addEventListener('load', () => render()))
+
+      const game = () => GAMES[state.g]
+      const sizeDef = () => SIZES.find((s) => s.key === state.size) || SIZES[0]
+      const landscape = () => sizeDef().w / sizeDef().h > 1.2
+      const accent = () => state.accent || game().accent
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+
+      function layout() {
+        if (!state.layouts[state.size]) {
+          const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+          state.layouts[state.size] = {
+            kv: { s: t.kvScale, dx: t.kvDX, dy: t.kvDY },
+            logo: { s: t.logoScale, dx: t.logoDX, dy: t.logoDY },
+          }
+        }
+        return state.layouts[state.size]
+      }
+
+      /** Contain-fit of an image in the frame, as frame fractions (baseFit). */
+      function fitOf(img, ar) {
+        const nw = img && img.naturalWidth ? img.naturalWidth : 1000
+        const nh = img && img.naturalHeight ? img.naturalHeight : 1000
+        // Work in frame units where width = 1 and height = 1/ar.
+        const H = 1 / ar
+        const f = Math.min(1 / nw, H / nh)
+        return { w: nw * f, h: (nh * f) / H }
+      }
+
+      /** Box for a layer, in frame fractions: the layer's contain-fit scaled by
+       *  k, centred on the template's 9-point anchor plus its offset. */
+      function boxOf(key) {
+        if (key === 'bg') return { x: 0, y: 0, w: 1, h: 1 }
+        if (key === 'band') {
+          const g = GRAD[state.size] || GRAD.default
+          return g.dir === 'right'
+            ? { x: 1 - g.band / 100, y: 0, w: g.band / 100, h: 1 }
+            : { x: 0, y: 1 - g.band / 100, w: 1, h: g.band / 100 }
+        }
+        if (key === 'prov') {
+          const f = el.frame.getBoundingClientRect()
+          const p = el.prov.getBoundingClientRect()
+          if (!f.width) return { x: 0.35, y: 0.9, w: 0.3, h: 0.07 }
+          return { x: (p.left - f.left) / f.width, y: (p.top - f.top) / f.height, w: p.width / f.width, h: p.height / f.height }
+        }
+        const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+        const st = layout()[key]
+        const s = sizeDef()
+        const align = key === 'kv' ? t.kvAlign : t.logoAlign
+        const fit = fitOf(key === 'kv' ? el.kv : el.logo, s.w / s.h)
+        const k = key === 'kv' ? st.s : st.s * LOGO_ASPECT_K
+        const w = fit.w * k
+        const h = fit.h * k
+        const col = align[1]
+        const row = align[0]
+        const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) + st.dx
+        const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) + st.dy
+        return { x: cx - w / 2, y: cy - h / 2, w, h }
+      }
+
+      const pct = (n) => (n * 100).toFixed(2) + '%'
+
+      function rgbaOf(hex, a) {
+        const v = String(hex).replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      /** bandStops() from thumb.ts: a smootherstep fade in, the semantic→blur
+       *  crossover, then a fade out — so the band has no visible seam. */
+      function bandCss(hex, g, opacity) {
+        const semA = 0.6 * opacity
+        const blurA = 1 * opacity
+        const lo = Math.min(g.s1, g.s2) / 100
+        const hi = Math.max(g.s1, g.s2) / 100
+        const bot = Math.max(hi, g.bottom / 100)
+        const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+        const out = []
+        for (let i = 0; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, semA * smooth(t)) + ' ' + (lo * t * 100).toFixed(2) + '%')
+        }
+        out.push(rgbaOf(hex, blurA) + ' ' + (hi * 100).toFixed(2) + '%')
+        out.push(rgbaOf(hex, blurA) + ' ' + (bot * 100).toFixed(2) + '%')
+        for (let i = 1; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, blurA * smooth(1 - t)) + ' ' + ((bot + (1 - bot) * t) * 100).toFixed(2) + '%')
+        }
+        return 'linear-gradient(to ' + g.dir + ', ' + out.join(', ') + ')'
+      }
+
+      /** Size the frame to the space the canvas actually has, in both axes,
+       *  so the whole widget stays responsive to its container — not to the
+       *  viewport, and not to a hard-coded width. */
+      function fitFrame() {
+        const s = sizeDef()
+        const box = el.canvas.getBoundingClientRect()
+        if (!box.width) return
+        const cs = getComputedStyle(el.canvas)
+        const availW = box.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+        // Measure against the size bar itself rather than assuming the padding
+        // clears it, so the frame always sits above the controls at any width.
+        const bar = el.sizeBar.getBoundingClientRect()
+        const floor = bar.height ? bar.top - 10 : box.bottom - parseFloat(cs.paddingBottom)
+        const availH = floor - (box.top + parseFloat(cs.paddingTop))
+        const ar = s.w / s.h
+        const w = Math.max(120, Math.min(availW, availH * ar))
+        if (Math.abs(parseFloat(el.frame.style.width || '0') - w) > 0.5) el.frame.style.width = w + 'px'
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        let raf = 0
+        const ro = new ResizeObserver(() => {
+          cancelAnimationFrame(raf)
+          raf = requestAnimationFrame(() => {
+            fitFrame()
+            applyMetrics()
+          })
+        })
+        ro.observe(el.canvas)
+      }
+      window.addEventListener('orientationchange', () => setTimeout(render, 120))
+
+      /** Corner radius 16/244 and stroke 2.5/244 of the frame width, in px —
+       *  percentages would make the corner elliptical on a non-square frame. */
+      function applyMetrics() {
+        lab.querySelectorAll('.tile').forEach((t) => {
+          const w = t.offsetWidth
+          if (!w) return
+          t.style.borderRadius = Math.max(3, (16 / 244) * w) + 'px'
+          t.style.borderWidth = Math.max(1, (2.5 / 244) * w) + 'px'
+        })
+      }
+      window.addEventListener('resize', applyMetrics)
+
+      /** Paint the frame chrome — band on its edge, colour glow, white bloom. */
+      function paintChrome(nodes, sizeKey, hex, opacity) {
+        const g = GRAD[sizeKey] || GRAD.default
+        const band = nodes.band
+        if (band) {
+          band.style.cssText = ''
+          band.style.position = 'absolute'
+          if (g.dir === 'right') {
+            band.style.top = '0'
+            band.style.bottom = '0'
+            band.style.right = '0'
+            band.style.width = g.band + '%'
+          } else {
+            band.style.left = '0'
+            band.style.right = '0'
+            band.style.bottom = '0'
+            band.style.height = g.band + '%'
+          }
+          band.style.zIndex = '1'
+          band.style.background = bandCss(hex, g, opacity)
+        }
+        if (nodes.glow) {
+          nodes.glow.style.background =
+            'radial-gradient(closest-side, ' + rgbaOf(hex, 0.85 * opacity) + ', ' + rgbaOf(hex, 0) + ' 72%)'
+        }
+        if (nodes.bloom) nodes.bloom.style.opacity = String(opacity)
+      }
+
+      function place(node, box, objPos) {
+        node.style.left = pct(box.x)
+        node.style.top = pct(box.y)
+        node.style.width = pct(box.w)
+        node.style.height = pct(box.h)
+        node.style.bottom = 'auto'
+        node.style.right = 'auto'
+        node.style.objectPosition = objPos
+      }
+
+      function render() {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        const base = SB + '/assets/' + g.id
+
+        el.frame.style.setProperty('--ar', s.w + ' / ' + s.h)
+        fitFrame()
+        el.tile.classList.toggle('land', land)
+        el.tile.style.setProperty('--accent', accent())
+        el.tile.style.setProperty('--bg-scale', String(BG_SCALE))
+
+        if (el.bg.dataset.game !== g.id) {
+          el.bg.src = base + '/bg.jpg'
+          el.kv.src = base + '/kv.png'
+          el.bg.dataset.game = g.id
+          el.kv.alt = g.name + ' key visual on the editor canvas'
+        }
+        const logoSrc = base + (state.white ? '/logoWhite.png' : '/logoColor.png')
+        if (el.logo.getAttribute('src') !== logoSrc) el.logo.src = logoSrc
+
+        place(el.kv, boxOf('kv'), 'center center')
+        place(el.logo, boxOf('logo'), 'center center')
+        paintChrome({ band: el.band, glow: el.glow, bloom: el.bloom }, state.size, accent(), state.band)
+        el.prov.hidden = !state.prov
+
+        const sel = boxOf(state.layer)
+        el.sel.style.left = pct(sel.x)
+        el.sel.style.top = pct(sel.y)
+        el.sel.style.width = pct(sel.w)
+        el.sel.style.height = pct(sel.h)
+        const movable = state.layer === 'kv' || state.layer === 'logo'
+        if (movable) el.sel.removeAttribute('data-fixed')
+        else el.sel.setAttribute('data-fixed', '')
+
+        layerBtns.forEach((b) => {
+          const on = b.dataset.layer === state.layer
+          b.toggleAttribute('data-on', on)
+          b.setAttribute('aria-checked', String(on))
+        })
+        lab.querySelectorAll('.prop[data-for]').forEach((p) => {
+          if (p.dataset.for !== state.layer) p.setAttribute('data-dim', '')
+          else p.removeAttribute('data-dim')
+        })
+
+        const lay = layout()
+        setRange(el.kvScale, Math.round(lay.kv.s * 100), el.kvScaleVal, '%')
+        setRange(el.logoScale, Math.round(lay.logo.s * 100), el.logoScaleVal, '%')
+        setRange(el.bandOpacity, Math.round(state.band * 100), el.bandVal, '%')
+
+        el.fX.textContent = Math.round(sel.x * s.w)
+        el.fY.textContent = Math.round(sel.y * s.h)
+        el.fW.textContent = Math.round(sel.w * s.w)
+        el.fH.textContent = Math.round(sel.h * s.h)
+
+        lab.querySelectorAll('.size-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.size === state.size)))
+        lab.querySelectorAll('.film').forEach((b, i) => b.setAttribute('aria-pressed', String(i === state.g)))
+        lab.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color === accent())))
+        applyMetrics()
+      }
+
+      function setRange(input, value, out, suffix) {
+        input.value = String(value)
+        const min = Number(input.min)
+        const max = Number(input.max)
+        input.style.setProperty('--fill', ((value - min) / (max - min)) * 100 + '%')
+        if (out) out.textContent = value + suffix
+      }
+
+      function note(msg) {
+        el.note.textContent = msg || ''
+      }
+
+      // ── controls ────────────────────────────────────────────────────────
+      SIZES.forEach((s) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'size-btn'
+        b.dataset.size = s.key
+        b.textContent = s.key
+        b.title = s.w + ' × ' + s.h
+        b.addEventListener('click', () => {
+          state.size = s.key
+          render()
+          note('Frame size ' + s.key + ' — ' + s.w + ' × ' + s.h + '. Each size keeps its own layout.')
+        })
+        el.sizeBar.appendChild(b)
+      })
+
+      if (GAMES.length < 2) el.strip.hidden = true
+      GAMES.forEach((g, i) => {
+        if (GAMES.length < 2) return
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'film'
+        b.title = g.name
+        b.setAttribute('aria-label', g.name)
+        const img = document.createElement('img')
+        img.src = SB + '/previews/' + g.id + '.webp?v=' + g.sig
+        img.alt = ''
+        img.loading = 'lazy'
+        img.decoding = 'async'
+        b.appendChild(img)
+        b.addEventListener('click', () => {
+          state.g = i
+          state.accent = null
+          render()
+          note(g.name + ' — same template, same layout. Only the assets and the colour changed.')
+        })
+        el.strip.appendChild(b)
+      })
+
+      SWATCHES.forEach((c) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'swatch'
+        b.dataset.color = c
+        b.style.background = c
+        b.title = c
+        b.setAttribute('aria-label', 'Frame colour ' + c)
+        b.addEventListener('click', () => {
+          state.accent = c
+          render()
+        })
+        el.swatches.appendChild(b)
+      })
+
+      layerBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          state.layer = b.dataset.layer
+          render()
+        })
+      })
+
+      el.kvScale.addEventListener('input', () => {
+        state.layer = 'kv'
+        layout().kv.s = Number(el.kvScale.value) / 100
+        render()
+      })
+      el.logoScale.addEventListener('input', () => {
+        state.layer = 'logo'
+        layout().logo.s = Number(el.logoScale.value) / 100
+        render()
+      })
+      el.bandOpacity.addEventListener('input', () => {
+        state.layer = 'band'
+        state.band = Number(el.bandOpacity.value) / 100
+        render()
+      })
+      el.provOn.addEventListener('change', () => {
+        state.prov = el.provOn.checked
+        render()
+      })
+      el.whiteOn.addEventListener('change', () => {
+        state.white = el.whiteOn.checked
+        render()
+      })
+      $('resetBtn').addEventListener('click', () => {
+        delete state.layouts[state.size]
+        state.band = 1
+        render()
+        note('Back to the template layout for ' + state.size + '.')
+      })
+
+      // ── drag / resize ───────────────────────────────────────────────────
+      let drag = null
+
+      function hitLayer(fx, fy) {
+        const inBox = (b) => fx >= b.x && fx <= b.x + b.w && fy >= b.y && fy <= b.y + b.h
+        if (inBox(boxOf('logo'))) return 'logo'
+        if (inBox(boxOf('kv'))) return 'kv'
+        return 'bg'
+      }
+
+      el.frame.addEventListener('pointerdown', (e) => {
+        const r = el.frame.getBoundingClientRect()
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const handle = e.target.closest && e.target.closest('.handle')
+
+        if (handle && (state.layer === 'kv' || state.layer === 'logo')) {
+          const b = boxOf(state.layer)
+          const cx = b.x + b.w / 2
+          const cy = b.y + b.h / 2
+          drag = {
+            mode: 'scale',
+            key: state.layer,
+            startDist: Math.hypot((fx - cx) * r.width, (fy - cy) * r.height) || 1,
+            startScale: layout()[state.layer].s,
+            cx,
+            cy,
+            r,
+          }
+        } else {
+          const key = hitLayer(fx, fy)
+          if (key !== state.layer) {
+            state.layer = key
+            render()
+          }
+          if (key !== 'kv' && key !== 'logo') return
+          drag = { mode: 'move', key, x: fx, y: fy, r }
+          el.frame.classList.add('dragging')
+        }
+        el.frame.setPointerCapture(e.pointerId)
+        e.preventDefault()
+      })
+
+      el.frame.addEventListener('pointermove', (e) => {
+        if (!drag) return
+        const r = drag.r
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const st = layout()[drag.key]
+        if (drag.mode === 'move') {
+          st.dx = clamp(st.dx + (fx - drag.x), -0.6, 0.6)
+          st.dy = clamp(st.dy + (fy - drag.y), -0.6, 0.6)
+          drag.x = fx
+          drag.y = fy
+        } else {
+          const dist = Math.hypot((fx - drag.cx) * r.width, (fy - drag.cy) * r.height)
+          st.s = clamp((drag.startScale * dist) / drag.startDist, 0.1, 2.2)
+        }
+        render()
+      })
+
+      const endDrag = (e) => {
+        if (!drag) return
+        drag = null
+        el.frame.classList.remove('dragging')
+        if (e && e.pointerId != null && el.frame.hasPointerCapture(e.pointerId)) el.frame.releasePointerCapture(e.pointerId)
+      }
+      el.frame.addEventListener('pointerup', endDrag)
+      el.frame.addEventListener('pointercancel', endDrag)
+
+      el.frame.addEventListener('keydown', (e) => {
+        const step = e.shiftKey ? 0.02 : 0.005
+        const key = state.layer
+        if (key !== 'kv' && key !== 'logo') return
+        const st = layout()[key]
+        const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }
+        if (moves[e.key]) {
+          st.dx = clamp(st.dx + moves[e.key][0], -0.6, 0.6)
+          st.dy = clamp(st.dy + moves[e.key][1], -0.6, 0.6)
+          e.preventDefault()
+          render()
+        } else if (e.key === '+' || e.key === '=' || e.key === '-') {
+          st.s = clamp(st.s + (e.key === '-' ? -0.05 : 0.05), 0.1, 2.2)
+          e.preventDefault()
+          render()
+        }
+      })
+
+      // ── export ──────────────────────────────────────────────────────────
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image()
+          img.crossOrigin = 'anonymous'
+          img.onload = () => resolve(img)
+          img.onerror = reject
+          img.src = src
+        })
+      }
+
+      function drawFit(ctx, img, box, W, H, anchor, cover) {
+        const bw = box.w * W
+        const bh = box.h * H
+        const scale = cover ? Math.max(bw / img.width, bh / img.height) : Math.min(bw / img.width, bh / img.height)
+        const w = img.width * scale
+        const h = img.height * scale
+        const x = box.x * W + (bw - w) / 2
+        let y = box.y * H + (bh - h) / 2
+        if (anchor === 'top') y = box.y * H
+        if (anchor === 'bottom') y = box.y * H + (bh - h)
+        ctx.drawImage(img, x, y, w, h)
+      }
+
+      function rgba(hex, a) {
+        const v = hex.replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      $('exportBtn').addEventListener('click', async () => {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        note('Rendering ' + s.w + ' × ' + s.h + '…')
+        try {
+          const base = SB + '/assets/' + g.id
+          const [bg, kv, logo] = await Promise.all([
+            loadImage(base + '/bg.jpg'),
+            loadImage(base + '/kv.png'),
+            loadImage(base + (state.white ? '/logoWhite.png' : '/logoColor.png')),
+          ])
+          const c = document.createElement('canvas')
+          c.width = s.w
+          c.height = s.h
+          const ctx = c.getContext('2d')
+          const bgBox = { x: (1 - BG_SCALE) / 2, y: (1 - BG_SCALE) / 2, w: BG_SCALE, h: BG_SCALE }
+          drawFit(ctx, bg, bgBox, s.w, s.h, 'center', true)
+
+          // Light band — the same stops the live frame paints.
+          const gd = GRAD[s.key] || GRAD.default
+          if (state.band > 0) {
+            const b = boxOf('band')
+            const x0 = b.x * s.w
+            const y0 = b.y * s.h
+            const bw = b.w * s.w
+            const bh = b.h * s.h
+            const grad = gd.dir === 'right' ? ctx.createLinearGradient(x0, 0, x0 + bw, 0) : ctx.createLinearGradient(0, y0, 0, y0 + bh)
+            const semA = 0.6 * state.band
+            const blurA = state.band
+            const lo = Math.min(gd.s1, gd.s2) / 100
+            const hi = Math.max(gd.s1, gd.s2) / 100
+            const bot = Math.max(hi, gd.bottom / 100)
+            const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+            for (let i = 0; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(lo * t, rgba(accent(), semA * smooth(t)))
+            }
+            grad.addColorStop(hi, rgba(accent(), blurA))
+            grad.addColorStop(bot, rgba(accent(), blurA))
+            for (let i = 1; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(Math.min(1, bot + (1 - bot) * t), rgba(accent(), blurA * smooth(1 - t)))
+            }
+            ctx.fillStyle = grad
+            ctx.fillRect(x0, y0, bw, bh)
+          }
+
+          // The two bottom glows: colour ellipse, then the white overlay bloom.
+          const ellipse = (cy, rw, rh, inner, outer, blend, alpha) => {
+            ctx.save()
+            if (blend) ctx.globalCompositeOperation = blend
+            ctx.globalAlpha = alpha == null ? 1 : alpha
+            ctx.translate(s.w / 2, cy)
+            ctx.scale(rw, rh)
+            const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+            rg.addColorStop(0, inner)
+            rg.addColorStop(0.72, outer)
+            ctx.fillStyle = rg
+            ctx.fillRect(-1, -1, 2, 2)
+            ctx.restore()
+          }
+          ellipse(s.h * 0.88, s.w * 0.45, s.h * 0.17, rgba(accent(), 0.85 * state.band), rgba(accent(), 0))
+          ellipse(s.h * 0.985, s.w * 0.4055, s.h * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay', state.band)
+
+          drawFit(ctx, kv, boxOf('kv'), s.w, s.h, 'center', false)
+          drawFit(ctx, logo, boxOf('logo'), s.w, s.h, 'center', false)
+
+          // Provider badge — the template's bottom tab (radius 8/8/0/0 @244).
+          if (state.prov) {
+            const fs = Math.round(s.w * 0.032)
+            ctx.font = '600 ' + fs + 'px system-ui, sans-serif'
+            const label = 'PRAGMATIC'
+            const tw = ctx.measureText(label).width
+            const padX = fs * 1.15
+            const bw = tw + padX * 2
+            const bh = fs * 2
+            const bx = (s.w - bw) / 2
+            const by = s.h - bh - s.h * 0.003
+            const rr = (8 / 244) * s.w
+            ctx.fillStyle = accent()
+            ctx.beginPath()
+            ctx.moveTo(bx, by + bh)
+            ctx.lineTo(bx, by + rr)
+            ctx.arcTo(bx, by, bx + rr, by, rr)
+            ctx.lineTo(bx + bw - rr, by)
+            ctx.arcTo(bx + bw, by, bx + bw, by + rr, rr)
+            ctx.lineTo(bx + bw, by + bh)
+            ctx.closePath()
+            ctx.fill()
+            ctx.fillStyle = '#ffffff'
+            ctx.textBaseline = 'middle'
+            ctx.textAlign = 'center'
+            ctx.fillText(label, s.w / 2, by + bh / 2 + 1)
+            ctx.textAlign = 'left'
+          }
+
+          // Frame: 2.5/244 stroke on a 16/244 corner radius, outside the art.
+          const lw = (2.5 / 244) * s.w
+          const rad = (16 / 244) * s.w
+          ctx.strokeStyle = accent()
+          ctx.lineWidth = lw
+          ctx.beginPath()
+          if (ctx.roundRect) ctx.roundRect(lw / 2, lw / 2, s.w - lw, s.h - lw, rad)
+          else ctx.rect(lw / 2, lw / 2, s.w - lw, s.h - lw)
+          ctx.stroke()
+
+          const blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('no blob'))), 'image/png'))
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = g.slug + '-' + s.key.replace(':', 'x') + '.png'
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          setTimeout(() => URL.revokeObjectURL(url), 4000)
+          note('Exported ' + g.name + ' at ' + s.w + ' × ' + s.h + ' — same draw code as the app.')
+        } catch (err) {
+          note('Couldn’t render here (the asset host blocked a cross-origin read). Export works inside the editor.')
+        }
+      })
+
+      render()
+      note('Drag the key visual, resize it, change the cut — the template layout stays put.')
+    })()
+    </script>
+  </body>
+</html>
