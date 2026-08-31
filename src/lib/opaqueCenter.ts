@@ -8,9 +8,14 @@
  * bounding box: a faint glow, sparkle or drop shadow reaching one edge barely
  * moves it, where it used to drag a loose alpha>12 bbox — and because the
  * placement correction scales with the rendered size, that bias made the art
- * slide sideways as you resized it. The deviation from the geometric centre is
- * also clamped (±12%) so auto-centring corrects modest padding asymmetry but
- * can never relocate the art far enough for resizing to visibly move it.
+ * slide sideways as you resized it.
+ *
+ * The centroid is used EXACTLY (no tight clamp): the renderer pins this point
+ * to the box centre, so the artwork's mass centre stays put at every size and
+ * resizing reads as pure scaling around the subject. Clamping the deviation
+ * (as a earlier fix did, ±12%) re-introduced drift for genuinely off-centre
+ * art — the residual error grows with the rendered size — so only a wide
+ * safety limit (±35%) guards against degenerate sources.
  *
  * Results are cached per URL. Analysis needs a CORS-clean image (our CDN sends
  * the right headers); if it can't read the pixels it falls back to the centre.
@@ -25,8 +30,10 @@ export function opaqueCenterCached(url?: string | null): Center | null {
   return cache.get(url) ?? null
 }
 
-/** Max deviation of the artwork centre from the geometric centre (fraction). */
-const CLAMP = 0.12
+/** Safety limit on the deviation from the geometric centre (fraction). Wide on
+ *  purpose: a tight clamp mis-pins genuinely off-centre art, and the residual
+ *  error scales with the rendered size (= drift while resizing). */
+const CLAMP = 0.35
 
 function scanCenter(img: HTMLImageElement): Center {
   const S = 128 // downscale for a fast alpha scan
