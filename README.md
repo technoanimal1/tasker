@@ -92,6 +92,15 @@ animations, AI motion, and API export with format chips — plus a white-label
 dashboard service card, the shipped-output card and CTA. All CSS-animated,
 self-contained, no build step, with static fallbacks under reduced motion.
 
+[`public/landing-et.html`](public/landing-et.html) is the same side-landing
+rebuilt in the Endless Tools design language: Inter throughout, pure-black open
+sections on a 1270px column (no card wrappers), rounded-full pill buttons
+(white primary that turns yellow on hover, ring secondary), numbered-circle
+step tags, `#121212`/`ring-#222222` benefit cards, a border-strip marquee and a
+`#2C5CFF` selection accent inside the editor — with the thumbs.store logo
+lockup kept verbatim. Same live widget, template numbers and animations as the
+Framer version.
+
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and
 [`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
