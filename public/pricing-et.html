@@ -143,8 +143,10 @@
       .brand-sub b { font-family: var(--sans); font-weight: 600; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(255 255 255 / 0.75); }
       .nav-cta { display: flex; align-items: center; gap: 10px; }
       .nav-cta .btn { padding: 9px 18px; font-size: 13px; }
-      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 10px; }
-      .nav-link:hover { color: #fff; }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .nav-link[aria-current] { color: #fff; }
 
       /* ---- hero + billing toggle ---- */
       .hero { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
@@ -538,6 +540,7 @@
       .reveal.in { opacity: 1; transform: none; }
 
       @media (max-width: 1199.98px) {
+        .nav-links { display: none; }
         .plans { grid-template-columns: 1fr 1fr; }
         .credgrid { grid-template-columns: 1fr 1fr; }
         .packs { grid-template-columns: repeat(3, 1fr); }
@@ -555,7 +558,8 @@
         .credgrid { grid-template-columns: 1fr; }
         .packs { grid-template-columns: 1fr 1fr; }
         .platform ul { grid-template-columns: 1fr; }
-        .nav-cta .btn-o, .nav-link { display: none; }
+        .nav-cta .btn-o { display: none; }
+        .nav-links { display: none; }
         .dash-grid { grid-template-columns: 1fr; }
         .dash-cell + .dash-cell { border-left: 0; border-top: 1px solid var(--ring); }
         .calc-in, .calc-out { padding: 24px 20px; }
@@ -574,7 +578,7 @@
   <body>
     <div class="navwrap">
       <nav>
-        <a class="brand" href="https://www.thumbs.store/" aria-label="thumbs.store — home">
+        <a class="brand" href="home-et.html" aria-label="thumbs.store — home">
           <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true">
             <g clip-path="url(#ts-brand-mark-clip)">
               <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
@@ -596,10 +600,16 @@
             <span class="brand-sub"><i>.store</i><b>By Cubicle</b></span>
           </span>
         </a>
+        <div class="nav-links">
+          <a class="nav-link" href="home-et.html">Home</a>
+          <a class="nav-link" href="landing-et.html">Studio</a>
+          <a class="nav-link" href="pricing-et.html" aria-current="page">Pricing</a>
+          <a class="nav-link" href="blog-et.html">Blog</a>
+          <a class="nav-link" href="roadmap-et.html">Roadmap</a>
+        </div>
         <div class="nav-cta">
-          <a class="nav-link" href="landing-et.html">How it works</a>
-          <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
-          <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
         </div>
       </nav>
     </div>
@@ -974,8 +984,10 @@
       <footer>
         <span>© <span id="year">2026</span> thumbs.store · By Cubicle · Draft pricing — numbers are placeholders for review</span>
         <div class="links">
-          <a href="landing-et.html">How it works</a>
-          <a href="https://www.thumbs.store/apply">Apply</a>
+          <a href="home-et.html">Home</a>
+          <a href="landing-et.html">Studio</a>
+          <a href="blog-et.html">Blog</a>
+          <a href="roadmap-et.html">Roadmap</a>
           <a href="https://cal.com/cubicle">Book a demo</a>
         </div>
       </footer>

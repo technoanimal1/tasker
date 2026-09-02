@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>thumbs.store — 10,000+ casino thumbnails, drawn by one template</title>
+    <meta
+      name="description"
+      content="Instant, brand-accurate thumbnails for every casino game you run. 10,000+ titles across 60+ providers, new games rendered every week, four sizes from one template — served over API and CDN. Sign up and cover your lobby today."
+    />
+    <meta property="og:title" content="thumbs.store — 10,000+ casino thumbnails, drawn by one template" />
+    <meta property="og:description" content="Every game, every size, your brand — rendered by one template and served over API. New releases covered every week." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Inter, the site typeface. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+
+    <style>
+      :root {
+        --yellow: #fef150;
+        --blue: #2c5cff;
+        --green: #7ed321;
+        --page: #000000;
+        --panel: #121212;
+        --deep: #0a0a0a;
+        --ring: #222222;
+        --line: rgb(255 255 255 / 0.08);
+        --text: #ffffff;
+        --muted: rgb(255 255 255 / 0.62);
+        --dim: rgb(255 255 255 / 0.4);
+        --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p, figure { margin: 0; }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+      ::selection { background: var(--yellow); color: #050505; }
+
+      main {
+        max-width: 1270px;
+        margin: 0 auto;
+        padding: 140px 24px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 140px;
+      }
+      .card { position: relative; }
+
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-align: center;
+        color: var(--dim);
+        text-transform: uppercase;
+      }
+      .h2 {
+        font-size: clamp(30px, 3.2vw, 46px);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.12em;
+        text-align: center;
+        color: #fff;
+        text-wrap: balance;
+      }
+      .lede {
+        max-width: 640px;
+        margin: 0 auto;
+        text-align: center;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.6em;
+      }
+      .center-stack { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 26px;
+        border-radius: 999px;
+        border: 0;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s ease, filter 0.2s ease;
+      }
+      .btn-y { background: #ffffff; color: #000000; }
+      .btn-y:hover { background: var(--yellow); }
+      .btn-o {
+        color: #fff;
+        background: rgb(255 255 255 / 0.06);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+      .btn-o:hover { background: rgb(255 255 255 / 0.12); }
+
+      /* ---- nav ---- */
+      .navwrap {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 60;
+        display: flex;
+        justify-content: center;
+        background: rgb(0 0 0 / 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgb(255 255 255 / 0.07);
+      }
+      nav {
+        width: 100%;
+        max-width: 1270px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 24px;
+      }
+      .brand { display: flex; align-items: center; gap: 8px; flex: none; }
+      .brand-mark { width: 28px; height: 26px; flex: none; }
+      .brand-lock { display: flex; flex-direction: column; gap: 4px; }
+      .brand-word { width: 143px; height: 14px; display: block; }
+      .brand-sub { display: flex; justify-content: space-between; align-items: baseline; width: 143px; line-height: 1; }
+      .brand-sub i { font-family: var(--sans); font-style: italic; font-weight: 600; font-size: 10px; color: rgb(255 240 80); }
+      .brand-sub b { font-family: var(--sans); font-weight: 600; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(255 255 255 / 0.75); }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .nav-cta { display: flex; align-items: center; gap: 10px; }
+      .nav-cta .btn { padding: 9px 18px; font-size: 13px; }
+
+      /* ---- hero ---- */
+      .hero { display: flex; flex-direction: column; align-items: center; gap: 44px; }
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+        max-width: 880px;
+      }
+      .hero h1 {
+        font-size: clamp(40px, 5.4vw, 72px);
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1.04em;
+        text-wrap: balance;
+      }
+      .hero-lede { color: var(--muted); font-size: 18px; max-width: 640px; }
+      .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+      .hero-cta .btn { padding: 15px 30px; font-size: 15px; }
+      .hero-micro { font-size: 13px; color: var(--dim); }
+      .hero-micro b { color: var(--muted); font-weight: 600; }
+
+      /* fanned real-template tiles */
+      .fan {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: clamp(10px, 2vw, 24px);
+        width: 100%;
+        padding-top: 10px;
+      }
+      .fan .tilebox { transition: transform 0.3s ease; animation: fanfloat 6s ease-in-out infinite; }
+      .fan .tilebox:nth-child(1) { animation-delay: 0s; transform: rotate(-3deg); }
+      .fan .tilebox:nth-child(2) { animation-delay: 0.7s; transform: rotate(-1deg) translateY(-14px); }
+      .fan .tilebox:nth-child(3) { animation-delay: 1.4s; transform: translateY(-24px); }
+      .fan .tilebox:nth-child(4) { animation-delay: 2.1s; transform: rotate(1deg) translateY(-14px); }
+      .fan .tilebox:nth-child(5) { animation-delay: 2.8s; transform: rotate(3deg); }
+      .fan .tilebox:hover { transform: translateY(-30px) scale(1.04); animation-play-state: paused; }
+      @keyframes fanfloat {
+        0%, 100% { margin-top: 0; }
+        50% { margin-top: -8px; }
+      }
+      .fan-note { text-align: center; font-size: 12px; color: var(--dim); margin-top: 22px; }
+      .fan-note a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+      .fan-note a:hover { color: #fff; }
+
+      /* ---- composite tile chrome (the real renderer's frame) ---- */
+      .tilebox { position: relative; }
+      .tsx .tile {
+        position: absolute;
+        inset: 0;
+        border-radius: 15px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #0a0c11;
+        border: 1px solid var(--accent, #ff4fa3);
+        container-type: inline-size;
+      }
+      .tsx .tile > .lay-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transform: scale(var(--bg-scale, 1));
+        transform-origin: center;
+      }
+      .tsx .tile > .lay-kv { position: absolute; object-fit: contain; }
+      .tsx .tile > .lay-logo { position: absolute; object-fit: contain; z-index: 2; }
+      .tsx .t-band { position: absolute; z-index: 1; }
+      .tsx .t-glow {
+        position: absolute; left: 50%; bottom: -5%;
+        transform: translateX(-50%);
+        width: 90%; height: 34%;
+        border-radius: 50%; z-index: 1; filter: blur(2px);
+      }
+      .tsx .t-bloom {
+        position: absolute; left: 50%; bottom: -12.3%;
+        transform: translateX(-50%);
+        width: 81.1%; height: 27.5%;
+        border-radius: 50%; z-index: 1;
+        mix-blend-mode: overlay;
+        background: radial-gradient(closest-side, #ffffff, rgba(255, 255, 255, 0) 70%);
+      }
+      .tsx .t-prov {
+        position: absolute; left: 50%; bottom: 0.3%;
+        transform: translateX(-50%); z-index: 3;
+        display: inline-flex; align-items: center;
+        padding: 0.45em 1.1em 0.55em;
+        border-radius: 3.3cqw 3.3cqw 0 0;
+        background: var(--accent);
+        font-size: 4cqw; font-weight: 600; letter-spacing: 0.08em;
+        text-transform: uppercase; color: #fff; white-space: nowrap;
+      }
+
+      /* ---- provider marquee ---- */
+      .provhead { text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 18px; }
+      .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; }
+      .marquee .track { display: flex; width: max-content; animation: mslide 40s linear infinite; }
+      .marquee .grp { display: flex; align-items: center; gap: 44px; padding: 18px 22px; white-space: nowrap; }
+      .marquee span { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgb(255 255 255 / 0.35); }
+      .marquee span:nth-child(even) { font-weight: 400; color: rgb(255 255 255 / 0.15); letter-spacing: 0; }
+      @keyframes mslide { to { transform: translateX(-50%); } }
+
+      /* ---- stats ---- */
+      .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .stat {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 26px 24px;
+        display: flex; flex-direction: column; gap: 6px;
+        text-align: center;
+      }
+      .stat b { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+      .stat span { font-size: 13px; color: var(--muted); }
+
+      /* ---- how it works (3 steps) ---- */
+      .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+      .howstep {
+        border: 1px solid var(--ring);
+        border-radius: 28px;
+        background: var(--deep);
+        padding: 28px 26px;
+        display: flex; flex-direction: column; gap: 14px;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .howstep:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .step-num {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.85);
+        color: #fff; font-style: normal; font-size: 13px; font-weight: 600; flex: none;
+      }
+      .howstep h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+      .howstep p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+      .howviz {
+        height: 120px; border-radius: 16px;
+        background: #101010; border: 1px solid rgb(255 255 255 / 0.05);
+        display: grid; place-items: center; overflow: hidden; position: relative;
+        margin-top: auto;
+      }
+      /* 01: csv chip drops in */
+      .hv-file {
+        display: inline-flex; align-items: center; gap: 9px;
+        background: #1b1b1b; border: 1px solid rgb(255 255 255 / 0.1);
+        border-radius: 999px; padding: 8px 16px;
+        font-size: 12px; font-weight: 600; color: #fff;
+        animation: hvdrop 5s ease-in-out infinite;
+      }
+      .hv-file i { width: 18px; height: 22px; flex: none; background: #fff; border-radius: 3px 7px 3px 3px; position: relative; }
+      .hv-file i::after { content: 'CSV'; position: absolute; inset: auto 0 2px 0; font-size: 7px; font-style: normal; color: #050505; text-align: center; font-weight: 700; }
+      @keyframes hvdrop { 0% { opacity: 0; transform: translateY(-20px); } 12%, 88% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+      /* 02: frame draws itself */
+      .hv-frame {
+        width: 62px; height: 82px; border-radius: 8px;
+        border: 2.5px solid #ff4fa3;
+        background: linear-gradient(180deg, #241d33, #4a1f3d 60%, #ff4fa3aa);
+        animation: hvhue 6s linear infinite;
+      }
+      @keyframes hvhue { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(200deg); } }
+      /* 03: api line */
+      .hv-code { font-family: var(--mono); font-size: 11px; line-height: 1.9; color: rgb(255 255 255 / 0.55); }
+      .hv-code .y { color: var(--yellow); }
+      .hv-code .g { color: var(--green); }
+      .hv-code span { display: block; opacity: 0; animation: hvln 6s ease-out infinite; }
+      .hv-code span:nth-child(2) { animation-delay: 0.6s; }
+      .hv-code span:nth-child(3) { animation-delay: 1.2s; }
+      @keyframes hvln { 0%, 4% { opacity: 0; } 10%, 90% { opacity: 1; } 100% { opacity: 0; } }
+      .how-link { text-align: center; margin-top: 26px; }
+
+      /* ---- studio teaser ---- */
+      .studio {
+        border: 1px solid var(--ring);
+        border-radius: 33px;
+        background: var(--panel);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1.1fr;
+        margin-top: 48px;
+      }
+      .studio-copy { padding: 44px 40px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+      .studio-copy h2 { font-size: clamp(26px, 2.5vw, 36px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
+      .studio-copy p { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 460px; }
+      .studio-copy ul { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+      .studio-copy li { display: flex; gap: 10px; font-size: 13.5px; color: var(--muted); }
+      .studio-copy li::before { content: '✓'; color: #fff; font-weight: 700; font-size: 12px; }
+      .studio-copy .ctas { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+      .studio-stage {
+        background: var(--deep);
+        border-left: 1px solid var(--ring);
+        display: grid; place-items: center;
+        padding: 40px 32px;
+        position: relative;
+        overflow: hidden;
+      }
+      .studio-stage::after {
+        content: '';
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 20%, transparent 80%, rgb(0 0 0 / 0.35));
+      }
+      .cutrow { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; justify-content: center; }
+      .cut { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .cut .tilebox { transition: transform 0.25s ease; }
+      .cut:hover .tilebox { transform: translateY(-6px) scale(1.03); }
+      .cut b { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #fff; }
+
+      /* ---- benefits ---- */
+      .bgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+      .bcard {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 24px 24px 28px;
+        display: flex; flex-direction: column; gap: 12px; min-width: 0;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .bcard:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .bcard h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+      .bcard p { font-size: 14px; line-height: 23px; color: var(--muted); }
+      .bviz {
+        height: 118px; border-radius: 16px;
+        background: var(--deep); border: 1px solid rgb(255 255 255 / 0.05);
+        display: grid; place-items: center; overflow: hidden; position: relative;
+        margin-bottom: 4px;
+      }
+      .bz-cat { display: grid; grid-template-columns: repeat(4, 28px); gap: 6px; }
+      .bz-cat i {
+        width: 28px; height: 37px; border-radius: 4px; display: block;
+        background: linear-gradient(160deg, #35244d, #7a2c56);
+        border: 1px solid rgb(255 255 255 / 0.14);
+        opacity: 0; animation: bzpop 7s ease-out infinite;
+      }
+      .bz-cat i:nth-child(2) { animation-delay: 0.2s; filter: hue-rotate(60deg); }
+      .bz-cat i:nth-child(3) { animation-delay: 0.4s; filter: hue-rotate(140deg); }
+      .bz-cat i:nth-child(4) { animation-delay: 0.6s; filter: hue-rotate(210deg); }
+      .bz-cat i:nth-child(5) { animation-delay: 0.8s; filter: hue-rotate(260deg); }
+      .bz-cat i:nth-child(6) { animation-delay: 1.0s; filter: hue-rotate(30deg); }
+      .bz-cat i:nth-child(7) { animation-delay: 1.2s; filter: hue-rotate(180deg); }
+      .bz-cat i:nth-child(8) { animation-delay: 1.4s; filter: hue-rotate(300deg); }
+      @keyframes bzpop { 0% { opacity: 0; transform: scale(0.6); } 5%, 90% { opacity: 1; transform: scale(1); } 96%, 100% { opacity: 0; } }
+      .bz-count {
+        position: absolute; right: 10px; bottom: 8px;
+        font-family: var(--mono); font-size: 11px; font-weight: 700; color: #fff;
+        opacity: 0; animation: bzcount 7s ease-out infinite;
+      }
+      @keyframes bzcount { 0%, 25% { opacity: 0; } 32%, 90% { opacity: 1; } 96%, 100% { opacity: 0; } }
+      .bz-rel { display: flex; gap: 7px; align-items: center; }
+      .bz-rel i { width: 34px; height: 46px; border-radius: 5px; background: linear-gradient(160deg, #35244d, #7a2c56); border: 1px solid rgb(255 255 255 / 0.12); opacity: 0.45; }
+      .bz-rel i:nth-child(2) { filter: hue-rotate(120deg); }
+      .bz-rel i:nth-child(3) { filter: hue-rotate(240deg); }
+      .bz-new { position: relative; width: 34px; height: 46px; flex: none; animation: bznew 5.5s cubic-bezier(0.2, 0.7, 0.2, 1) infinite; }
+      .bz-new i { width: 100%; height: 100%; opacity: 1; border: 1.5px solid #fff; }
+      .bz-new em {
+        position: absolute; top: -8px; right: -12px;
+        font-style: normal; font-size: 8px; font-weight: 700; letter-spacing: 0.04em;
+        background: #fff; color: #050505; border-radius: 999px; padding: 2px 6px;
+      }
+      @keyframes bznew { 0% { opacity: 0; transform: translateX(44px); } 16%, 86% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; } }
+      .bz-tag { position: relative; width: 58px; height: 78px; }
+      .bz-tag > i { display: block; width: 100%; height: 100%; border-radius: 7px; background: linear-gradient(160deg, #35244d, #7a2c56); border: 1px solid rgb(255 255 255 / 0.14); }
+      .bz-tag b {
+        position: absolute; left: -32px;
+        font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+        background: #fff; color: #050505; border-radius: 999px; padding: 2px 8px;
+        opacity: 0; animation: bztag 8s ease-in-out infinite; white-space: nowrap;
+      }
+      .bz-tag b:nth-of-type(1) { top: 4px; animation-delay: 0s; }
+      .bz-tag b:nth-of-type(2) { top: 30px; animation-delay: 2.7s; background: var(--yellow); }
+      .bz-tag b:nth-of-type(3) { top: 56px; animation-delay: 5.4s; }
+      @keyframes bztag { 0%, 2% { opacity: 0; transform: translateX(-8px); } 8%, 30% { opacity: 1; transform: none; } 37%, 100% { opacity: 0; } }
+      .bz-ui { display: flex; flex-direction: column; align-items: center; gap: 11px; }
+      .bz-ui .frame {
+        width: 52px; height: 70px;
+        border: 2.5px solid #fff;
+        background: linear-gradient(180deg, #241d33, #4a1f3d);
+        animation: bzmorph 6.5s ease-in-out infinite;
+      }
+      @keyframes bzmorph {
+        0%, 100% { border-radius: 6px; filter: hue-rotate(0deg); }
+        33% { border-radius: 20px; filter: hue-rotate(140deg); }
+        66% { border-radius: 11px; filter: hue-rotate(260deg); }
+      }
+      .bz-ui .slider { position: relative; width: 84px; height: 5px; border-radius: 999px; background: #242424; }
+      .bz-ui .slider i {
+        position: absolute; top: 50%; translate: 0 -50%;
+        width: 12px; height: 12px; border-radius: 999px; background: #fff;
+        animation: bzslide 6.5s ease-in-out infinite;
+      }
+      @keyframes bzslide { 0%, 100% { left: 6%; } 33% { left: 76%; } 66% { left: 40%; } }
+
+      /* ---- pricing teaser ---- */
+      .minis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+      .mini {
+        position: relative;
+        border: 1px solid var(--ring);
+        border-radius: 28px;
+        background: var(--panel);
+        padding: 26px 26px 24px;
+        display: flex; flex-direction: column; gap: 10px;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .mini:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .mini.pop { border-color: rgb(255 255 255 / 0.85); }
+      .pop-tag {
+        position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        background: #fff; color: #000; border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+      }
+      .mini h3 { font-size: 16px; font-weight: 600; }
+      .mini .price { display: flex; align-items: baseline; gap: 5px; }
+      .mini .price b { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+      .mini .price span { font-size: 12px; color: var(--dim); }
+      .mini .cr { font-size: 13px; color: var(--muted); }
+      .mini .cr b { color: #fff; font-weight: 600; }
+      .mini .eff { font-size: 11px; font-weight: 700; color: #000; background: #fff; border-radius: 999px; padding: 3px 10px; align-self: flex-start; }
+      .mini .btn { margin-top: 12px; width: 100%; }
+      .price-links { display: flex; gap: 24px; justify-content: center; margin-top: 26px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+      .price-links a { text-decoration: underline; text-underline-offset: 3px; }
+      .price-links a:hover { color: #fff; }
+
+      /* ---- roadmap + blog teasers ---- */
+      .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+      .teaser {
+        border: 1px solid var(--ring);
+        border-radius: 28px;
+        background: var(--deep);
+        padding: 30px 28px;
+        display: flex; flex-direction: column; gap: 16px;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .teaser:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .teaser .tag { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+      .teaser h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+      .teaser ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+      .teaser li { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-size: 14px; color: var(--muted); border-bottom: 1px solid rgb(255 255 255 / 0.06); padding-bottom: 10px; }
+      .teaser li:last-child { border-bottom: 0; }
+      .teaser li .pill {
+        flex: none;
+        font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        border: 1px solid rgb(255 255 255 / 0.2); color: var(--muted);
+        border-radius: 999px; padding: 2px 8px;
+      }
+      .teaser li .pill.now { background: #fff; color: #000; border-color: #fff; }
+      .teaser .more { margin-top: auto; font-size: 13px; font-weight: 600; color: var(--muted); }
+      .teaser:hover .more { color: #fff; }
+
+      /* ---- final CTA + footer ---- */
+      .cta-card { text-align: center; }
+      .cta-card::before {
+        content: '';
+        position: absolute;
+        top: -220px; left: 50%;
+        transform: translateX(-50%);
+        width: min(720px, 94vw); height: 420px;
+        background: radial-gradient(ellipse at center, rgb(255 255 255 / 0.07), transparent 65%);
+        pointer-events: none;
+      }
+      .cta-card .center-stack { position: relative; }
+      .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+      .cta-row .btn { padding: 15px 30px; font-size: 15px; }
+      .cta-card .btn-y { background: var(--yellow); color: #000; }
+      .cta-card .btn-y:hover { filter: brightness(1.06); background: var(--yellow); }
+
+      footer { border-top: 1px solid rgb(255 255 255 / 0.08); padding: 44px 0 56px; }
+      .foot-grid { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+      .foot-brand { display: flex; flex-direction: column; gap: 12px; max-width: 280px; }
+      .foot-brand p { font-size: 13px; color: var(--dim); line-height: 1.6; }
+      .foot-cols { display: flex; gap: clamp(32px, 6vw, 90px); flex-wrap: wrap; }
+      .fcol { display: flex; flex-direction: column; gap: 10px; }
+      .fcol b { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+      .fcol a { font-size: 13px; color: var(--muted); }
+      .fcol a:hover { color: #fff; }
+      .foot-base { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 40px; font-size: 12px; color: var(--dim); }
+
+      .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+
+      @media (max-width: 1199.98px) {
+        .stats { grid-template-columns: repeat(2, 1fr); }
+        .how { grid-template-columns: 1fr; }
+        .bgrid { grid-template-columns: 1fr 1fr; }
+        .minis { grid-template-columns: 1fr; }
+        .duo { grid-template-columns: 1fr; }
+        .studio { grid-template-columns: 1fr; }
+        .studio-stage { border-left: 0; border-top: 1px solid var(--ring); }
+        .nav-links { display: none; }
+      }
+      @media (max-width: 809.98px) {
+        main { padding: 120px 20px 0; gap: 96px; }
+        .hero h1 { font-size: 38px; }
+        .h2 { font-size: 28px; }
+        .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat b { font-size: 26px; }
+        .bgrid { grid-template-columns: 1fr; gap: 12px; }
+        .nav-cta .btn-o { display: none; }
+        .fan { gap: 10px; }
+        .fan .tilebox:nth-child(1), .fan .tilebox:nth-child(5) { display: none; }
+        .fan .tilebox:nth-child(2), .fan .tilebox:nth-child(4) { width: 100px !important; }
+        .fan .tilebox:nth-child(3) { width: 130px !important; }
+        .studio-copy { padding: 30px 24px; }
+        .studio-stage { padding: 28px 18px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .reveal { opacity: 1; transform: none; }
+        .hv-file, .hv-code span, .bz-cat i, .bz-count, .bz-new, .bz-tag b:nth-of-type(1) { opacity: 1 !important; transform: none !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="navwrap">
+      <nav>
+        <a class="brand" href="home-et.html" aria-label="thumbs.store — home">
+          <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true">
+            <g clip-path="url(#ts-brand-mark-clip)">
+              <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+            </g>
+            <defs><clipPath id="ts-brand-mark-clip"><rect width="46.8486" height="43" fill="white"/></clipPath></defs>
+          </svg>
+          <span class="brand-lock">
+            <svg class="brand-word" viewBox="0 0 239 24" fill="none" aria-hidden="true">
+              <g clip-path="url(#ts-brand-word-clip)">
+                <path d="M165.069 23.822V0H188.822C189.014 0 190.279 0.37239 190.534 0.479179C192.308 1.21574 197.53 6.04039 199.159 7.5984C202.297 10.5967 202.182 13.3403 199.093 16.2975C197.428 17.8912 192.461 22.5104 190.627 23.3018C190.334 23.4277 189.197 23.822 188.956 23.822H165.066H165.069ZM196.147 9.58357V7.18768C196.147 6.30873 194.318 4.79179 193.477 4.79179H170.271V9.58357H196.147ZM196.147 14.3754H170.271V19.0302H193.614C194.079 19.0302 195.232 18.2033 195.533 17.8008C195.69 17.5927 196.147 16.6727 196.147 16.4974V14.3754Z" fill="white"/>
+                <path d="M238.999 0V4.79179H210.591C210.037 4.79179 208.885 5.56669 208.545 6.03217C208.455 6.15539 207.921 7.12196 207.921 7.18768V9.58357H238.999V12.1164C238.999 14.2631 234.377 18.4799 232.772 19.9913C231.453 21.2345 228.901 23.822 227.02 23.822H202.718V19.0302H231.264C231.658 19.0302 232.688 18.3402 232.978 18.0062C233.18 17.7734 233.797 16.7247 233.797 16.4974V14.3754H202.718V11.5687C202.718 11.2456 203.315 9.97787 203.518 9.63012C204.567 7.82567 209.449 3.16258 211.207 1.71135C212.036 1.02681 213.901 0.00273816 214.974 0.00273816H239.002L238.999 0Z" fill="white"/>
+                <path d="M142.068 0V4.92869C143.749 3.61164 145.321 1.18015 147.369 0.440844C147.695 0.323103 148.845 0 149.119 0H162.878V23.822H157.676V4.79179H144.875C144.483 4.79179 143.38 5.35859 143.076 5.66252C142.583 6.15539 142.068 7.33006 142.068 8.00913V23.822H136.866V4.79179H124.065C123.512 4.79179 122.359 5.56669 122.019 6.03217C121.929 6.15539 121.395 7.12196 121.395 7.18768V23.822H116.192V11.5687C116.192 11.2456 116.789 9.97787 116.992 9.63012C118.041 7.82567 122.923 3.16258 124.681 1.71135C125.51 1.02681 127.375 0.00273816 128.448 0.00273816H142.071L142.068 0Z" fill="white"/>
+                <path d="M44.3157 0V6.77695C44.3157 6.89196 44.6306 7.70793 44.7209 7.8777C45.3343 9.01677 46.4624 9.45214 47.6863 9.56714C52.5685 10.0272 58.1215 9.15916 63.0064 9.58083C65.9389 9.83274 68.0802 12.9187 70.3255 14.515V0H75.528V23.822H70.3255V17.182C70.3255 15.9169 68.8606 14.5533 67.6448 14.3863C62.7462 14.1426 57.5985 14.6683 52.7273 14.3808C48.6693 14.1399 47.5823 11.8562 44.7264 9.64929C44.5895 9.5425 44.5512 9.38642 44.3157 9.44393V23.8193H39.1132V0H44.3157Z" fill="white"/>
+                <path d="M108.799 0H114.002V23.822H108.799V18.8933C106.316 21.0127 105.089 23.5756 101.48 23.8275C98.2985 24.0493 93.1399 24.0657 89.9691 23.8275C88.4302 23.7125 87.3705 23.2278 86.2068 22.2503C84.7994 21.0647 79.041 15.4186 78.351 14.0878C78.0197 13.4471 77.5816 11.9932 77.5816 11.2977V0H82.7157L82.921 0.205362V16.7712C82.921 17.5708 84.835 19.1452 85.7304 19.0275C92.2116 18.5921 99.4705 19.6135 105.861 19.0357C107.203 18.9152 108.799 17.6365 108.799 16.2236V0Z" fill="white"/>
+                <path d="M21.452 0V4.79179C21.6902 4.85203 21.7258 4.69321 21.8627 4.58642C23.8123 3.09412 25.447 0 28.3659 0H36.8542L37.0595 0.205362V4.79179H24.1217C23.826 4.79179 22.8129 5.31751 22.5445 5.54204C22.2214 5.81038 21.452 6.96041 21.452 7.32459V23.822H16.2495V4.79179H0.641968V0H21.452Z" fill="white"/>
+              </g>
+              <defs><clipPath id="ts-brand-word-clip"><rect width="238.357" height="24" fill="white" transform="translate(0.641968)"/></clipPath></defs>
+            </svg>
+            <span class="brand-sub"><i>.store</i><b>By Cubicle</b></span>
+          </span>
+        </a>
+        <div class="nav-links">
+          <a class="nav-link" href="landing-et.html">Studio</a>
+          <a class="nav-link" href="pricing-et.html">Pricing</a>
+          <a class="nav-link" href="blog-et.html">Blog</a>
+          <a class="nav-link" href="roadmap-et.html">Roadmap</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
+        </div>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ============================== HERO ============================== -->
+      <section class="card hero">
+        <div class="hero-copy">
+          <p class="eyebrow">For casino operators, aggregators &amp; platforms</p>
+          <h1>Your whole lobby, thumbnailed. Today.</h1>
+          <p class="hero-lede">
+            10,000+ brand-accurate casino thumbnails across 60+ providers — every game, every
+            size, drawn by one template and served over API. New releases rendered every week,
+            before your lobby notices they're missing.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up — cover your lobby</a>
+            <a class="btn btn-o" href="landing-et.html#editor">Try the studio</a>
+          </div>
+          <p class="hero-micro"><b>Full library from day one</b> · four sizes included · cancel monthly</p>
+        </div>
+        <div>
+          <div class="fan tsx" aria-label="Real thumbnails rendered by the template">
+            <div class="tilebox" style="width: 150px; aspect-ratio: 2 / 3">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#6C4FE8" data-size="2:3">
+                <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+              </div>
+            </div>
+            <div class="tilebox" style="width: 170px; aspect-ratio: 3 / 4">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#E8A33D" data-size="3:4">
+                <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+              </div>
+            </div>
+            <div class="tilebox" style="width: 200px; aspect-ratio: 3 / 4">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="Sweet Bonanza thumbnail rendered by the live template" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+              </div>
+            </div>
+            <div class="tilebox" style="width: 170px; aspect-ratio: 47 / 66">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#12C2C2" data-size="47:66">
+                <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+              </div>
+            </div>
+            <div class="tilebox" style="width: 210px; aspect-ratio: 16 / 9">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#7ED321" data-size="16:9">
+                <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+              </div>
+            </div>
+          </div>
+          <p class="fan-note">Not mock-ups — the real template, five frames. <a href="landing-et.html#editor">Move the layers yourself in the Studio →</a></p>
+        </div>
+      </section>
+
+      <!-- ======================= PROVIDER MARQUEE ======================== -->
+      <section class="card">
+        <p class="provhead">Covering games from</p>
+        <div class="marquee" aria-hidden="true">
+          <div class="track">
+            <div class="grp">
+              <span>Pragmatic Play</span><span>·</span><span>Hacksaw Gaming</span><span>·</span><span>Nolimit City</span><span>·</span>
+              <span>Push Gaming</span><span>·</span><span>Play'n GO</span><span>·</span><span>NetEnt</span><span>·</span>
+              <span>Relax Gaming</span><span>·</span><span>Big Time Gaming</span><span>·</span><span>Evolution</span><span>·</span>
+              <span>+ 50 more providers</span><span>·</span>
+            </div>
+            <div class="grp">
+              <span>Pragmatic Play</span><span>·</span><span>Hacksaw Gaming</span><span>·</span><span>Nolimit City</span><span>·</span>
+              <span>Push Gaming</span><span>·</span><span>Play'n GO</span><span>·</span><span>NetEnt</span><span>·</span>
+              <span>Relax Gaming</span><span>·</span><span>Big Time Gaming</span><span>·</span><span>Evolution</span><span>·</span>
+              <span>+ 50 more providers</span><span>·</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ STATS ============================== -->
+      <section class="card reveal">
+        <div class="stats">
+          <div class="stat"><b>10,000+</b><span>thumbnails, ready today</span></div>
+          <div class="stat"><b>Weekly</b><span>new releases added</span></div>
+          <div class="stat"><b>4 sizes</b><span>from one template — 3:4 · 2:3 · 47:66 · 16:9</span></div>
+          <div class="stat"><b>1 day</b><span>from CSV to full lobby coverage</span></div>
+        </div>
+      </section>
+
+      <!-- ========================= HOW IT WORKS ========================== -->
+      <section class="card reveal" id="how">
+        <div class="center-stack">
+          <p class="eyebrow">How it works</p>
+          <h2 class="h2">Three steps. No design queue.</h2>
+          <p class="lede">
+            Your catalogue in, branded thumbnails out. The template does the drawing — your team
+            never opens a design file again.
+          </p>
+        </div>
+        <div class="how">
+          <div class="howstep">
+            <i class="step-num">01</i>
+            <h3>Upload your game list</h3>
+            <p>A CSV, a spreadsheet, an aggregator feed — we match every row against the library and flag anything we don't cover yet.</p>
+            <div class="howviz" aria-hidden="true"><span class="hv-file"><i></i> games.csv</span></div>
+          </div>
+          <div class="howstep">
+            <i class="step-num">02</i>
+            <h3>We render on your template</h3>
+            <p>Your frame, colours and badge — designed once with our team. Every game inherits it, in all four sizes, with original logotypes.</p>
+            <div class="howviz" aria-hidden="true"><div class="hv-frame"></div></div>
+          </div>
+          <div class="howstep">
+            <i class="step-num">03</i>
+            <h3>Serve via API &amp; CDN</h3>
+            <p>One call returns the right cut, format and variant for any game. New releases just appear — your lobby is never the last to launch.</p>
+            <div class="howviz" aria-hidden="true">
+              <div class="hv-code">
+                <span><span class="y">GET</span> /v1/thumbs/sweet-bonanza</span>
+                <span><span class="g">200 OK · 84 ms</span></span>
+                <span>cdn.thumbs.store/…-3x4.webp</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="how-link"><a class="btn btn-o" href="landing-et.html">See the full process — step by step</a></p>
+      </section>
+
+      <!-- ======================== STUDIO TEASER ========================== -->
+      <section class="card reveal" id="studio">
+        <div class="center-stack">
+          <p class="eyebrow">The studio</p>
+          <h2 class="h2">A real editor, not a gallery.</h2>
+          <p class="lede">
+            Open any game in the studio: move the key visual, scale the logotype, switch the cut,
+            recolour the frame — the template keeps everything consistent while you tune it.
+          </p>
+        </div>
+        <div class="studio">
+          <div class="studio-copy">
+            <h2>Every layer is yours to move.</h2>
+            <p>
+              The same rendering system that draws the whole library runs in your browser —
+              backgrounds, key visuals, light bands, glows, logotypes and provider tabs, all live.
+            </p>
+            <ul>
+              <li>Drag, scale and nudge any layer per size</li>
+              <li>White, colour or text logotypes with translations</li>
+              <li>Free CSS motion presets; AI animations on demand</li>
+              <li>Export PNG / WebP / AVIF straight from the canvas</li>
+            </ul>
+            <div class="ctas">
+              <a class="btn btn-y" href="landing-et.html#editor">Open the studio</a>
+              <a class="btn btn-o" href="https://app.thumbs.store/signup">Sign up for the dashboard</a>
+            </div>
+          </div>
+          <div class="studio-stage tsx" aria-label="One game rendered at four sizes">
+            <div class="cutrow">
+              <div class="cut">
+                <div class="tilebox" style="width: 108px; aspect-ratio: 3 / 4">
+                  <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                    <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                    <img class="lay-kv" alt="" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                  </div>
+                </div>
+                <b>3:4</b>
+              </div>
+              <div class="cut">
+                <div class="tilebox" style="width: 96px; aspect-ratio: 2 / 3">
+                  <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="2:3">
+                    <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                    <img class="lay-kv" alt="" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                  </div>
+                </div>
+                <b>2:3</b>
+              </div>
+              <div class="cut">
+                <div class="tilebox" style="width: 102px; aspect-ratio: 47 / 66">
+                  <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="47:66">
+                    <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                    <img class="lay-kv" alt="" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                  </div>
+                </div>
+                <b>47:66</b>
+              </div>
+              <div class="cut">
+                <div class="tilebox" style="width: 190px; aspect-ratio: 16 / 9">
+                  <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="16:9">
+                    <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                    <img class="lay-kv" alt="" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                  </div>
+                </div>
+                <b>16:9</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================== BENEFITS ============================= -->
+      <section class="card reveal" id="benefits">
+        <div class="center-stack">
+          <p class="eyebrow">Why teams switch</p>
+          <h2 class="h2">Less a design tool, more an operations upgrade.</h2>
+          <p class="lede">
+            Coverage on day one, releases that ship themselves, and a lobby your team can run
+            without a designer in the loop.
+          </p>
+        </div>
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-cat"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="bz-count">10,000+</span>
+            </div>
+            <h3>Get all your games</h3>
+            <p>Your full catalogue, covered on day one — no gaps, no grey placeholders in the lobby.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-rel"><i></i><i></i><i></i><span class="bz-new"><i></i><em>NEW</em></span></div>
+            </div>
+            <h3>Automatic game releases</h3>
+            <p>New titles arrive with artwork already made — your lobby is never the last to launch.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-tag"><i></i><b>NEW</b><b>HOT</b><b>DROPS &amp; WINS</b></div>
+            </div>
+            <h3>Tags &amp; promo events</h3>
+            <p>Pin badges, run tournament frames, schedule takeovers — without touching a design file.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-ui"><div class="frame"></div><div class="slider"><i></i></div></div>
+            </div>
+            <h3>Customize your UI</h3>
+            <p>Radius, stroke, band, badge — one template change restyles every tile you serve.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================== PRICING TEASER ========================= -->
+      <section class="card reveal" id="pricing">
+        <div class="center-stack">
+          <p class="eyebrow">Pricing</p>
+          <h2 class="h2">One thumbnail, one credit.</h2>
+          <p class="lede">
+            Every size costs the same, CSS animations are free, and batch credit packs save 20%+.
+            No per-game maths, no per-size surcharges.
+          </p>
+        </div>
+        <div class="minis">
+          <div class="mini">
+            <h3>Studio</h3>
+            <div class="price"><b>$69</b><span>/mo</span></div>
+            <p class="cr"><b>300 credits</b> / month</p>
+            <span class="eff">≈ $0.23 per thumbnail</span>
+            <a class="btn btn-o" href="https://app.thumbs.store/signup">Start free</a>
+          </div>
+          <div class="mini pop">
+            <span class="pop-tag">Most picked</span>
+            <h3>Growth</h3>
+            <div class="price"><b>$199</b><span>/mo</span></div>
+            <p class="cr"><b>1,500 credits</b> / month</p>
+            <span class="eff">≈ $0.13 per thumbnail</span>
+            <a class="btn btn-y" href="https://app.thumbs.store/signup">Start with Growth</a>
+          </div>
+          <div class="mini">
+            <h3>Scale</h3>
+            <div class="price"><b>$499</b><span>/mo</span></div>
+            <p class="cr"><b>6,000 credits</b> / month</p>
+            <span class="eff">≈ $0.08 per thumbnail</span>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Talk to us</a>
+          </div>
+        </div>
+        <div class="price-links">
+          <a href="pricing-et.html#calculator">Price your catalogue with the calculator →</a>
+          <a href="pricing-et.html">White-label plans for aggregators &amp; platforms →</a>
+        </div>
+      </section>
+
+      <!-- ===================== ROADMAP + BLOG TEASERS ==================== -->
+      <section class="card reveal">
+        <div class="center-stack">
+          <p class="eyebrow">Keep up</p>
+          <h2 class="h2">Shipping in the open.</h2>
+        </div>
+        <div class="duo">
+          <a class="teaser" href="roadmap-et.html">
+            <span class="tag">Roadmap</span>
+            <h3>What's rendering next</h3>
+            <ul>
+              <li>AI animations — perfect loops, alpha-matted <span class="pill now">Now</span></li>
+              <li>Promo-event scheduler &amp; seasonal takeovers <span class="pill">Next</span></li>
+              <li>White-label dashboard GA for platforms <span class="pill">Next</span></li>
+            </ul>
+            <span class="more">See the full roadmap →</span>
+          </a>
+          <a class="teaser" href="blog-et.html">
+            <span class="tag">Blog</span>
+            <h3>From the workshop</h3>
+            <ul>
+              <li>Why hand-made thumbnails don't scale past 500 games</li>
+              <li>One template, four sizes: the geometry of the frame</li>
+              <li>Bands, glows and provider tabs — inside the renderer</li>
+            </ul>
+            <span class="more">Read the blog →</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ============================== CTA ============================== -->
+      <section class="card cta-card reveal">
+        <div class="center-stack">
+          <h2 class="h2">Cover your lobby this week.</h2>
+          <p class="lede">Sign up, upload your catalogue, and serve 10,000+ compliant thumbnails from your dashboard.</p>
+          <div class="cta-row">
+            <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up — open your dashboard</a>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div class="foot-grid">
+          <div class="foot-brand">
+            <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true" style="width: 30px; height: 28px">
+              <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+            </svg>
+            <p>The rendering system behind 10,000+ casino thumbnails. One template, every game, every size — by Cubicle.</p>
+          </div>
+          <div class="foot-cols">
+            <div class="fcol">
+              <b>Product</b>
+              <a href="landing-et.html">Studio</a>
+              <a href="pricing-et.html">Pricing</a>
+              <a href="roadmap-et.html">Roadmap</a>
+            </div>
+            <div class="fcol">
+              <b>Resources</b>
+              <a href="blog-et.html">Blog</a>
+              <a href="landing-et.html#how">How it works</a>
+              <a href="pricing-et.html#calculator">Cost calculator</a>
+            </div>
+            <div class="fcol">
+              <b>Account</b>
+              <a href="https://app.thumbs.store/login">Log in</a>
+              <a href="https://app.thumbs.store/signup">Sign up</a>
+              <a href="https://cal.com/cubicle">Book a demo</a>
+            </div>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>© <span id="year">2026</span> thumbs.store · By Cubicle</span>
+          <span>Made with the same template it sells.</span>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      ;(() => {
+        /* The live renderer's numbers — same as the studio (thumb_templates). */
+        const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
+        const BG_SCALE = 1.2
+        const LOGO_ASPECT_K = 2.2
+        const SIZES = [
+          { key: '3:4', w: 900, h: 1200 },
+          { key: '2:3', w: 800, h: 1200 },
+          { key: '47:66', w: 940, h: 1320 },
+          { key: '16:9', w: 1280, h: 720 },
+        ]
+        const TEMPLATE = {
+          '3:4': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.38, logoDX: 0, logoDY: 0.04 },
+          '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
+          '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
+          '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
+        }
+        const GRAD = {
+          default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
+          '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 63.7 },
+        }
+
+        const pct = (n) => (n * 100).toFixed(2) + '%'
+        function rgbaOf(hex, a) {
+          const v = String(hex).replace('#', '')
+          const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+          return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+        }
+        function bandCss(hex, g, opacity) {
+          const semA = 0.6 * opacity
+          const blurA = 1 * opacity
+          const lo = Math.min(g.s1, g.s2) / 100
+          const hi = Math.max(g.s1, g.s2) / 100
+          const bot = Math.max(hi, g.bottom / 100)
+          const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+          const out = []
+          for (let i = 0; i <= 12; i++) {
+            const t = i / 12
+            out.push(rgbaOf(hex, semA * smooth(t)) + ' ' + (lo * t * 100).toFixed(2) + '%')
+          }
+          out.push(rgbaOf(hex, blurA) + ' ' + (hi * 100).toFixed(2) + '%')
+          out.push(rgbaOf(hex, blurA) + ' ' + (bot * 100).toFixed(2) + '%')
+          for (let i = 1; i <= 12; i++) {
+            const t = i / 12
+            out.push(rgbaOf(hex, blurA * smooth(1 - t)) + ' ' + ((bot + (1 - bot) * t) * 100).toFixed(2) + '%')
+          }
+          return 'linear-gradient(to ' + g.dir + ', ' + out.join(', ') + ')'
+        }
+        function paintChrome(nodes, sizeKey, hex) {
+          const g = GRAD[sizeKey] || GRAD.default
+          const band = nodes.band
+          if (band) {
+            band.style.cssText = ''
+            band.style.position = 'absolute'
+            if (g.dir === 'right') {
+              band.style.top = '0'; band.style.bottom = '0'; band.style.right = '0'
+              band.style.width = g.band + '%'
+            } else {
+              band.style.left = '0'; band.style.right = '0'; band.style.bottom = '0'
+              band.style.height = g.band + '%'
+            }
+            band.style.zIndex = '1'
+            band.style.background = bandCss(hex, g, 1)
+          }
+          if (nodes.glow) {
+            nodes.glow.style.background =
+              'radial-gradient(closest-side, ' + rgbaOf(hex, 0.85) + ', ' + rgbaOf(hex, 0) + ' 72%)'
+          }
+        }
+        function place(node, box) {
+          node.style.left = pct(box.x)
+          node.style.top = pct(box.y)
+          node.style.width = pct(box.w)
+          node.style.height = pct(box.h)
+          node.style.bottom = 'auto'
+          node.style.right = 'auto'
+          node.style.objectPosition = 'center center'
+        }
+        function applyMetrics() {
+          document.querySelectorAll('.tsx .tile').forEach((t) => {
+            const w = t.offsetWidth
+            if (!w) return
+            t.style.borderRadius = Math.max(3, (16 / 244) * w) + 'px'
+            t.style.borderWidth = Math.max(1, (2.5 / 244) * w) + 'px'
+          })
+        }
+        function paintComposite(tile) {
+          const id = tile.dataset.id
+          const sizeKey = tile.dataset.size || '3:4'
+          const hex = tile.dataset.accent || '#FF4FA3'
+          const sz = SIZES.find((x) => x.key === sizeKey) || SIZES[0]
+          const t = TEMPLATE[sizeKey] || TEMPLATE['3:4']
+          const base = SB + '/assets/' + id
+          const q = (c) => tile.querySelector(c)
+          const bg = q('.lay-bg')
+          const kv = q('.lay-kv')
+          const logo = q('.lay-logo')
+          tile.style.setProperty('--accent', hex)
+          tile.style.setProperty('--bg-scale', String(BG_SCALE))
+          const put = () => {
+            const ar = sz.w / sz.h
+            const fit = (img, k) => {
+              const nw = img.naturalWidth || 1000
+              const nh = img.naturalHeight || 1000
+              const H = 1 / ar
+              const f = Math.min(1 / nw, H / nh)
+              return { w: nw * f * k, h: ((nh * f) / H) * k }
+            }
+            const anchor = (al, dx, dy, b) => {
+              const cx = (al[1] === 'l' ? 0.27 : al[1] === 'r' ? 0.73 : 0.5) + dx
+              const cy = (al[0] === 't' ? 0.32 : al[0] === 'b' ? 0.68 : 0.5) + dy
+              return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
+            }
+            place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)))
+            place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)))
+            paintChrome({ band: q('.t-band'), glow: q('.t-glow') }, sizeKey, hex)
+            applyMetrics()
+          }
+          kv.addEventListener('load', put)
+          logo.addEventListener('load', put)
+          bg.src = base + '/bg.jpg'
+          kv.src = base + '/kv.png'
+          logo.src = base + '/logoWhite.png'
+          put()
+        }
+        const boot = () => {
+          document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
+          applyMetrics()
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true })
+        else boot()
+        window.addEventListener('resize', applyMetrics)
+
+        // reveal on scroll
+        const items = document.querySelectorAll('.reveal')
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reduced || !('IntersectionObserver' in window)) {
+          items.forEach((el) => el.classList.add('in'))
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }),
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.1 },
+          )
+          items.forEach((el) => io.observe(el))
+        }
+
+        document.getElementById('year').textContent = String(new Date().getFullYear())
+      })()
+    </script>
+  </body>
+</html>

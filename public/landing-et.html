@@ -174,8 +174,10 @@
       }
       .nav-cta { display: flex; align-items: center; gap: 10px; }
       .nav-cta .btn { padding: 9px 18px; font-size: 13px; }
-      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 10px; }
-      .nav-link:hover { color: #fff; }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .nav-link[aria-current] { color: #fff; }
 
       /* ---- hero ---- */
       .hero {
@@ -849,6 +851,7 @@
 
       /* ---- breakpoints ---- */
       @media (max-width: 1199.98px) {
+        .nav-links { display: none; }
         .cols4 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
         .anatomy-grid { flex-direction: column; }
         .bgrid { grid-template-columns: 1fr 1fr; }
@@ -869,7 +872,8 @@
         .eyebrow { font-size: 12px; }
         .cols4 { grid-template-columns: 1fr; gap: 36px; }
         .pcol { align-items: center; text-align: center; }
-        .nav-cta .btn-o, .nav-link { display: none; }
+        .nav-cta .btn-o { display: none; }
+        .nav-links { display: none; }
         .anatomy-stage .tilebox { width: 200px; }
         .ltag { display: none; }
         .marquee span { font-size: 12px; }
@@ -1562,7 +1566,7 @@
   <body>
     <div class="navwrap">
       <nav>
-        <a class="brand" href="https://www.thumbs.store/" aria-label="thumbs.store — home">
+        <a class="brand" href="home-et.html" aria-label="thumbs.store — home">
           <!-- Mark + wordmark: the site's own SVGs, paths unchanged (ids renamed
                only so they can't collide when this page is embedded). -->
           <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true">
@@ -1586,10 +1590,16 @@
             <span class="brand-sub"><i>.store</i><b>By Cubicle</b></span>
           </span>
         </a>
-        <div class="nav-cta">
+        <div class="nav-links">
+          <a class="nav-link" href="home-et.html">Home</a>
+          <a class="nav-link" href="landing-et.html" aria-current="page">Studio</a>
           <a class="nav-link" href="pricing-et.html">Pricing</a>
-          <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
-          <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+          <a class="nav-link" href="blog-et.html">Blog</a>
+          <a class="nav-link" href="roadmap-et.html">Roadmap</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
         </div>
       </nav>
     </div>
@@ -2115,8 +2125,10 @@
       <footer>
         <span>© <span id="year">2026</span> thumbs.store · By Cubicle</span>
         <div class="links">
-          <a href="https://www.thumbs.store/">thumbs.store</a>
-          <a href="https://www.thumbs.store/apply">Apply</a>
+          <a href="home-et.html">Home</a>
+          <a href="pricing-et.html">Pricing</a>
+          <a href="blog-et.html">Blog</a>
+          <a href="roadmap-et.html">Roadmap</a>
           <a href="https://cal.com/cubicle">Book a demo</a>
         </div>
       </footer>

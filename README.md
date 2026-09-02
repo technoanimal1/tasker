@@ -111,6 +111,24 @@ visitor's catalogue on both thumbs.store and Lobby Magic's public rates with a
 year-one comparison, a usage-dashboard mock, and a draft feature matrix. All
 numbers live in one `CFG` object at the top of the script for easy tweaking.
 
+The Endless Tools-skinned pages now form a small site with a shared nav
+(Home / Studio / Pricing / Blog / Roadmap + Log in / Sign up):
+
+- [`public/home-et.html`](public/home-et.html) — the conversion-focused
+  homepage: hero with a fan of five real-template renders, provider marquee,
+  stats band, three-step how-it-works, studio teaser (four live cuts), benefit
+  cards, pricing teaser, roadmap/blog teasers, sign-up CTAs throughout, and a
+  sitemap footer. Log in / Sign up point at `app.thumbs.store` placeholders.
+- [`public/landing-et.html`](public/landing-et.html) — the detailed **Studio**
+  page (live editor + full process), linked from the homepage.
+- [`public/roadmap-et.html`](public/roadmap-et.html) — Now / Next / Later
+  columns with shipped/beta/building/planned states.
+- [`public/blog-et.html`](public/blog-et.html) — blog index with draft post
+  cards (marked "publishing soon") and an email-capture card.
+
+The design language for all of it is documented in
+[`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and
 [`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
