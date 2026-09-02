@@ -555,6 +555,98 @@
         .studio-stage { padding: 28px 18px; }
       }
 
+
+      /* ---- pain points ---- */
+      .pains { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+      .pain {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 24px 24px 22px;
+        display: flex; flex-direction: column; gap: 10px; min-width: 0;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .pain:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .pain .when { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+      .pain h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; color: #fff; }
+      .pain p { font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+      .pain .solved { margin-top: auto; padding-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+      .pain .solved::before { content: '✓ '; }
+      @media (max-width: 1199.98px) { .pains { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 809.98px) { .pains { grid-template-columns: 1fr; gap: 12px; } }
+
+      /* ---- white-label business ---- */
+      .wl { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(28px, 4vw, 64px); align-items: center; margin-top: 48px; }
+      .wl-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+      .wpoint { display: flex; flex-direction: column; gap: 5px; padding-left: 18px; border-left: 2px solid rgb(255 255 255 / 0.14); }
+      .wpoint b { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+      .wpoint p { font-size: 14px; line-height: 1.55; color: var(--muted); max-width: 480px; }
+      .wl-copy .ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+      .wl-mock {
+        border: 1px solid var(--ring); border-radius: 24px; background: var(--deep);
+        overflow: hidden; min-width: 0;
+        display: grid; grid-template-columns: 96px 1fr;
+        min-height: 330px;
+        animation: wlhue 16s linear infinite;
+      }
+      @keyframes wlhue { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(280deg); } }
+      .wl-side { border-right: 1px solid rgb(255 255 255 / 0.07); padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; background: #101010; }
+      .wl-side .logo { width: 24px; height: 24px; border-radius: 999px; background: var(--yellow); margin-bottom: 6px; }
+      .wl-side i { display: block; height: 7px; border-radius: 999px; background: rgb(255 255 255 / 0.12); }
+      .wl-side i:first-of-type { background: rgb(255 255 255 / 0.5); }
+      .wl-main { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+      .wl-top { display: flex; gap: 8px; align-items: center; }
+      .wl-top i { height: 9px; border-radius: 999px; background: rgb(255 255 255 / 0.1); flex: 1; }
+      .wl-top b { width: 58px; height: 20px; border-radius: 999px; background: #fff; }
+      .wl-ops { display: flex; gap: 6px; }
+      .wl-ops span {
+        font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        border: 1px solid rgb(255 255 255 / 0.16); color: var(--muted);
+        border-radius: 999px; padding: 3px 9px;
+      }
+      .wl-ops span:first-child { background: #fff; color: #000; border-color: #fff; }
+      .wl-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+      .wl-tiles i {
+        display: block; aspect-ratio: 3 / 4; border-radius: 8px;
+        background: linear-gradient(160deg, #35244d, #7a2c56);
+        border: 1px solid rgb(255 255 255 / 0.14);
+      }
+      .wl-tiles i:nth-child(2) { filter: hue-rotate(70deg); }
+      .wl-tiles i:nth-child(3) { filter: hue-rotate(160deg); }
+      .wl-tiles i:nth-child(4) { filter: hue-rotate(230deg); }
+      .wl-tiles i:nth-child(5) { filter: hue-rotate(40deg); }
+      .wl-tiles i:nth-child(6) { filter: hue-rotate(120deg); }
+      .wl-tiles i:nth-child(7) { filter: hue-rotate(200deg); }
+      .wl-tiles i:nth-child(8) { filter: hue-rotate(300deg); }
+      .wl-meter { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; color: var(--dim); }
+      .wl-meter .bar { flex: 1; height: 6px; border-radius: 999px; background: rgb(255 255 255 / 0.08); overflow: hidden; }
+      .wl-meter .bar i { display: block; height: 100%; width: 64%; border-radius: inherit; background: #fff; }
+      @media (max-width: 1199.98px) { .wl { grid-template-columns: 1fr; } }
+
+      /* ---- manifesto ---- */
+      .manifesto .h2 { max-width: 900px; margin-left: auto; margin-right: auto; }
+      .good { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+      .gcol {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--deep);
+        padding: 26px 26px 28px;
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .gcol b { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+      .gcol h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+      .gcol p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+      .creed {
+        margin-top: 40px;
+        text-align: center;
+        font-size: clamp(18px, 1.8vw, 22px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+      .creed span { color: var(--yellow); }
+      @media (max-width: 1199.98px) { .good { grid-template-columns: 1fr; } }
+
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
         *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -803,7 +895,7 @@
       <!-- ========================== BENEFITS ============================= -->
       <section class="card reveal" id="benefits">
         <div class="center-stack">
-          <p class="eyebrow">Why teams switch</p>
+          <p class="eyebrow">What you get</p>
           <h2 class="h2">Less a design tool, more an operations upgrade.</h2>
           <p class="lede">
             Coverage on day one, releases that ship themselves, and a lobby your team can run
@@ -841,6 +933,135 @@
             <p>Radius, stroke, band, badge — one template change restyles every tile you serve.</p>
           </div>
         </div>
+      </section>
+
+      <!-- ========================= PAIN POINTS =========================== -->
+      <section class="card reveal" id="operations">
+        <div class="center-stack">
+          <p class="eyebrow">Day-to-day, solved</p>
+          <h2 class="h2">The problems that eat a lobby team's week.</h2>
+          <p class="lede">
+            Casino operations break in the same places, every week. Each one of these is a
+            workflow in thumbs.store — not a design request in somebody's queue.
+          </p>
+        </div>
+        <div class="pains">
+          <div class="pain">
+            <span class="when">Launch week</span>
+            <h3>"We go live in ten days and 4,000 games have no artwork."</h3>
+            <p>Upload the catalogue, pick a frame, batch-render overnight. New casinos launch with a finished lobby — not grey placeholders and a prayer.</p>
+            <span class="solved">Solved · batch render</span>
+          </div>
+          <div class="pain">
+            <span class="when">Friday, 16:40</span>
+            <h3>"The provider just dropped twelve new titles."</h3>
+            <p>New releases hit the library every week and render on your template automatically. They're live in your lobby before anyone writes a ticket.</p>
+            <span class="solved">Solved · auto releases</span>
+          </div>
+          <div class="pain">
+            <span class="when">Promo weekend</span>
+            <h3>"Drops &amp; Wins starts Monday — on 300 games."</h3>
+            <p>Badges and event frames are data, not artwork. Pin NEW and HOT, schedule the takeover, and unpin it when the promo ends — from the dashboard.</p>
+            <span class="solved">Solved · promo events</span>
+          </div>
+          <div class="pain">
+            <span class="when">Redesign quarter</span>
+            <h3>"The new lobby needs a tile size we've never cut."</h3>
+            <p>A new size is one template decision, not ten thousand redraws. Every game re-renders to the new cut with its own tuned layout.</p>
+            <span class="solved">Solved · one template</span>
+          </div>
+          <div class="pain">
+            <span class="when">Every day</span>
+            <h3>"One designer, forty requests, no end in sight."</h3>
+            <p>The lobby team self-serves in the studio — swaps, badges, re-exports, colour tweaks. Your designer goes back to designing.</p>
+            <span class="solved">Solved · self-serve studio</span>
+          </div>
+          <div class="pain">
+            <span class="when">Compliance inbox</span>
+            <h3>"A studio flagged our butchered version of their logo."</h3>
+            <p>Every thumbnail is built from original key art and logotypes, placed by the template. Brand-accurate by construction — nothing to flag.</p>
+            <span class="solved">Solved · original assets</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== WHITE-LABEL BUSINESS ======================= -->
+      <section class="card reveal" id="whitelabel">
+        <div class="center-stack">
+          <p class="eyebrow">For platforms &amp; aggregators</p>
+          <h2 class="h2">White-label it. Sell it as yours.</h2>
+          <p class="lede">
+            Put the whole rendering system inside your product. Your operators get lobby artwork
+            from your dashboard — you get a product nobody else in the deal can offer.
+          </p>
+        </div>
+        <div class="wl">
+          <div class="wl-copy">
+            <div class="wpoint">
+              <b>A new revenue line</b>
+              <p>Resell credits at your margin. The usage &amp; billing API meters every operator's renders, invoice-ready — recurring revenue on infrastructure you didn't have to build.</p>
+            </div>
+            <div class="wpoint">
+              <b>A stickier platform</b>
+              <p>Operators who launch and run their lobby art inside your dashboard don't migrate away from it. Thumbnails become one more reason to stay.</p>
+            </div>
+            <div class="wpoint">
+              <b>A real differentiator</b>
+              <p>Walk into the next deal as the platform that ships day-one lobby artwork built in. It's a line in your pitch your competitors can't say.</p>
+            </div>
+            <div class="wpoint">
+              <b>Zero build cost</b>
+              <p>Your domain, your brand, SSO, per-operator sub-accounts and limits — live in weeks, not quarters, with our team running the rendering underneath.</p>
+            </div>
+            <div class="ctas">
+              <a class="btn btn-y" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a platform demo</a>
+              <a class="btn btn-o" href="pricing-et.html">White-label pricing</a>
+            </div>
+          </div>
+          <div class="wl-mock" aria-hidden="true">
+            <div class="wl-side">
+              <div class="logo"></div>
+              <i style="width: 78%"></i><i style="width: 60%"></i><i style="width: 70%"></i><i style="width: 52%"></i>
+            </div>
+            <div class="wl-main">
+              <div class="wl-top"><i></i><b></b></div>
+              <div class="wl-ops"><span>Operator A</span><span>Operator B</span><span>Operator C</span></div>
+              <div class="wl-tiles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="wl-meter"><span>credits</span><div class="bar"><i></i></div><span>64% · rebilled</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================== MANIFESTO ============================ -->
+      <section class="card reveal manifesto" id="why">
+        <div class="center-stack">
+          <p class="eyebrow">Why we exist</p>
+          <h2 class="h2">Thumbnails were the last unsolved piece of casino infrastructure.</h2>
+          <p class="lede">
+            Game feeds, payments, bonuses — all became APIs years ago. Lobby artwork stayed a
+            folder of hand-made files. We're the first to treat it as a rendering system, and we
+            built it so the whole industry comes out ahead.
+          </p>
+        </div>
+        <div class="good">
+          <div class="gcol">
+            <b>For operators</b>
+            <h3>Lobbies that run themselves.</h3>
+            <p>Day-one coverage, automatic releases and promo ops without a design queue — the operational tax on every launch, gone.</p>
+          </div>
+          <div class="gcol">
+            <b>For game studios</b>
+            <h3>Artwork used the way it was made.</h3>
+            <p>Original key art and logotypes, placed by a template — not stretched screenshots and retyped logos. Brand care, at industry scale.</p>
+          </div>
+          <div class="gcol">
+            <b>For players</b>
+            <h3>Lobbies that read honest.</h3>
+            <p>Every game looks like itself, in a lobby that reads as one product. Recognition is the whole job of a thumbnail — we protect it.</p>
+          </div>
+        </div>
+        <p class="creed">Good thumbnails are good for everyone. <span>That's the point — and we set the bar.</span></p>
       </section>
 
       <!-- ======================== PRICING TEASER ========================= -->
