@@ -129,3 +129,12 @@ edits**, and the `*.vercel.app` staging URL won't compete in search.
   system doc is the cross-repo contract.
 - 2026-09: repo renamed `tasker` → `thumbs-store-site` to match its role
   (GitHub redirects the old name for git, web and raw URLs).
+- 2026-09: marketing site hosted on **Railway**, not Vercel — the Vercel
+  integration could not create projects/deployments (403s, resources rolled
+  back), while Railway (already hosting the API) deployed first try.
+  Project `thumbs-store-site` → service `site` builds `site/Dockerfile`
+  (Caddy) from this repo's `claude/thumbs-store-landing-page-jgyuvh` branch,
+  auto-deploys on push, live at https://site-production-5bbd.up.railway.app.
+  The Vercel section above remains as an alternative; `vercel.json` still
+  works if hosting ever moves. Domain attach: `generate-domain` with
+  `thumbs.store` on this service, then the DNS records Railway returns.
