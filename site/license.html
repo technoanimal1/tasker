@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API License Agreement — thumbs.store</title>
+    <meta name="description" content="The THUMBS.STORE OÜ API License Agreement (General Form, v1.3): licence grant, caching and refresh, delivery, attribution, credits, acceptable use, security, fees and governing law." />
+    <link rel="canonical" href="https://www.thumbs.store/license" />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:site_name" content="thumbs.store" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="API License Agreement — thumbs.store" />
+    <meta property="og:description" content="THUMBS.STORE OÜ API License Agreement, General Form v1.3." />
+    <meta property="og:url" content="https://www.thumbs.store/license" />
+    <meta property="og:image" content="https://www.thumbs.store/og.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --yellow: #fef150;
+        --page: #000; --panel: #121212; --deep: #0a0a0a; --ring: #222222;
+        --muted: rgb(255 255 255 / 0.66); --dim: rgb(255 255 255 / 0.4);
+        --sans: 'Inter', system-ui, sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; background: var(--page); color: #fff; font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p { margin: 0; }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+      ::selection { background: var(--yellow); color: #050505; }
+      main { max-width: 820px; margin: 0 auto; padding: 130px 24px 0; display: flex; flex-direction: column; gap: 40px; }
+
+      .navwrap { position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; justify-content: center; background: rgb(0 0 0 / 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgb(255 255 255 / 0.07); }
+      nav { width: 100%; max-width: 1270px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; }
+      .brand { display: flex; align-items: center; gap: 10px; flex: none; font-weight: 600; font-size: 14px; }
+      .brand svg { width: 28px; height: 26px; }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .btn { display: inline-flex; align-items: center; gap: 8px; justify-content: center; padding: 9px 18px; border-radius: 999px; border: 0; font: 600 13px/1.2 var(--sans); cursor: pointer; white-space: nowrap; transition: background 0.2s ease; }
+      .btn-y { background: #fff; color: #000; }
+      .btn-y:hover { background: var(--yellow); }
+      .btn-o { color: #fff; background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); }
+      .btn-o:hover { background: rgb(255 255 255 / 0.12); }
+      .nav-cta { display: flex; gap: 10px; }
+
+      .doc-head { display: flex; flex-direction: column; gap: 16px; }
+      .doc-head .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+      .doc-head h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; text-wrap: balance; }
+      .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .pill { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid rgb(255 255 255 / 0.18); color: var(--muted); border-radius: 999px; padding: 4px 12px; }
+      .pill.v { background: var(--yellow); color: #000; border-color: var(--yellow); }
+      .doc-meta .btn { margin-left: auto; }
+      .doc-intro { color: var(--muted); font-size: 15px; border-left: 2px solid rgb(255 255 255 / 0.14); padding-left: 18px; }
+
+      .toc { border: 1px solid var(--ring); border-radius: 20px; background: var(--panel); padding: 22px 24px; }
+      .toc b { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+      .toc ol { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 32px; }
+      .toc li { break-inside: avoid; margin-bottom: 7px; }
+      .toc a { font-size: 13px; color: var(--muted); }
+      .toc a:hover { color: #fff; }
+      .toc a span { font-family: var(--mono); color: var(--dim); margin-right: 8px; font-size: 12px; }
+
+      article { display: flex; flex-direction: column; gap: 34px; }
+      section.c { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 90px; }
+      section.c h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; padding-top: 10px; border-top: 1px solid rgb(255 255 255 / 0.08); }
+      section.c h2 span { font-family: var(--mono); color: var(--dim); font-weight: 500; margin-right: 10px; font-size: 16px; }
+      section.c p { font-size: 14.5px; color: var(--muted); }
+      section.c p b.n { font-family: var(--mono); font-weight: 600; color: rgb(255 255 255 / 0.85); margin-right: 8px; font-size: 13px; }
+      section.c p.caps { font-size: 13.5px; letter-spacing: 0.01em; }
+      .warn { border: 1px solid rgb(254 241 80 / 0.4); background: rgb(254 241 80 / 0.06); border-radius: 14px; padding: 14px 18px; font-size: 13.5px; color: #fff; }
+      .warn b { color: var(--yellow); }
+      .note { font-size: 13px; color: var(--dim); font-style: italic; }
+
+      table.ex { border-collapse: collapse; width: 100%; font-size: 13.5px; border: 1px solid var(--ring); border-radius: 14px; overflow: hidden; }
+      .ex-wrap { border: 1px solid var(--ring); border-radius: 16px; overflow: hidden; }
+      .ex-wrap table { border: 0; width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      .ex-wrap th, .ex-wrap td { text-align: left; padding: 10px 16px; border-bottom: 1px solid rgb(255 255 255 / 0.06); }
+      .ex-wrap tr:last-child th, .ex-wrap tr:last-child td { border-bottom: 0; }
+      .ex-wrap th { color: var(--dim); font-weight: 500; width: 42%; }
+      .ex-wrap td { color: var(--muted); font-family: var(--mono); font-size: 12.5px; }
+      .ex-wrap .g th { color: rgb(255 255 255 / 0.85); font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--deep); padding-top: 14px; }
+
+      .contact { border: 1px solid var(--ring); border-radius: 20px; background: var(--deep); padding: 24px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+      .contact p { font-size: 14px; color: var(--muted); }
+      .contact a.mail { color: #fff; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+      footer { border-top: 1px solid rgb(255 255 255 / 0.08); padding: 32px 0 52px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--dim); }
+      footer .links { display: flex; gap: 20px; }
+      footer a:hover { color: #fff; }
+
+      @media (max-width: 1199.98px) { .nav-links { display: none; } }
+      @media (max-width: 809.98px) {
+        main { padding: 110px 20px 0; }
+        .toc ol { columns: 1; }
+        .nav-cta .btn-o { display: none; }
+        .doc-meta .btn { margin-left: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    </style>
+  </head>
+  <body>
+    <div class="navwrap">
+      <nav>
+        <a class="brand" href="/" aria-label="thumbs.store — home">
+          <svg viewBox="0 0 47 43" fill="none" aria-hidden="true">
+            <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+          </svg>
+          thumbs.store
+        </a>
+        <div class="nav-links">
+          <a class="nav-link" href="/studio">Studio</a>
+          <a class="nav-link" href="/pricing">Pricing</a>
+          <a class="nav-link" href="/blog">Blog</a>
+          <a class="nav-link" href="/roadmap">Roadmap</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
+        </div>
+      </nav>
+    </div>
+
+    <main>
+      <header class="doc-head">
+        <span class="kicker">Legal</span>
+        <h1>API License Agreement</h1>
+        <div class="doc-meta">
+          <span class="pill v">v1.3</span>
+          <span class="pill">General form</span>
+          <span class="pill">THUMBS.STORE OÜ · Estonia</span>
+          <a class="btn btn-o" href="/api-license-v1.3.pdf" download>Download PDF</a>
+        </div>
+        <p class="doc-intro">
+          This API License Agreement (the "Agreement") is entered into between
+          <b>THUMBS.STORE OÜ</b>, a private limited company registered in the Republic of
+          Estonia ("Thumbs Store"), and the customer identified in the Order Form
+          ("Customer"). It supplements the Terms of Service between the parties. In the event
+          of any conflict between this Agreement and the Terms of Service, this Agreement
+          prevails.
+        </p>
+      </header>
+
+      <nav class="toc" aria-label="Contents">
+        <b>Contents</b>
+        <ol>
+          <li><a href="#s1"><span>01</span>Definitions and Licence Grant</a></li>
+          <li><a href="#s2"><span>02</span>Caching and Refresh</a></li>
+          <li><a href="#s3"><span>03</span>Delivery, Hotlinking and Self-Hosting</a></li>
+          <li><a href="#s4"><span>04</span>Attribution</a></li>
+          <li><a href="#s5"><span>05</span>Licensed Scope and Credits</a></li>
+          <li><a href="#s6"><span>06</span>Authorised Properties</a></li>
+          <li><a href="#s7"><span>07</span>Acceptable Use and Misuse Detection</a></li>
+          <li><a href="#s8"><span>08</span>Security</a></li>
+          <li><a href="#s9"><span>09</span>Integration Support and API Updates</a></li>
+          <li><a href="#s10"><span>10</span>Revocation and Termination</a></li>
+          <li><a href="#s11"><span>11</span>Provider IP Disclaimer</a></li>
+          <li><a href="#s12"><span>12</span>Disclaimer of Warranties</a></li>
+          <li><a href="#s13"><span>13</span>Limitation of Liability</a></li>
+          <li><a href="#s14"><span>14</span>Indemnification</a></li>
+          <li><a href="#s15"><span>15</span>Fees, Payment, Renewal and Suspension</a></li>
+          <li><a href="#s16"><span>16</span>Force Majeure</a></li>
+          <li><a href="#s17"><span>17</span>Confidentiality</a></li>
+          <li><a href="#s18"><span>18</span>Governing Law and Dispute Resolution</a></li>
+          <li><a href="#s19"><span>19</span>General Provisions</a></li>
+          <li><a href="#exa"><span>A</span>Exhibit A — Order Form</a></li>
+        </ol>
+      </nav>
+
+      <article>
+        <section class="c" id="s1">
+          <h2><span>1.</span>Definitions and Licence Grant</h2>
+          <p><b class="n">1.1</b>In this Agreement: <b>"Order Form"</b> means the ordering document executed by the parties and attached as Exhibit A; <b>"Authorised Property"</b> means each website and official mobile application listed in the Order Form; <b>"Licensed Providers"</b> means the game providers listed in the Order Form; <b>"Content"</b> means the thumbnails and related assets made available through the API; <b>"Subscription Plan"</b> means the plan identified in the Order Form.</p>
+          <p><b class="n">1.2</b>Subject to Customer's compliance with this Agreement and timely payment of all fees, Thumbs Store grants Customer a limited, non-exclusive, non-transferable, non-sublicensable, revocable, worldwide licence during the subscription term to: (a) access the API documented at https://thumbs.store/docs; (b) retrieve, cache and display thumbnails for the Licensed Providers on the Authorised Property; (c) embed thumbnails within Customer's game catalogue, lobby, search, recommendation and similar interfaces on the Authorised Property.</p>
+          <p><b class="n">1.3</b>Permitted use is exclusively: (a) on the Authorised Property — catalogue, lobby, search and promotional pages; and (b) on Customer's official social media channels for game promotional posts. Any other use requires separate prior written consent from Thumbs Store.</p>
+        </section>
+
+        <section class="c" id="s2">
+          <h2><span>2.</span>Caching and Refresh</h2>
+          <p><b class="n">2.1</b>Customer shall refresh thumbnails on the Authorised Property when Thumbs Store publishes an update or issues a takedown signal. Thumbs Store will notify Customer via email or webhook. Customer has 14 business days from notification to refresh or remove the affected thumbnail. Thumbs Store does not impose mandatory periodic refresh cycles.</p>
+          <p><b class="n">2.2</b>Customer has 14 business days to action any takedown or update signal from Thumbs Store. Thumbs Store shall assist Customer's technical team during any such transition period.</p>
+          <p><b class="n">2.3</b>On termination of this Agreement, Customer has 30 calendar days to purge all cached thumbnails from its systems, CDNs and backups and to remove them from the Authorised Property, and shall certify such deletion in writing upon request.</p>
+        </section>
+
+        <section class="c" id="s3">
+          <h2><span>3.</span>Delivery, Hotlinking and Self-Hosting</h2>
+          <p><b class="n">3.1</b>The recommended delivery method is to reference Content directly via the CDN URLs returned by the API (hotlinking). Hotlinking is permitted and encouraged because it ensures that takedowns, refreshes and Provider updates propagate automatically.</p>
+          <p><b class="n">3.2</b>Self-hosting (downloading Content and re-serving it from Customer's own storage or CDN) is permitted only (a) for latency, availability or local compliance reasons; and (b) provided Customer continues checking the API for updates and actioning takedown signals.</p>
+          <p><b class="n">3.3</b>Customer shall not modify, recolour, distort, watermark over, or combine thumbnails with marks or copy in a way that misrepresents the underlying game or Provider, except for technically necessary format conversions (e.g., resizing, transcoding to AVIF or WebP).</p>
+        </section>
+
+        <section class="c" id="s4">
+          <h2><span>4.</span>Attribution</h2>
+          <p><b class="n">4.1</b>Customers on a free or trial tier must display a clearly visible attribution "Game thumbnails by Thumbs Store" with a link to https://thumbs.store. Attribution requirements are automatically waived for paid-tier customers, unless otherwise stated in the Order Form.</p>
+          <p><b class="n">4.2</b>Customer shall not remove, obscure or alter any Provider attribution, copyright notice, trademark notice or invisible watermark embedded in or supplied with any thumbnail.</p>
+        </section>
+
+        <section class="c" id="s5">
+          <h2><span>5.</span>Licensed Scope and Credits</h2>
+          <p><b class="n">5.1</b>Customer's API Key is technically locked to the number of thumbnails licensed under the Order Form. Additional games or providers are not accessible on the current key. To expand the catalogue, Customer must either: (a) purchase additional credits (1 credit = 1 thumbnail per month); or (b) upgrade to a higher subscription plan. Circumventing the scope limit via multiple API keys constitutes a material breach of this Agreement.</p>
+          <p><b class="n">5.2</b>API usage is metered per API Key. Customer shall stay within the request volume, concurrency and burst limits of its Subscription Plan, as documented at https://thumbs.store/docs/rate-limits. Exceeding limits results in throttling or temporary blocking — this does not constitute a service outage.</p>
+        </section>
+
+        <section class="c" id="s6">
+          <h2><span>6.</span>Authorised Properties</h2>
+          <p><b class="n">6.1</b>The licence extends only to the Authorised Property and its official mobile application as listed in the Order Form. Customer shall not use the Service on any property not listed. Additional sites or brands require a separate written agreement.</p>
+          <p><b class="n">6.2</b>Customer represents and warrants that each Authorised Property: (a) is operated by Customer or by an affiliate under Customer's direct control; (b) holds all licences required to offer the games depicted, including any gaming licence identified in the Order Form; and (c) does not target jurisdictions where the games depicted may not lawfully be offered.</p>
+          <p><b class="n">6.3</b>Customer shall not use the Service on any property targeting persons under the legal age of gambling in the relevant jurisdiction, nor in any context promoting gambling to minors.</p>
+        </section>
+
+        <section class="c" id="s7">
+          <h2><span>7.</span>Acceptable Use and Misuse Detection</h2>
+          <p><b class="n">7.1</b>Customer shall not: (a) bulk-download, scrape, mirror or systematically extract thumbnails; (b) resell, repackage, syndicate or otherwise expose thumbnails or API access to third parties; (c) use thumbnails to train, fine-tune or evaluate any machine-learning, embedding or generative-AI system; or (d) use thumbnails to populate or augment a competing catalogue, metadata service or thumbnail database.</p>
+          <p><b class="n">7.2</b>Thumbs Store has technical instruments to detect unauthorised use of thumbnails, including: (a) every thumbnail carries an invisible digital watermark — a unique forensic signature cryptographically tied to the Customer's API Key, visible only via specialist analysis; (b) all API requests are logged (IP address, user-agent, slug, timestamp); and (c) any leaked or unauthorised thumbnail can be traced back to the exact API Key from which it originated. Customer shall not attempt to identify, defeat, strip or circumvent any such measure.</p>
+          <div class="warn">⚠ <b>Warning:</b> every thumbnail contains an embedded signature that uniquely identifies the client from which it originated.</div>
+          <p><b class="n">7.3</b>On request, Customer shall provide a written attestation listing all systems and CDNs where thumbnails are cached or served, and shall cooperate with reasonable audit and verification activities within 10 business days.</p>
+        </section>
+
+        <section class="c" id="s8">
+          <h2><span>8.</span>Security</h2>
+          <p><b class="n">8.1</b>Customer shall apply industry-standard security controls to its use of the API, including: (a) storing API Keys exclusively in server-side secret managers — never in frontend code or public repositories; (b) transmitting all API requests over TLS (HTTPS); (c) restricting access to API Keys to authorised personnel only; and (d) rotating API Keys immediately upon any personnel change or suspected compromise.</p>
+          <p><b class="n">8.2</b>Thumbs Store may revoke any API Key without notice if it reasonably believes the key has been compromised or used in breach of this Agreement, and will notify Customer to issue a replacement key.</p>
+        </section>
+
+        <section class="c" id="s9">
+          <h2><span>9.</span>Integration Support and API Updates</h2>
+          <p><b class="n">9.1</b>During the integration period stated in the Order Form (by default, the first 60 calendar days from the subscription start date), Thumbs Store shall: (a) provide API integration consulting to Customer's technical team; (b) adjust the API response format, slugs, image formats and sizes to meet Customer's platform requirements on reasonable request; and (c) collaboratively resolve any integration-related technical challenges. Such adaptations will be documented in the API changelog.</p>
+          <p><b class="n">9.2</b>After the integration period, Thumbs Store may add, change or remove endpoints, fields, formats and behaviours. Backwards-incompatible changes will be announced at least 30 days in advance via the customer dashboard or email, except where shorter notice is required for security or legal reasons.</p>
+          <p><b class="n">9.3</b>Customer is responsible for keeping its integration current. Thumbs Store is not liable for issues arising from Customer's use of deprecated endpoints or fields after the relevant deprecation date.</p>
+        </section>
+
+        <section class="c" id="s10">
+          <h2><span>10.</span>Revocation and Termination</h2>
+          <p><b class="n">10.1</b>Thumbs Store may revoke or suspend the licence, in whole or in part, immediately on notice if Customer commits a material breach of this Agreement. For minor technical breaches, Thumbs Store will first issue a written cure notice with 14 business days to remediate.</p>
+          <p><b class="n">10.2</b>On revocation or termination, Customer shall: (a) cease all new API usage immediately; (b) remove thumbnails from the Authorised Property and purge all cached copies within 30 calendar days; (c) on Thumbs Store's request, certify such deletion in writing within 5 business days.</p>
+          <p><b class="n">10.3</b>Termination does not relieve Customer of any unpaid obligations incurred during the subscription term.</p>
+        </section>
+
+        <section class="c" id="s11">
+          <h2><span>11.</span>Provider Intellectual Property Disclaimer</h2>
+          <p><b class="n">11.1</b>Thumbnails served by Thumbs Store depict games owned by the Licensed Providers. The game titles, logos, symbols, characters, storylines and all related elements are the intellectual property of their respective Providers.</p>
+          <p><b class="n">11.2</b>Thumbs Store licenses only the thumbnail composition and graphic artwork that Thumbs Store independently creates. This licence does not and cannot grant any rights in Provider IP to Customer.</p>
+          <p><b class="n">11.3</b>Thumbs Store makes no warranty that Providers have authorised the display of thumbnails, or that such display is lawful in Customer's jurisdiction. Customer bears sole responsibility for assessing any legal requirements relating to Provider IP in its operating jurisdictions.</p>
+          <p><b class="n">11.4</b>If a Provider or other rights holder issues a takedown request to Thumbs Store, Thumbs Store will issue a takedown signal per clause 2.2. Thumbs Store is not liable for any legal costs Customer incurs in relation to Provider IP claims.</p>
+        </section>
+
+        <section class="c" id="s12">
+          <h2><span>12.</span>Disclaimer of Warranties</h2>
+          <p class="caps"><b class="n">12.1</b>THE API, THUMBNAILS AND ALL RELATED SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THUMBS STORE DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, UNINTERRUPTED AVAILABILITY OR FREEDOM FROM ERRORS.</p>
+          <p><b class="n">12.2</b>Without limiting the foregoing, Thumbs Store makes no warranty as to: (a) the continuous or uninterrupted availability of the API or thumbnails; (b) the accuracy, completeness or compatibility of thumbnails on any particular platform; or (c) the availability of Figma's API or any other upstream service on which the Thumbs Store pipeline depends.</p>
+        </section>
+
+        <section class="c" id="s13">
+          <h2><span>13.</span>Limitation of Liability</h2>
+          <p class="caps"><b class="n">13.1</b>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THUMBS STORE'S TOTAL CUMULATIVE LIABILITY — WHETHER IN CONTRACT, TORT OR ANY OTHER LEGAL THEORY — SHALL NOT EXCEED THE TOTAL SUBSCRIPTION FEES ACTUALLY PAID BY CUSTOMER TO THUMBS STORE IN THE TWELVE (12) MONTHS IMMEDIATELY PRECEDING THE EVENTS GIVING RISE TO THE CLAIM.</p>
+          <p class="caps"><b class="n">13.2</b>IN NO EVENT SHALL THUMBS STORE BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES — INCLUDING LOST PROFITS, LOST REVENUE, LOSS OF DATA, LOSS OF GOODWILL OR BUSINESS INTERRUPTION — EVEN IF THUMBS STORE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
+          <p><b class="n">13.3</b>The foregoing limitations do not apply to: (a) damages arising from Thumbs Store's wilful misconduct or fraud; or (b) any liability that cannot be excluded under applicable law.</p>
+        </section>
+
+        <section class="c" id="s14">
+          <h2><span>14.</span>Indemnification</h2>
+          <p><b class="n">14.1</b>Customer shall defend, indemnify and hold harmless Thumbs Store and its officers, directors, employees and agents from and against any claims, damages, liabilities, costs and expenses (including reasonable legal fees) arising out of or relating to: (a) Customer's breach of this Agreement; (b) Customer's use of thumbnails outside the scope permitted by this Agreement; or (c) any Provider IP or third-party claim arising from Customer's conduct.</p>
+          <p><b class="n">14.2</b>Thumbs Store shall: (a) promptly notify Customer of any indemnifiable claim; and (b) give Customer the opportunity to control the defence and settlement of such claim. Thumbs Store retains the right to participate in its own defence at its own expense.</p>
+        </section>
+
+        <section class="c" id="s15">
+          <h2><span>15.</span>Fees, Payment, Renewal and Suspension</h2>
+          <p><b class="n">15.1</b>Fees, currency, billing cycle, prepayment terms and contract duration are set out in the Order Form. Fees for each term are due on or before the Effective Date of that term. Unless the Order Form states otherwise, all payments are non-refundable, including upon termination or cancellation within a paid term.</p>
+          <p><b class="n">15.2</b>Payment shall be made by the method and to the account or wallet address specified in the Order Form or in the applicable invoice.</p>
+          <p><b class="n">15.3</b>Where payment is made in cryptocurrency, Customer shall notify Thumbs Store at billing@thumbs.store within 24 hours of transfer, providing the transaction hash. Service provisioning will commence upon on-chain confirmation (minimum 12 block confirmations). Thumbs Store is not responsible for delays caused by network congestion, banking delays or Customer's failure to notify.</p>
+          <p><b class="n">15.4</b>For subsequent renewal periods, Thumbs Store will issue an invoice at least 30 calendar days before the end of the current term. Customer has 7 calendar days from invoice receipt to initiate payment. Failure to pay within this window entitles Thumbs Store to suspend the API Key until payment is confirmed.</p>
+          <p><b class="n">15.5</b>Unless the Order Form states otherwise, the subscription renews automatically for successive terms of equal length. Either party may prevent renewal by giving written notice at least 30 calendar days before the end of the current term.</p>
+          <p><b class="n">15.6</b>Thumbs Store may change subscription fees with 60 calendar days' written notice, effective from the next renewal term.</p>
+        </section>
+
+        <section class="c" id="s16">
+          <h2><span>16.</span>Force Majeure</h2>
+          <p><b class="n">16.1</b>Neither party shall be liable for any failure or delay in performance caused by events outside their reasonable control, including: natural disaster, war, cyberattack, governmental action, internet or telecommunications infrastructure failure, or the unavailability of Figma's API or other upstream services on which the Thumbs Store pipeline depends.</p>
+          <p class="note">Note: Figma API unavailability is explicitly included as a force majeure event because the Thumbs Store thumbnail delivery pipeline depends on Figma's infrastructure.</p>
+          <p><b class="n">16.2</b>The affected party shall: (a) notify the other party promptly; (b) use reasonable efforts to mitigate delays; and (c) resume performance as soon as the event ceases.</p>
+        </section>
+
+        <section class="c" id="s17">
+          <h2><span>17.</span>Confidentiality</h2>
+          <p><b class="n">17.1</b>The terms of this Agreement, the API Key, the thumbnail catalogue structure, API endpoints, pricing and any other information that is reasonably understood to be confidential (collectively "Confidential Information") is confidential to both parties.</p>
+          <p><b class="n">17.2</b>Neither party shall disclose Confidential Information to third parties except: (a) when legally required; (b) with the other party's prior written consent; or (c) where such information has become publicly known through no fault of the receiving party.</p>
+          <p><b class="n">17.3</b>Thumbs Store may reference Customer as a client of Thumbs Store in marketing and promotional materials in general terms, without disclosing the specific terms of this Agreement. Customer consents to this use.</p>
+        </section>
+
+        <section class="c" id="s18">
+          <h2><span>18.</span>Governing Law and Dispute Resolution</h2>
+          <p><b class="n">18.1</b>This Agreement is governed by and construed in accordance with the laws of the Republic of Estonia, excluding its conflict of laws provisions. The parties confirm that the UN Convention on Contracts for the International Sale of Goods does not apply.</p>
+          <p><b class="n">18.2</b>Any dispute that cannot be resolved by good-faith negotiation within 30 calendar days of written notice shall be referred to: (a) Harju County Court, Tallinn, Estonia; or (b) by mutual written agreement, arbitration under the Rules of the Arbitration Court of the Estonian Chamber of Commerce and Industry, seated in Tallinn and conducted in English.</p>
+          <p><b class="n">18.3</b>Nothing in this Agreement prevents Thumbs Store from seeking injunctive relief or equivalent equitable remedy in any competent jurisdiction where a breach may cause irreparable harm.</p>
+        </section>
+
+        <section class="c" id="s19">
+          <h2><span>19.</span>General Provisions</h2>
+          <p><b class="n">19.1</b><b>Entire Agreement.</b> This Agreement, together with the Terms of Service, the Acceptable Use Policy and the Order Form (Exhibit A), constitutes the entire agreement between the parties relating to its subject matter and supersedes all prior oral or written agreements.</p>
+          <p><b class="n">19.2</b><b>Assignment.</b> Customer may not assign, transfer or sublicense this Agreement or any rights hereunder without Thumbs Store's prior written consent. Thumbs Store may assign this Agreement with 30 calendar days' notice to Customer.</p>
+          <p><b class="n">19.3</b><b>Severability.</b> If any provision of this Agreement is held invalid or unenforceable, it shall be modified to the minimum extent necessary to make it enforceable, and the remaining provisions shall continue in full force.</p>
+          <p><b class="n">19.4</b><b>Amendment.</b> Thumbs Store may update this Agreement with 30 calendar days' written notice. Customer's continued use of the API after the effective date of any amendment constitutes acceptance of the updated terms.</p>
+          <p><b class="n">19.5</b><b>Independent Contractors.</b> The parties are independent contractors. This Agreement does not create an agency, partnership, joint venture or employment relationship.</p>
+          <p><b class="n">19.6</b><b>Notices.</b> All notices under this Agreement shall be in writing and delivered by email to the addresses specified in the Order Form. Notices are effective upon confirmed receipt.</p>
+        </section>
+
+        <section class="c" id="exa">
+          <h2><span>A.</span>Exhibit A — Order Form</h2>
+          <p>The Agreement is executed together with an Order Form populated per client. The Order Form captures the following details and forms part of the Agreement:</p>
+          <div class="ex-wrap">
+            <table>
+              <tr class="g"><th colspan="2">Client and Agreement</th></tr>
+              <tr><th>Order Number · Effective Date</th><td>per Order Form</td></tr>
+              <tr><th>Customer (legal entity) · Contact · Country</th><td>per Order Form</td></tr>
+              <tr><th>Authorised Property · Gaming Licence</th><td>per Order Form</td></tr>
+              <tr class="g"><th colspan="2">Licensed Catalogue</th></tr>
+              <tr><th>Licensed Providers · Total Providers</th><td>per Order Form</td></tr>
+              <tr><th>Licensed Thumbnails</th><td>per Order Form</td></tr>
+              <tr><th>Thumbnail Format</th><td>AVIF (primary) · PNG (fallback)</td></tr>
+              <tr class="g"><th colspan="2">Subscription and Payment</th></tr>
+              <tr><th>Plan · Billing Cycle · Contract Duration</th><td>per Order Form</td></tr>
+              <tr><th>Integration Support</th><td>60 calendar days</td></tr>
+              <tr><th>Payment Method · Details · Currency</th><td>per Order Form</td></tr>
+              <tr><th>Auto-renewal</th><td>30 calendar days' notice required to cancel</td></tr>
+              <tr class="g"><th colspan="2">Technical Parameters</th></tr>
+              <tr><th>API Key · Base URL</th><td>issued on provisioning</td></tr>
+              <tr><th>Auth Header</th><td>x-api-key: {key}</td></tr>
+              <tr><th>Endpoint</th><td>/v1/thumbnails/{provider}/{slug}</td></tr>
+              <tr><th>Rate Limits · Docs</th><td>thumbs.store/docs · /docs/rate-limits</td></tr>
+              <tr><th>Registration</th><td>www.thumbs.store/apply</td></tr>
+              <tr class="g"><th colspan="2">Governing Law</th></tr>
+              <tr><th>Governing Law</th><td>Estonia</td></tr>
+              <tr><th>Dispute Resolution</th><td>Harju County Court, Tallinn, or Estonian Chamber of Commerce arbitration by mutual agreement</td></tr>
+            </table>
+          </div>
+        </section>
+      </article>
+
+      <div class="contact">
+        <p>Questions about this Agreement: <a class="mail" href="mailto:legal@thumbs.store">legal@thumbs.store</a></p>
+        <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Request an Order Form</a>
+      </div>
+
+      <footer>
+        <span>© <span id="year">2026</span> THUMBS.STORE OÜ · API License Agreement v1.3 · General Form</span>
+        <div class="links">
+          <a href="/">Home</a>
+          <a href="/studio">Studio</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/blog">Blog</a>
+          <a href="/roadmap">Roadmap</a>
+        </div>
+      </footer>
+    </main>
+    <script>document.getElementById('year').textContent = String(new Date().getFullYear())</script>
+  </body>
+</html>

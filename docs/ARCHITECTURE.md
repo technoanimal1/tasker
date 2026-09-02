@@ -20,7 +20,7 @@ they share one brand.
 
 ```
 technoanimal1/thumbs-store-dashboard   → the app (dashboard + studio MVP)
-technoanimal1/tasker                   → marketing site (site/) + studio prototypes (public/)
+technoanimal1/thumbs-store-site        → marketing site (site/) + studio prototypes (public/)
 ```
 
 - **Keep the dashboard where it is.** It's already a live repo with a linked
@@ -127,3 +127,5 @@ edits**, and the `*.vercel.app` staging URL won't compete in search.
 - 2026-09: marketing = static `site/` in this repo; dashboard = existing
   repo/project; two repos, one Vercel team; domains per project; design
   system doc is the cross-repo contract.
+- 2026-09: repo renamed `tasker` → `thumbs-store-site` to match its role
+  (GitHub redirects the old name for git, web and raw URLs).
