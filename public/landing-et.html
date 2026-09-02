@@ -172,8 +172,10 @@
         text-transform: uppercase;
         color: rgb(255 255 255 / 0.75);
       }
-      .nav-cta { display: flex; gap: 10px; }
+      .nav-cta { display: flex; align-items: center; gap: 10px; }
       .nav-cta .btn { padding: 9px 18px; font-size: 13px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 10px; }
+      .nav-link:hover { color: #fff; }
 
       /* ---- hero ---- */
       .hero {
@@ -867,7 +869,7 @@
         .eyebrow { font-size: 12px; }
         .cols4 { grid-template-columns: 1fr; gap: 36px; }
         .pcol { align-items: center; text-align: center; }
-        .nav-cta .btn-o { display: none; }
+        .nav-cta .btn-o, .nav-link { display: none; }
         .anatomy-stage .tilebox { width: 200px; }
         .ltag { display: none; }
         .marquee span { font-size: 12px; }
@@ -1585,6 +1587,7 @@
           </span>
         </a>
         <div class="nav-cta">
+          <a class="nav-link" href="pricing-et.html">Pricing</a>
           <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
           <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
         </div>

@@ -101,6 +101,16 @@ step tags, `#121212`/`ring-#222222` benefit cards, a border-strip marquee and a
 lockup kept verbatim. Same live widget, template numbers and animations as the
 Framer version.
 
+[`public/pricing-et.html`](public/pricing-et.html) is a **draft** pricing page in
+the same Endless Tools skin, positioned against Lobby Magic's published rates:
+a credit model (1 thumbnail in 1 size = 1 credit, every size the same price,
+CSS animations free, AI animation 10 credits), three casino plans plus a
+white-label Aggregator/Platform tier, batch credit packs from −20% (valid 12
+months, credits roll over 3 months), an interactive calculator that prices the
+visitor's catalogue on both thumbs.store and Lobby Magic's public rates with a
+year-one comparison, a usage-dashboard mock, and a draft feature matrix. All
+numbers live in one `CFG` object at the top of the script for easy tweaking.
+
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and
 [`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
