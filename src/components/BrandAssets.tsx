@@ -56,7 +56,7 @@ function AssetCard({
   }
 
   return (
-    <div className="rounded-card border border-ring bg-panel p-4">
+    <div className="rounded-2xl border border-ring bg-panel p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">{label}</h2>
         {asset && <span className="text-xs text-dim">{kind}</span>}
@@ -74,7 +74,7 @@ function AssetCard({
           setDrag(false)
           handleFile(e.dataTransfer.files[0])
         }}
-        className={`checker grid aspect-video cursor-pointer place-items-center overflow-hidden rounded-card border-2 border-dashed transition ${
+        className={`checker grid aspect-video cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed transition ${
           drag ? 'border-accent' : 'border-white/[0.16]'
         }`}
       >
@@ -115,7 +115,7 @@ function AssetCard({
         <button
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="shrink-0 rounded-pill bg-white/[0.06] px-3 py-1.5 text-xs hover:bg-white/[0.12] disabled:opacity-60"
+          className="shrink-0 rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs hover:bg-white/[0.12] disabled:opacity-60"
         >
           {busy ? '…' : asset ? 'Replace' : 'Upload'}
         </button>

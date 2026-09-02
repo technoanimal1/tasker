@@ -153,7 +153,7 @@ export function WhiteLogo({
         <img
           src={url}
           alt="white logo"
-          className="max-h-24 w-full rounded-pill border border-ring object-contain p-2 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
+          className="max-h-24 w-full rounded-lg border border-ring object-contain p-2 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
         />
       )}
 
@@ -161,7 +161,7 @@ export function WhiteLogo({
         value={engine}
         onChange={(e) => setEngine(e.target.value)}
         disabled={busy}
-        className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs outline-none focus:border-accent disabled:opacity-60"
+        className="w-full rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs outline-none focus:border-accent disabled:opacity-60"
       >
         {ENGINES.map((m) => (
           <option key={m.id} value={m.id}>
@@ -174,12 +174,12 @@ export function WhiteLogo({
       <button
         onClick={generate}
         disabled={busy || vBusy}
-        className="w-full rounded-pill bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-60"
+        className="w-full rounded-lg bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-60"
       >
         {busy ? `Generating… ${elapsed}s` : url ? 'Regenerate wordmark' : 'Make white logo'}
       </button>
 
-      <div className="space-y-1.5 rounded-pill border border-ring bg-panel p-2">
+      <div className="space-y-1.5 rounded-lg border border-ring bg-panel p-2">
         <p className="text-[11px] font-semibold text-muted">Refine layout · AI</p>
         <p className="text-[11px] text-dim">
           Re-typesets the colour logotype into cleaner, more readable lines (keeps the branding). Preview and re-roll, then Apply to also make the white version.
@@ -189,7 +189,7 @@ export function WhiteLogo({
           onChange={(e) => setLines(e.target.value)}
           disabled={busy || vBusy || applying}
           placeholder="Line breaks (optional) — e.g. All Ways / Hottest / Fruits"
-          className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs text-white outline-none placeholder:text-dim focus:border-accent disabled:opacity-60"
+          className="w-full rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs text-white outline-none placeholder:text-dim focus:border-accent disabled:opacity-60"
         />
 
         {draft && (
@@ -200,7 +200,7 @@ export function WhiteLogo({
                 <img
                   src={draft.original}
                   alt="original logo"
-                  className="h-20 w-full rounded-pill border border-ring object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
+                  className="h-20 w-full rounded-md border border-ring object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
                 />
               </figure>
               <figure className="space-y-1">
@@ -208,7 +208,7 @@ export function WhiteLogo({
                 <img
                   src={`${draft.color}?v=${draft.stamp}`}
                   alt="refined logo"
-                  className="h-20 w-full rounded-pill border border-accent/40 object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
+                  className="h-20 w-full rounded-md border border-accent/40 object-contain p-1.5 [background-image:linear-gradient(45deg,#222_25%,transparent_25%),linear-gradient(-45deg,#222_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#222_75%),linear-gradient(-45deg,transparent_75%,#222_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]"
                 />
               </figure>
             </div>
@@ -216,7 +216,7 @@ export function WhiteLogo({
               <button
                 onClick={applyRefine}
                 disabled={applying || vBusy}
-                className="flex-1 rounded-pill bg-white py-2 text-xs font-semibold text-black transition hover:bg-yellow disabled:opacity-60"
+                className="flex-1 rounded-lg bg-white py-2 text-xs font-semibold text-black transition hover:bg-yellow disabled:opacity-60"
               >
                 {applying ? 'Applying…' : 'Apply + make white'}
               </button>
@@ -224,7 +224,7 @@ export function WhiteLogo({
                 onClick={refine}
                 disabled={applying || vBusy}
                 title="Generate another take from the original"
-                className="rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.06] disabled:opacity-60"
+                className="rounded-lg border border-white/[0.16] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.06] disabled:opacity-60"
               >
                 {vBusy ? 'Re-rolling…' : 'Re-roll'}
               </button>
@@ -232,7 +232,7 @@ export function WhiteLogo({
                 onClick={() => setDraft(null)}
                 disabled={applying || vBusy}
                 title="Discard this draft"
-                className="rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-muted transition hover:bg-white/[0.06] disabled:opacity-60"
+                className="rounded-lg border border-white/[0.16] px-3 py-2 text-xs font-medium text-muted transition hover:bg-white/[0.06] disabled:opacity-60"
               >
                 Discard
               </button>
@@ -245,7 +245,7 @@ export function WhiteLogo({
             onClick={refine}
             disabled={busy || vBusy}
             title="AI: re-typeset the colour logotype into readable lines (keep branding)"
-            className="w-full rounded-pill border border-white/[0.16] py-2 text-sm font-medium text-white transition hover:bg-white/[0.06] disabled:opacity-60"
+            className="w-full rounded-lg border border-white/[0.16] py-2 text-sm font-medium text-white transition hover:bg-white/[0.06] disabled:opacity-60"
           >
             {vBusy ? 'Refining colour…' : 'Refine logo (AI)'}
           </button>

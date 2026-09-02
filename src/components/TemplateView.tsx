@@ -243,7 +243,7 @@ export function TemplateView() {
             disabled={!undoStack.length}
             title="Undo (⌘Z)"
             aria-label="Undo"
-            className="grid h-9 w-9 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
           >
             <Undo2 size={16} />
           </button>
@@ -252,7 +252,7 @@ export function TemplateView() {
             disabled={!redoStack.length}
             title="Redo (⌘⇧Z)"
             aria-label="Redo"
-            className="grid h-9 w-9 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
           >
             <Redo2 size={16} />
           </button>
@@ -260,7 +260,7 @@ export function TemplateView() {
             onClick={saveEdited}
             disabled={saving || !dirty}
             title={dirty ? `Save ${editedSizes.size ? `${editedSizes.size} size${editedSizes.size > 1 ? 's' : ''}` : 'changes'}${globalsDirty ? (editedSizes.size ? ' + label' : 'label') : ''}` : 'Nothing to save'}
-            className="rounded-pill bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
+            className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
           >
             {saving
               ? 'Saving…'
@@ -280,7 +280,7 @@ export function TemplateView() {
               key={s.key}
               onClick={() => setSize(s.key)}
               title={edited ? `${s.key} · edited (unsaved)` : s.key}
-              className={`relative rounded-pill px-3 py-1.5 text-xs font-medium transition ${
+              className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 sizeKey === s.key ? 'bg-white text-black' : 'bg-white/[0.06] text-muted hover:bg-white/[0.12]'
               }`}
             >
@@ -299,7 +299,7 @@ export function TemplateView() {
           <button
             onClick={() => resetSize(sizeKey)}
             title={`Revert ${sizeKey} to the saved version`}
-            className="flex items-center gap-1 rounded-pill border border-white/[0.16] px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-white/[0.06]"
+            className="flex items-center gap-1 rounded-lg border border-white/[0.16] px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-white/[0.06]"
           >
             <RotateCcw size={13} /> Reset {sizeKey}
           </button>
@@ -307,7 +307,7 @@ export function TemplateView() {
         <button
           onClick={applyLayoutToAll}
           title="Copy this size's KV + logo alignment, size and offsets to every aspect size"
-          className="ml-auto rounded-pill border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/[0.06]"
+          className="ml-auto rounded-lg border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/[0.06]"
         >
           Apply KV + logo to all sizes
         </button>
@@ -316,7 +316,7 @@ export function TemplateView() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* preview */}
         <div
-          className="sticky top-2 z-20 flex min-h-0 items-center justify-center rounded-card border border-ring bg-deep/85 p-3 backdrop-blur lg:static lg:min-h-[520px] lg:bg-transparent lg:p-8 lg:backdrop-blur-0"
+          className="sticky top-2 z-20 flex min-h-0 items-center justify-center rounded-2xl border border-ring bg-deep/85 p-3 backdrop-blur lg:static lg:min-h-[520px] lg:bg-transparent lg:p-8 lg:backdrop-blur-0"
           style={{ backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)', backgroundSize: '22px 22px' }}
         >
           {sample ? (
@@ -333,13 +333,13 @@ export function TemplateView() {
         </div>
 
         {/* controls */}
-        <aside className="flex flex-col gap-3.5 rounded-card border border-ring bg-panel p-3">
+        <aside className="flex flex-col gap-3.5 rounded-2xl border border-ring bg-panel p-3">
           {pageItems.length > 1 && (
             <Row label="Preview game">
               <select
                 value={previewIdx}
                 onChange={(e) => setPreviewIdx(Number(e.target.value))}
-                className="max-w-[200px] rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                className="max-w-[200px] rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {pageItems.map((t, i) => (
                   <option key={t.id} value={i}>
@@ -371,7 +371,7 @@ export function TemplateView() {
                     key={d}
                     onClick={() => setGrad({ gradDir: d })}
                     title={d}
-                    className={`grid h-7 w-7 place-items-center rounded-pill border text-sm transition ${
+                    className={`grid h-7 w-7 place-items-center rounded-md border text-sm transition ${
                       grad.gradDir === d ? 'border-accent bg-accent/15 text-accent' : 'border-white/[0.16] text-muted hover:bg-white/[0.06]'
                     }`}
                   >
@@ -406,7 +406,7 @@ export function TemplateView() {
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setLabelEdit((e) => !e)}
-                  className="rounded-pill border border-white/[0.16] px-2 py-0.5 text-[11px] text-muted transition hover:bg-white/[0.06]"
+                  className="rounded-md border border-white/[0.16] px-2 py-0.5 text-[11px] text-muted transition hover:bg-white/[0.06]"
                 >
                   {labelEdit ? 'Lock' : 'Edit'}
                 </button>
@@ -416,7 +416,7 @@ export function TemplateView() {
                     setLabelEdit(false)
                   }}
                   disabled={saving || !dirty}
-                  className="rounded-pill bg-white px-2 py-0.5 text-[11px] font-medium text-black transition hover:bg-yellow disabled:opacity-40"
+                  className="rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-black transition hover:bg-yellow disabled:opacity-40"
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -430,7 +430,7 @@ export function TemplateView() {
               <select
                 value={params.providerPos}
                 onChange={(e) => setP({ providerPos: e.target.value as ProviderPos })}
-                className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                className="rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {PROVIDER_POSITIONS.map((pos) => (
                   <option key={pos} value={pos}>
@@ -443,7 +443,7 @@ export function TemplateView() {
               <select
                 value={params.providerCase ?? 'as-is'}
                 onChange={(e) => setP({ providerCase: e.target.value as TemplateParams['providerCase'] })}
-                className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                className="rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {PROVIDER_CASES.map((c) => (
                   <option key={c} value={c}>

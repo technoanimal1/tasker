@@ -134,7 +134,7 @@ export function GridTile({
 
       {/* skeleton only when there's nothing to show yet */}
       {!thumb.preview_url && !showLive && (
-        <div className="h-full w-full animate-pulse rounded-pill bg-white/[0.04]" />
+        <div className="h-full w-full animate-pulse rounded-lg bg-white/[0.04]" />
       )}
 
       {/* live layered card — reacts to setting changes in real time */}

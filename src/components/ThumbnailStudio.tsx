@@ -62,8 +62,8 @@ type ExportFormat = StillFormat | 'anim'
 
 // Compact square icon-button styles (toolbar).
 const ICON_BTN =
-  'grid h-8 w-8 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40'
-const ICON_BTN_ON = 'grid h-8 w-8 place-items-center rounded-pill border border-accent bg-accent/15 text-accent transition'
+  'grid h-8 w-8 place-items-center rounded-lg border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40'
+const ICON_BTN_ON = 'grid h-8 w-8 place-items-center rounded-lg border border-accent bg-accent/15 text-accent transition'
 
 type Scope = 'global' | 'selected'
 
@@ -686,11 +686,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
   // toolbar); at lg they revert to inline sidebars. `mobilePanel` picks which is open.
   const sheetChrome =
     'z-40 flex-col overflow-hidden border border-ring bg-deep shadow-2xl ' +
-    'lg:static lg:inset-auto lg:z-auto lg:rounded-card lg:shadow-none lg:bg-panel lg:max-h-none lg:shrink-0'
+    'lg:static lg:inset-auto lg:z-auto lg:rounded-xl lg:shadow-none lg:bg-panel lg:max-h-none lg:shrink-0'
   // Thumbnails: near-full sheet. Controls: a bottom HALF sheet so the tapped
   // thumbnail stays visible above while you edit.
-  const leftSheet = `fixed inset-x-2 bottom-2 top-16 rounded-card ${sheetChrome} lg:w-[236px] ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
-  const rightSheet = `fixed inset-x-0 bottom-0 rounded-t-[28px] ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
+  const leftSheet = `fixed inset-x-2 bottom-2 top-16 rounded-2xl ${sheetChrome} lg:w-[236px] ${mobilePanel === 'thumbs' ? 'flex' : 'hidden'} lg:flex`
+  const rightSheet = `fixed inset-x-0 bottom-0 rounded-t-2xl ${sheetChrome} lg:w-[300px] ${mobilePanel === 'controls' ? 'flex' : 'hidden'} lg:flex`
 
   return (
     <div className="flex flex-col gap-3 lg:h-[calc(100vh-7.5rem)]">
@@ -703,7 +703,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               onClick={() => setScope('global')}
               title="Back to all thumbnails"
               aria-label="Back"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06]"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/[0.16] text-white transition hover:bg-white/[0.06]"
             >
               <ArrowLeft size={16} />
             </button>
@@ -719,12 +719,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 value={gameSearch}
                 onChange={(e) => setGameSearch(e.target.value)}
                 placeholder="Search all games…"
-                className="h-9 w-full rounded-pill border border-white/[0.16] bg-panel pl-8 pr-8 text-xs text-white outline-none placeholder:text-dim focus:border-accent"
+                className="h-9 w-full rounded-lg border border-white/[0.16] bg-panel pl-8 pr-8 text-xs text-white outline-none placeholder:text-dim focus:border-accent"
               />
               {searching ? (
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2"><Spinner size={13} /></span>
               ) : gameSearch ? (
-                <button onClick={() => setGameSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-pill text-dim hover:text-muted">✕</button>
+                <button onClick={() => setGameSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-dim hover:text-muted">✕</button>
               ) : null}
             </div>
           )}
@@ -733,7 +733,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="h-9 rounded-pill border border-white/[0.16] bg-panel px-2 text-xs text-white outline-none focus:border-accent"
+            className="h-9 rounded-lg border border-white/[0.16] bg-panel px-2 text-xs text-white outline-none focus:border-accent"
             title="Export format"
           >
             <option value="png">PNG</option>
@@ -747,7 +747,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             onClick={() => (singleView && selected ? runExport([selected]) : exportAll())}
             disabled={exporting}
             title={singleView ? 'Export this thumbnail' : 'Export all'}
-            className="flex h-9 items-center gap-1.5 rounded-pill bg-white px-3 text-xs font-medium text-black transition hover:bg-yellow disabled:opacity-50"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-medium text-black transition hover:bg-yellow disabled:opacity-50"
           >
             {exporting ? <Spinner size={14} /> : <Download size={16} />}
             <span className="hidden sm:inline">{singleView ? 'Export' : 'Export all'}</span>
@@ -805,12 +805,12 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             onClick={() => setProviderPickerOpen(false)}
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           />
-          <div className="fixed inset-x-0 bottom-0 z-40 flex h-[70vh] flex-col rounded-t-[28px] border-t border-white/[0.16] bg-panel shadow-2xl lg:hidden">
+          <div className="fixed inset-x-0 bottom-0 z-40 flex h-[70vh] flex-col rounded-t-2xl border-t border-white/[0.16] bg-panel shadow-2xl lg:hidden">
             <div className="flex items-center justify-between border-b border-ring px-4 py-3">
               <span className="text-sm font-semibold text-white">Choose provider</span>
               <button
                 onClick={() => setProviderPickerOpen(false)}
-                className="grid h-7 w-7 place-items-center rounded-pill text-muted hover:bg-white/[0.06] hover:text-white"
+                className="grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-white/[0.06] hover:text-white"
                 aria-label="Close"
               >
                 ✕
@@ -822,7 +822,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   setActiveProvider(null)
                   setProviderPickerOpen(false)
                 }}
-                className={`flex w-full items-center justify-between rounded-pill px-3 py-2.5 text-left text-sm font-medium transition ${
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
                   activeProvider === null ? 'bg-accent/15 text-accent' : 'text-white hover:bg-white/[0.06]'
                 }`}
               >
@@ -837,7 +837,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     ensureProvider(provider)
                     setProviderPickerOpen(false)
                   }}
-                  className={`flex w-full items-center justify-between rounded-pill px-3 py-2.5 text-left text-sm font-medium transition ${
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
                     activeProvider === provider ? 'bg-accent/15 text-accent' : 'text-white hover:bg-white/[0.06]'
                   }`}
                 >
@@ -858,7 +858,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <span className="text-xs text-dim">{thumbnails.length}</span>
             <button
               onClick={() => setMobilePanel(null)}
-              className="grid h-6 w-6 place-items-center rounded-pill text-muted hover:bg-white/[0.06] hover:text-white lg:hidden"
+              className="grid h-6 w-6 place-items-center rounded-md text-muted hover:bg-white/[0.06] hover:text-white lg:hidden"
               aria-label="Close"
             >
               ✕
@@ -875,10 +875,10 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
               placeholder="Search games…"
-              className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] py-1.5 pl-8 pr-7 text-xs text-white outline-none placeholder:text-dim focus:border-accent"
+              className="w-full rounded-lg border border-white/[0.16] bg-white/[0.06] py-1.5 pl-8 pr-7 text-xs text-white outline-none placeholder:text-dim focus:border-accent"
             />
             {sidebarSearch && (
-              <button onClick={() => setSidebarSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-pill text-dim hover:text-muted">✕</button>
+              <button onClick={() => setSidebarSearch('')} aria-label="Clear search" className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-dim hover:text-muted">✕</button>
             )}
           </div>
         </div>
@@ -889,7 +889,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 setActiveProvider(null)
                 setMobilePanel(null)
               }}
-              className={`flex w-full items-center justify-between rounded-pill px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
+              className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
                 activeProvider === null ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-white/[0.06]'
               }`}
             >
@@ -917,7 +917,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       return n
                     })
                   }}
-                  className={`flex w-full items-center justify-between rounded-pill px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
+                  className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide transition ${
                     activeProvider === provider ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-white/[0.06]'
                   }`}
                 >
@@ -943,11 +943,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                         <div key={t.id} className="group/item relative">
                           <button
                             onClick={() => openEditor(t.id)}
-                            className={`flex w-full items-center gap-2.5 rounded-pill p-1.5 text-left transition ${
+                            className={`flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition ${
                               t.id === selectedId ? 'bg-white/[0.06] ring-1 ring-white/[0.16]' : 'hover:bg-white/[0.06]'
                             }`}
                           >
-                            <div className="overflow-hidden rounded-pill">
+                            <div className="overflow-hidden rounded">
                               {pp && (
                                 <LazyMount w={52} h={(52 * frameSize(pp.sizeKey).h) / frameSize(pp.sizeKey).w} rootMargin="300px">
                                   <ThumbnailCard thumb={t} params={pp} assets={assetsFor(t)} displayW={52} showFrame={showFrame} />
@@ -967,7 +967,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                               }}
                               title="Delete thumbnail"
                               aria-label={`Delete ${t.name}`}
-                              className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-pill text-dim opacity-0 transition hover:bg-red-500/15 hover:text-red-400 focus:opacity-100 group-hover/item:opacity-100"
+                              className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-dim opacity-0 transition hover:bg-red-500/15 hover:text-red-400 focus:opacity-100 group-hover/item:opacity-100"
                             >
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -992,7 +992,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           <button
             onClick={exportAll}
             disabled={exporting}
-            className="w-full rounded-pill bg-white/[0.06] py-2 text-xs font-medium text-white hover:bg-white/[0.12] disabled:opacity-60"
+            className="w-full rounded-lg bg-white/[0.06] py-2 text-xs font-medium text-white hover:bg-white/[0.12] disabled:opacity-60"
           >
             {exporting ? 'Exporting…' : 'Export all'}
           </button>
@@ -1000,14 +1000,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
       </aside>
 
       {/* CENTER — canvas / grid */}
-      <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-card border border-ring bg-deep lg:min-h-0 lg:overflow-hidden">
+      <div className="flex min-h-[55vh] flex-1 flex-col overflow-visible rounded-xl border border-ring bg-deep lg:min-h-0 lg:overflow-hidden">
         <div className="flex flex-wrap items-center justify-end gap-2 border-b border-ring px-4 py-2.5">
           <div className="flex flex-wrap items-center justify-end gap-1.5">
             <select
               value={effSizeKey}
               onChange={(e) => setViewSize(e.target.value)}
               title="Preview aspect size (view only)"
-              className="h-8 rounded-pill border border-white/[0.16] bg-panel px-2 text-xs text-white outline-none transition focus:border-white/[0.4]"
+              className="h-8 rounded-lg border border-white/[0.16] bg-panel px-2 text-xs text-white outline-none transition focus:border-white/[0.4]"
             >
               {FRAME_SIZES.map((s) => (
                 <option key={s.key} value={s.key}>
@@ -1077,15 +1077,15 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             }}
           >
             {selectMode && (
-              <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-card border border-accent/40 bg-panel/95 p-2 text-xs shadow-lg backdrop-blur">
+              <div className="sticky top-0 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-panel/95 p-2 text-xs shadow-lg backdrop-blur">
                 <span className="font-medium text-white">{selectedIds.size} selected</span>
-                <button onClick={() => setSelectedIds(new Set(gridItems.map((t) => t.id)))} className="rounded-pill border border-white/[0.16] px-2 py-1 text-muted hover:bg-white/[0.06]">All</button>
-                <button onClick={() => setSelectedIds(new Set())} className="rounded-pill border border-white/[0.16] px-2 py-1 text-muted hover:bg-white/[0.06]">None</button>
+                <button onClick={() => setSelectedIds(new Set(gridItems.map((t) => t.id)))} className="rounded-md border border-white/[0.16] px-2 py-1 text-muted hover:bg-white/[0.06]">All</button>
+                <button onClick={() => setSelectedIds(new Set())} className="rounded-md border border-white/[0.16] px-2 py-1 text-muted hover:bg-white/[0.06]">None</button>
                 <span className="mx-1 h-4 w-px bg-white/[0.12]" />
                 <span className="text-muted">Logo</span>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'white' })} className="rounded-pill border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40">White</button>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'color' })} className="rounded-pill border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40">Colour</button>
-                <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-pill border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40" title="Pick each frame colour from its background">Auto colour</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'white' })} className="rounded-md border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40">White</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={() => bulkPatch({ logoVariant: 'color' })} className="rounded-md border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40">Colour</button>
+                <button disabled={!selectedIds.size || bulkBusy} onClick={bulkAutoColor} className="rounded-md border border-white/[0.16] px-2 py-1 text-white hover:bg-white/[0.06] disabled:opacity-40" title="Pick each frame colour from its background">Auto colour</button>
                 <span className="ml-1 hidden text-[11px] text-dim lg:inline">Size &amp; placement → controls panel</span>
                 {bulkBusy && <span className="text-muted">working…</span>}
               </div>
@@ -1110,7 +1110,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       }
                       openEditor(t.id)
                     }}
-                    className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-card p-2 transition ${
+                    className={`group relative flex cursor-pointer flex-col items-center gap-2 rounded-xl p-2 transition ${
                       selectMode && picked
                         ? 'bg-accent/10 ring-2 ring-accent'
                         : active
@@ -1121,14 +1121,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   >
                     {selectMode && (
                       <div
-                        className={`absolute left-3 top-3 z-10 grid h-5 w-5 place-items-center rounded-pill border text-[11px] leading-none ${
+                        className={`absolute left-3 top-3 z-10 grid h-5 w-5 place-items-center rounded-md border text-[11px] leading-none ${
                           picked ? 'border-accent bg-white text-black' : 'border-white/[0.4] bg-black/50 text-transparent'
                         }`}
                       >
                         ✓
                       </div>
                     )}
-                    <div className="w-full overflow-hidden rounded-pill shadow-lg">
+                    <div className="w-full overflow-hidden rounded-lg shadow-lg">
                       <GridTile
                         thumb={t}
                         params={pp}
@@ -1225,7 +1225,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
           <span className="text-sm font-medium">Edit{selected ? ` · ${selected.name}` : ''}</span>
           <button
             onClick={() => setMobilePanel(null)}
-            className="grid h-6 w-6 place-items-center rounded-pill text-muted hover:bg-white/[0.06] hover:text-white"
+            className="grid h-6 w-6 place-items-center rounded-md text-muted hover:bg-white/[0.06] hover:text-white"
             aria-label="Close"
           >
             ✕
@@ -1258,7 +1258,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
         <div className="border-b border-ring p-3">
           {editingBranch ? (
             <>
-              <div className="rounded-pill bg-white/[0.06] px-3 py-2 text-xs">
+              <div className="rounded-lg bg-white/[0.06] px-3 py-2 text-xs">
                 <span className="font-medium text-white">Frame design</span>
                 <span className="text-dim"> · {branch?.name}</span>
               </div>
@@ -1268,7 +1268,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             </>
           ) : bulkMode ? (
             <>
-              <div className="flex items-center justify-between rounded-pill bg-accent/10 px-3 py-2 text-xs">
+              <div className="flex items-center justify-between rounded-lg bg-accent/10 px-3 py-2 text-xs">
                 <span className="font-medium text-accent">{selectedIds.size} selected</span>
                 <button onClick={exitSelect} className="text-[11px] text-muted underline hover:text-white">
                   done
@@ -1299,7 +1299,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
 
         <div className="flex-1 space-y-4 overflow-y-auto p-3">
           {lockedForClient && (
-            <div className="rounded-pill border border-ring bg-white/[0.04] p-3 text-xs text-muted">
+            <div className="rounded-lg border border-ring bg-white/[0.04] p-3 text-xs text-muted">
               You have client access. Pick your branch from the top bar to change the frame design and choose colour or white logotypes.
             </div>
           )}
@@ -1310,7 +1310,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 <select
                   value={p.sizeKey}
                   onChange={(e) => set('sizeKey', e.target.value)}
-                  className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                  className="rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
                 >
                   {FRAME_SIZES.map((s) => (
                     <option key={s.key} value={s.key}>
@@ -1347,7 +1347,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                 {scope === 'selected' && selected && (
                   <button
                     onClick={() => autoColorThumb(selected)}
-                    className="w-full rounded-pill border border-white/[0.16] py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
+                    className="w-full rounded-lg border border-white/[0.16] py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
                     title="Pick the frame colour from this game's background"
                   >
                     Auto colour from background
@@ -1433,7 +1433,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     <select
                       value={p.fontFamily}
                       onChange={(e) => set('fontFamily', e.target.value)}
-                      className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                      className="rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
                     >
                       {FONT_OPTIONS.map((f) => (
                         <option key={f} value={f}>
@@ -1446,7 +1446,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                     <select
                       value={p.textWeight}
                       onChange={(e) => set('textWeight', Number(e.target.value))}
-                      className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
+                      className="rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
                     >
                       {WEIGHT_OPTIONS.map((w) => (
                         <option key={w} value={w}>
@@ -1482,7 +1482,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                           type="color"
                           value={p.textColor}
                           onChange={(e) => set('textColor', e.target.value)}
-                          className="h-6 w-8 cursor-pointer rounded-pill border border-white/[0.16] bg-transparent"
+                          className="h-6 w-8 cursor-pointer rounded border border-white/[0.16] bg-transparent"
                         />
                       )}
                     </div>
@@ -1535,14 +1535,14 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                       set('animFx', { ...cur, [slot]: { ...cur[slot], ...patch } })
                     }
                     return (
-                      <div key={slot} className="space-y-2 rounded-pill border border-ring bg-panel p-2">
+                      <div key={slot} className="space-y-2 rounded-lg border border-ring bg-panel p-2">
                         <p className="text-[11px] font-semibold text-white">{FX_SLOT_LABEL[slot]}</p>
 
                         <p className="text-[10px] uppercase tracking-wide text-dim">Motion</p>
                         <select
                           value={moL.mo}
                           onChange={(e) => setMo({ mo: e.target.value as MoLayer['mo'] })}
-                          className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs capitalize outline-none focus:border-accent"
+                          className="w-full rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs capitalize outline-none focus:border-accent"
                         >
                           {MO_KINDS.map((o) => (
                             <option key={o} value={o}>
@@ -1567,7 +1567,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                               key={o}
                               onClick={() => setFx({ fx: o })}
                               title={o}
-                              className={`rounded-pill border py-1.5 text-[11px] transition ${
+                              className={`rounded-md border py-1.5 text-[11px] transition ${
                                 fxL.fx === o ? 'border-accent bg-accent/15 text-accent' : 'border-white/[0.16] text-muted hover:bg-white/[0.06]'
                               }`}
                             >
@@ -1610,7 +1610,7 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
                   })}
                   <button
                     onClick={() => setPlaying((v) => !v)}
-                    className="w-full rounded-pill bg-white/[0.06] py-1.5 text-xs font-medium text-white hover:bg-white/[0.12]"
+                    className="w-full rounded-lg bg-white/[0.06] py-1.5 text-xs font-medium text-white hover:bg-white/[0.12]"
                   >
                     {playing ? "Pause preview" : "Play preview"}
                   </button>
@@ -1634,11 +1634,11 @@ export function ThumbnailStudio({ role, branch, saveFrameParams }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || !dirty}
-              className="flex-1 rounded-pill bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
+              className="flex-1 rounded-lg bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
             >
               {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
             </button>
-            <button onClick={handleReset} disabled={!dirty} className="rounded-pill border border-white/[0.16] px-3 py-2 text-sm text-muted disabled:opacity-40">
+            <button onClick={handleReset} disabled={!dirty} className="rounded-lg border border-white/[0.16] px-3 py-2 text-sm text-muted disabled:opacity-40">
               {editingBranch || scope === 'global' ? 'Reset' : 'Clear'}
             </button>
           </div>
@@ -1696,7 +1696,7 @@ function FitPreview({
   return (
     <div ref={ref} className="flex h-full w-full items-center justify-center p-3">
       {dw > 0 && (
-        <div className="overflow-hidden rounded-pill shadow-2xl">
+        <div className="overflow-hidden rounded-lg shadow-2xl">
           <ThumbnailCard thumb={thumb} params={params} assets={assets} displayW={dw} phase={phase} showFrame={showFrame} />
         </div>
       )}
@@ -1734,13 +1734,13 @@ function Seg({
   onChange: (v: string) => void
 }) {
   return (
-    <div className="flex rounded-pill bg-white/[0.06] p-0.5 text-xs">
+    <div className="flex rounded-lg bg-white/[0.06] p-0.5 text-xs">
       {options.map((o) => (
         <button
           key={o.value}
           disabled={o.disabled}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-pill py-1 capitalize transition ${
+          className={`flex-1 rounded py-1 capitalize transition ${
             value === o.value ? 'bg-white/[0.12] font-medium text-white' : 'text-muted hover:text-white'
           } disabled:opacity-40`}
         >
@@ -1774,13 +1774,13 @@ function ThumbColorPicker({
       </button>
       {/* popover — pt-1.5 acts as an invisible bridge so hover survives the gap */}
       <div className="invisible absolute right-0 top-full z-30 pt-1.5 opacity-0 transition group-hover/col:visible group-hover/col:opacity-100">
-        <div className="w-44 rounded-card border border-white/[0.16] bg-[#15161a] p-2 shadow-2xl">
-          <div className="mb-2 flex rounded-pill bg-white/[0.06] p-0.5 text-[11px]">
+        <div className="w-44 rounded-xl border border-white/[0.16] bg-[#15161a] p-2 shadow-2xl">
+          <div className="mb-2 flex rounded-lg bg-white/[0.06] p-0.5 text-[11px]">
             {(['dark', 'light'] as PaletteMode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => setTab(m)}
-                className={`flex-1 rounded-pill py-1 capitalize transition ${tab === m ? 'bg-white text-black' : 'text-muted hover:text-white'}`}
+                className={`flex-1 rounded-md py-1 capitalize transition ${tab === m ? 'bg-white text-black' : 'text-muted hover:text-white'}`}
               >
                 {m}
               </button>
