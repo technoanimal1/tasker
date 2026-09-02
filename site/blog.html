@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>thumbs.store Blog — Casino Lobby Operations & Thumbnail Engineering</title>
+    <meta name="description" content="Notes from the team rendering 10,000+ casino thumbnails: template geometry, lobby operations, promo events, pricing maths and renderer internals." />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --yellow: #fef150;
+        --page: #000; --panel: #121212; --deep: #0a0a0a; --ring: #222222;
+        --muted: rgb(255 255 255 / 0.62); --dim: rgb(255 255 255 / 0.4);
+        --sans: 'Inter', system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--page); color: #fff; font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p { margin: 0; }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+      ::selection { background: var(--yellow); color: #050505; }
+      main { max-width: 1270px; margin: 0 auto; padding: 140px 24px 0; display: flex; flex-direction: column; gap: 80px; }
+
+      .navwrap { position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; justify-content: center; background: rgb(0 0 0 / 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgb(255 255 255 / 0.07); }
+      nav { width: 100%; max-width: 1270px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; }
+      .brand { display: flex; align-items: center; gap: 10px; flex: none; font-weight: 600; font-size: 14px; }
+      .brand svg { width: 28px; height: 26px; }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .nav-link[aria-current] { color: #fff; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border-radius: 999px; border: 0; font: 600 13px/1.2 var(--sans); cursor: pointer; white-space: nowrap; transition: background 0.2s ease; }
+      .btn-y { background: #fff; color: #000; }
+      .btn-y:hover { background: var(--yellow); }
+      .btn-o { color: #fff; background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); }
+      .btn-o:hover { background: rgb(255 255 255 / 0.12); }
+      .nav-cta { display: flex; gap: 10px; }
+
+      .hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; }
+      .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+      .hero h1 { font-size: clamp(34px, 4vw, 54px); font-weight: 600; letter-spacing: -0.04em; line-height: 1.08; text-wrap: balance; }
+      .lede { max-width: 600px; color: var(--muted); font-size: 17px; line-height: 1.6; }
+      .soon { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #000; background: var(--yellow); border-radius: 999px; padding: 5px 14px; }
+
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .post { border: 1px solid var(--ring); border-radius: 28px; background: var(--panel); padding: 28px; display: flex; flex-direction: column; gap: 12px; transition: transform 0.25s ease, border-color 0.25s ease; }
+      .post:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .post.feature { grid-column: 1 / -1; background: var(--deep); }
+      .post .meta { display: flex; gap: 10px; align-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+      .post .meta i { font-style: normal; border: 1px solid rgb(255 255 255 / 0.2); border-radius: 999px; padding: 2px 9px; }
+      .post h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+      .post.feature h2 { font-size: clamp(24px, 2.6vw, 34px); max-width: 720px; }
+      .post p { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 640px; }
+      .post .more { margin-top: auto; padding-top: 6px; font-size: 13px; font-weight: 600; color: var(--dim); }
+
+      .sub { border: 1px solid var(--ring); border-radius: 28px; background: var(--deep); padding: 36px 32px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+      .sub h2 { font-size: clamp(22px, 2.4vw, 30px); font-weight: 600; letter-spacing: -0.03em; }
+      .sub p { font-size: 14px; color: var(--muted); max-width: 480px; }
+      .sub form { display: flex; gap: 8px; width: min(440px, 100%); }
+      .sub input {
+        flex: 1; min-width: 0;
+        background: rgb(255 255 255 / 0.05);
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 999px;
+        padding: 12px 20px;
+        font: 500 14px var(--sans);
+        color: #fff;
+        outline: none;
+      }
+      .sub input::placeholder { color: var(--dim); }
+      .sub input:focus { border-color: rgb(255 255 255 / 0.4); }
+      .sub .btn { padding: 12px 22px; font-size: 14px; }
+      .sub small { font-size: 11px; color: var(--dim); }
+
+      footer { border-top: 1px solid rgb(255 255 255 / 0.08); padding: 32px 0 52px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--dim); }
+      footer .links { display: flex; gap: 20px; }
+      footer a:hover { color: #fff; }
+
+      @media (max-width: 1199.98px) { .nav-links { display: none; } }
+      @media (max-width: 809.98px) {
+        main { padding: 120px 20px 0; gap: 60px; }
+        .grid { grid-template-columns: 1fr; }
+        .nav-cta .btn-o { display: none; }
+        .sub form { flex-direction: column; }
+      }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    </style>
+      <link rel="canonical" href="https://www.thumbs.store/blog" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta property="og:site_name" content="thumbs.store" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="thumbs.store Blog — Casino Lobby Operations & Thumbnail Engineering" />
+    <meta property="og:description" content="Notes from the team rendering 10,000+ casino thumbnails: template geometry, lobby operations, promo events, pricing maths and renderer internals." />
+    <meta property="og:url" content="https://www.thumbs.store/blog" />
+    <meta property="og:image" content="https://www.thumbs.store/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="thumbs.store Blog — Casino Lobby Operations & Thumbnail Engineering" />
+    <meta name="twitter:description" content="Notes from the team rendering 10,000+ casino thumbnails: template geometry, lobby operations, promo events, pricing maths and renderer internals." />
+    <meta name="twitter:image" content="https://www.thumbs.store/og.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Blog","name":"thumbs.store Blog","url":"https://www.thumbs.store/blog","description":"Casino lobby operations and thumbnail engineering, from the thumbs.store team.","publisher":{"@id":"https://www.thumbs.store/#org"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.thumbs.store/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://www.thumbs.store/blog"}]}]}</script>
+  </head>
+  <body>
+    <div class="navwrap">
+      <nav>
+        <a class="brand" href="/" aria-label="thumbs.store — home">
+          <svg viewBox="0 0 47 43" fill="none" aria-hidden="true">
+            <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+          </svg>
+          thumbs.store
+        </a>
+        <div class="nav-links">
+          <a class="nav-link" href="/studio">Studio</a>
+          <a class="nav-link" href="/pricing">Pricing</a>
+          <a class="nav-link" href="/blog" aria-current="page">Blog</a>
+          <a class="nav-link" href="/roadmap">Roadmap</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
+        </div>
+      </nav>
+    </div>
+
+    <main>
+      <section class="hero">
+        <span class="soon">First posts publishing soon</span>
+        <p class="eyebrow">Blog</p>
+        <h1>From the workshop.</h1>
+        <p class="lede">
+          Notes from the team rendering 10,000+ casino thumbnails: template geometry, lobby
+          operations, pricing maths, and what we learn shipping the renderer.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="post feature">
+          <div class="meta"><i>Operations</i><span>Draft</span></div>
+          <h2>Why hand-made thumbnails don't scale past 500 games.</h2>
+          <p>
+            Every lobby starts the same way: a designer, a folder, and a naming convention.
+            Here's the maths of where that breaks — files, drift, launch delays — and what a
+            template system changes about each one.
+          </p>
+          <span class="more">Coming soon →</span>
+        </article>
+        <article class="post">
+          <div class="meta"><i>Engineering</i><span>Draft</span></div>
+          <h2>One template, four sizes: the geometry of the frame.</h2>
+          <p>Anchors, contain-fits and per-size layouts — how one set of numbers draws a portrait tile and a 16:9 banner from the same three assets.</p>
+          <span class="more">Coming soon →</span>
+        </article>
+        <article class="post">
+          <div class="meta"><i>Engineering</i><span>Draft</span></div>
+          <h2>Bands, glows and provider tabs — inside the renderer.</h2>
+          <p>The smootherstep light band, the colour glow, the white bloom: why the frame looks lit instead of pasted, at any size.</p>
+          <span class="more">Coming soon →</span>
+        </article>
+        <article class="post">
+          <div class="meta"><i>Pricing</i><span>Draft</span></div>
+          <h2>Batch credits: how we priced 10,000 thumbnails.</h2>
+          <p>One thumbnail, one credit — why we dropped per-game and per-size pricing, and what that does to an operator's year-one bill.</p>
+          <span class="more">Coming soon →</span>
+        </article>
+        <article class="post">
+          <div class="meta"><i>Product</i><span>Draft</span></div>
+          <h2>Promo events without a design file.</h2>
+          <p>NEW badges, Drops &amp; Wins frames and seasonal takeovers as data, not artwork — scheduling a lobby like a content calendar.</p>
+          <span class="more">Coming soon →</span>
+        </article>
+      </section>
+
+      <section class="sub">
+        <h2>Get the first posts in your inbox.</h2>
+        <p>One email when we publish. Lobby operations, renderer internals, no fluff.</p>
+        <form action="https://www.thumbs.store/apply" method="get" onsubmit="return false">
+          <input type="email" name="email" placeholder="you@casino.com" aria-label="Email address" required />
+          <button class="btn btn-y" type="submit">Notify me</button>
+        </form>
+        <small>No spam, unsubscribe anytime.</small>
+      </section>
+
+      <footer>
+        <span>© <span id="year">2026</span> thumbs.store · By Cubicle</span>
+        <div class="links">
+          <a href="/">Home</a>
+          <a href="/studio">Studio</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/roadmap">Roadmap</a>
+        </div>
+      </footer>
+    </main>
+    <script>document.getElementById('year').textContent = String(new Date().getFullYear())</script>
+  </body>
+</html>

@@ -1,0 +1,3089 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>thumbs.store Studio — How One Template Draws 10,000+ Casino Thumbnails</title>
+    <meta name="description" content="Inside the thumbs.store Studio: a live thumbnail editor, the 7-step rendering process, per-size layouts, logo variants, light bands, CSS and AI motion, and API export. Try the real template in your browser." />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Inter, the Endless Tools typeface. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+
+    <style>
+      :root {
+        --yellow: #fef150;
+        --blue: #2c5cff;
+        --page: #000000;
+        --panel: #121212;
+        --deep: #0a0a0a;
+        --ring: #222222;
+        --line: rgb(255 255 255 / 0.08);
+        --text: #ffffff;
+        --muted: rgb(255 255 255 / 0.62);
+        --dim: rgb(255 255 255 / 0.4);
+        --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p, figure { margin: 0; }
+      :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+      ::selection { background: var(--yellow); color: #050505; }
+
+      /* ---- page column: open sections on pure black ---- */
+      main {
+        max-width: 1270px;
+        margin: 0 auto;
+        padding: 150px 24px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 150px;
+      }
+      .card { position: relative; background: none; border-radius: 0; padding: 0; }
+
+      /* ---- shared type ---- */
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-align: center;
+        color: var(--dim);
+        text-transform: uppercase;
+      }
+      .h2 {
+        font-size: clamp(32px, 3.4vw, 46px);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.12em;
+        text-align: center;
+        color: #fff;
+        text-wrap: balance;
+      }
+      .lede {
+        max-width: 640px;
+        margin: 0 auto;
+        text-align: center;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.6em;
+      }
+      .center-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      /* ---- buttons: rounded-full pills ---- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 0;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s ease, filter 0.2s ease;
+      }
+      .btn-y { background: #ffffff; color: #000000; }
+      .btn-y:hover { background: var(--yellow); }
+      .btn-o {
+        color: #fff;
+        background: rgb(255 255 255 / 0.06);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+      .btn-o:hover { background: rgb(255 255 255 / 0.12); }
+
+      /* ---- nav ---- */
+      .navwrap {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 60;
+        display: flex;
+        justify-content: center;
+        background: rgb(0 0 0 / 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgb(255 255 255 / 0.07);
+      }
+      nav {
+        width: 100%;
+        max-width: 1270px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: none;
+      }
+      .brand-mark { width: 28px; height: 26px; flex: none; }
+      .brand-lock { display: flex; flex-direction: column; gap: 4px; }
+      .brand-word { width: 143px; height: 14px; display: block; }
+      .brand-sub {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        width: 143px;
+        line-height: 1;
+      }
+      .brand-sub i {
+        font-family: var(--sans);
+        font-style: italic;
+        font-weight: 600;
+        font-size: 10px;
+        color: rgb(255 240 80);
+      }
+      .brand-sub b {
+        font-family: var(--sans);
+        font-weight: 600;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgb(255 255 255 / 0.75);
+      }
+      .nav-cta { display: flex; align-items: center; gap: 10px; }
+      .nav-cta .btn { padding: 9px 18px; font-size: 13px; }
+      .nav-links { display: flex; align-items: center; gap: 4px; margin-right: auto; margin-left: 28px; }
+      .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 9px 12px; border-radius: 999px; }
+      .nav-link:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+      .nav-link[aria-current] { color: #fff; }
+
+      /* ---- hero ---- */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 48px;
+        padding: 0;
+      }
+      .hero-editor {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+      }
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+        max-width: 840px;
+      }
+      .hero-kicker {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--dim);
+        max-width: 660px;
+        line-height: 1.6em;
+      }
+      .hero h1 {
+        font-size: clamp(40px, 5.2vw, 68px);
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1.05em;
+        color: #fff;
+        text-wrap: balance;
+      }
+      .hero-lede { color: var(--muted); font-size: 17px; max-width: 600px; }
+      .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+      /* ---- composite tile plumbing (shared with the editor) ---- */
+      .tilebox { position: relative; }
+      .tsx .tile > .baked {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .tsx .tile.shot { border: 0 !important; }
+
+      /* ---- marquee strip ---- */
+      .marquee {
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .marquee .track {
+        display: flex;
+        width: max-content;
+        animation: mslide 36s linear infinite;
+      }
+      .marquee .grp {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        padding: 18px 20px;
+        white-space: nowrap;
+      }
+      .marquee span {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .marquee span:nth-child(even) { color: rgb(255 255 255 / 0.22); }
+      @keyframes mslide { to { transform: translateX(-50%); } }
+
+      /* ---- problem grid ---- */
+      .cols4 {
+        display: flex;
+        gap: 56px;
+        margin-top: 48px;
+      }
+      .pcol {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+      .pcol .ico { width: 64px; height: 66px; flex: none; }
+      .pcol h3 {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        color: #fff;
+      }
+      .pcol p { font-size: 14px; line-height: 24px; color: var(--muted); }
+      .pcol .tcol { display: flex; flex-direction: column; gap: 8px; }
+
+      /* ---- size row ---- */
+      .cutrow {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 28px;
+        margin-top: 48px;
+        flex-wrap: wrap;
+      }
+      .cut { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+      .cut .tilebox { transition: transform 0.25s ease; }
+      .cut:hover .tilebox { transform: translateY(-6px) scale(1.03); }
+      .cut b {
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.08em;
+      }
+      .cut span { font-size: 12px; color: var(--dim); }
+
+      /* ---- anatomy / exploded layers ---- */
+      section.anatomy { overflow: visible; }
+      .anatomy-grid {
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        margin-top: 24px;
+      }
+      .anatomy-stage {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        justify-content: center;
+        perspective: 1300px;
+        padding: 60px 0;
+        cursor: pointer;
+      }
+      .anatomy-stage .tilebox {
+        width: 250px;
+        aspect-ratio: 3 / 4;
+        transform-style: preserve-3d;
+        transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .anatomy-stage .tile {
+        transform-style: preserve-3d;
+        transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+      }
+      .anatomy-stage .tile > * {
+        transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.6s ease;
+      }
+      .anatomy.on .anatomy-stage .tilebox { transform: rotateX(56deg) rotateZ(-34deg); }
+      .anatomy.on .anatomy-stage .tile {
+        overflow: visible;
+        background: transparent;
+        border-color: transparent !important;
+      }
+      .anatomy.on .anatomy-stage .lay-bg { transform: scale(var(--bg-scale, 1)) translateZ(0); border-radius: 16px; }
+      .anatomy.on .anatomy-stage .t-band { transform: translateZ(52px); }
+      .anatomy.on .anatomy-stage .t-glow { transform: translateX(-50%) translateZ(66px); }
+      .anatomy.on .anatomy-stage .t-bloom { transform: translateX(-50%) translateZ(80px); }
+      .anatomy.on .anatomy-stage .lay-kv { transform: translateZ(115px); }
+      .anatomy.on .anatomy-stage .lay-logo { transform: translateZ(155px); }
+      .anatomy.on .anatomy-stage .t-prov { transform: translateX(-50%) translateZ(190px); }
+      .ltag {
+        position: absolute;
+        left: 103%;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #fff;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease 0.35s, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .ltag::before { content: '—— '; color: rgb(255 255 255 / 0.3); }
+      .anatomy.on .ltag { opacity: 1; }
+      .anatomy-list {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .anatomy-list .row { display: flex; gap: 14px; align-items: baseline; }
+      .anatomy-list .k {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+        flex: 0 0 122px;
+      }
+      .anatomy-list p { font-size: 14px; line-height: 22px; color: var(--muted); }
+      .anatomy-hint {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--dim);
+      }
+
+      /* ---- CTA + footer ---- */
+      .cta-card { text-align: center; }
+      .cta-card::before {
+        content: '';
+        position: absolute;
+        top: -220px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(720px, 94vw);
+        height: 420px;
+        background: radial-gradient(ellipse at center, rgb(255 255 255 / 0.07), transparent 65%);
+        pointer-events: none;
+      }
+      .cta-card .center-stack { position: relative; }
+      .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+      .cta-card .btn-y { background: var(--yellow); color: #000; }
+      .cta-card .btn-y:hover { filter: brightness(1.06); background: var(--yellow); }
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid rgb(255 255 255 / 0.08);
+        padding: 36px 0 56px;
+        color: var(--dim);
+        font-size: 13px;
+      }
+      footer .links { display: flex; gap: 24px; }
+      footer a:hover { color: #fff; }
+
+      /* ---- reveal on scroll ---- */
+      .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+
+      /* ================== process sections ================== */
+      .pstep-card { overflow: visible; }
+      .pstep {
+        display: flex;
+        align-items: center;
+        gap: clamp(32px, 5vw, 72px);
+      }
+      .pstep-card:nth-of-type(even) .pstep { flex-direction: row-reverse; }
+      .pcopy {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .pcopy .step-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        color: var(--dim);
+        text-transform: uppercase;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.85);
+        color: #fff;
+        font-style: normal;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0;
+        flex: none;
+      }
+      .pcopy h2 {
+        font-size: clamp(26px, 2.5vw, 36px);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15em;
+        color: #fff;
+      }
+      .pcopy p { color: var(--muted); line-height: 1.6em; max-width: 520px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      .chip {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 999px;
+        padding: 5px 13px;
+        text-transform: uppercase;
+      }
+      .chip.on { color: #000; background: #fff; border-color: #fff; }
+      .pstage {
+        flex: 1 1 0;
+        min-width: 0;
+        border: 1px solid var(--ring);
+        border-radius: 28px;
+        background: var(--deep);
+        min-height: 340px;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+      }
+      .pstage::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 20%, transparent 80%, rgb(0 0 0 / 0.35));
+      }
+      .pstep-wide { flex-direction: column !important; align-items: stretch; gap: 8px; }
+      .pstep-wide .pcopy { align-items: center; text-align: center; }
+      .pstep-wide .pcopy p { max-width: 640px; }
+
+      /* -- 01 upload -- */
+      .up-zone {
+        width: min(400px, 100%);
+        border: 2px dashed rgb(255 255 255 / 0.22);
+        border-radius: 18px;
+        padding: 26px 24px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        background: #101010;
+      }
+      .up-file {
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #1b1b1b;
+        border: 1px solid rgb(255 255 255 / 0.1);
+        border-radius: 999px;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        animation: updrop 7s ease-in-out infinite;
+      }
+      .up-file i {
+        width: 22px; height: 26px; flex: none;
+        background: #fff;
+        border-radius: 3px 8px 3px 3px;
+        position: relative;
+      }
+      .up-file i::after {
+        content: 'CSV';
+        position: absolute; inset: auto 0 3px 0;
+        font-size: 8px; font-style: normal;
+        color: #050505; text-align: center; font-weight: 700;
+      }
+      @keyframes updrop {
+        0% { opacity: 0; transform: translateY(-26px); }
+        8%, 92% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(0); }
+      }
+      .up-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+      .up-rows li {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 13px; color: var(--muted);
+        border-bottom: 1px solid rgb(255 255 255 / 0.05);
+        padding-bottom: 8px;
+        opacity: 0;
+        animation: uprow 7s ease-out infinite;
+      }
+      .up-rows li b {
+        font-size: 11px; font-weight: 700;
+        color: #7ed321; letter-spacing: 0.08em;
+      }
+      .up-rows li:nth-child(1) { animation-delay: 0.0s; }
+      .up-rows li:nth-child(2) { animation-delay: 0.35s; }
+      .up-rows li:nth-child(3) { animation-delay: 0.7s; }
+      @keyframes uprow {
+        0%, 18% { opacity: 0; transform: translateX(-8px); }
+        26%, 92% { opacity: 1; transform: none; }
+        100% { opacity: 0; }
+      }
+      .up-bar { height: 6px; border-radius: 999px; background: #1d1d1d; overflow: hidden; }
+      .up-bar i { display: block; height: 100%; background: #fff; border-radius: inherit; animation: upfill 7s ease-in-out infinite; }
+      @keyframes upfill { 0%, 20% { width: 0; } 60%, 92% { width: 100%; } 100% { width: 100%; opacity: 0; } }
+      .up-done {
+        text-align: center; font-size: 12px; font-weight: 700;
+        letter-spacing: 0.1em; color: #7ed321; opacity: 0;
+        animation: updone 7s ease-out infinite;
+      }
+      @keyframes updone { 0%, 58% { opacity: 0; } 66%, 92% { opacity: 1; } 100% { opacity: 0; } }
+
+      /* -- 02 branded frame: swatch cycle under the exploded stack -- */
+      .swrow { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+      .swrow i {
+        width: 22px; height: 22px; border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        animation: swpulse 4.5s ease-in-out infinite;
+      }
+      .swrow i:nth-child(1) { background: #FF4FA3; animation-delay: 0s; }
+      .swrow i:nth-child(2) { background: #6C4FE8; animation-delay: 1.5s; }
+      .swrow i:nth-child(3) { background: #FEF150; animation-delay: 3s; }
+      @keyframes swpulse {
+        0%, 28%, 100% { box-shadow: none; transform: none; }
+        7%, 20% { box-shadow: 0 0 0 3px #000, 0 0 0 5px #fff; transform: translateY(-3px); }
+      }
+
+      /* -- 04 logo variants + translations -- */
+      .vstage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .vstage .lay-logo, .vstage .tlogo { opacity: 0; animation: vshow 16s ease-in-out infinite; }
+      .vstage .tlogo {
+        position: absolute; left: 8%; right: 8%; top: 60%;
+        text-align: center;
+        font-weight: 800;
+        font-size: 22px; line-height: 1.05em; letter-spacing: -0.02em;
+        color: #fff; z-index: 2;
+        text-shadow: 0 2px 12px rgb(0 0 0 / 0.55);
+      }
+      .vstage [data-v='1'] { animation-delay: 0s; }
+      .vstage [data-v='2'] { animation-delay: 4s; }
+      .vstage [data-v='3'] { animation-delay: 8s; }
+      .vstage [data-v='4'] { animation-delay: 12s; }
+      @keyframes vshow {
+        0%, 2% { opacity: 0; }
+        5%, 23% { opacity: 1; }
+        27%, 100% { opacity: 0; }
+      }
+      .vchips .chip { animation: vchip 16s ease-in-out infinite; }
+      .vchips .chip:nth-child(1) { animation-delay: 0s; }
+      .vchips .chip:nth-child(2) { animation-delay: 4s; }
+      .vchips .chip:nth-child(3) { animation-delay: 8s; }
+      .vchips .chip:nth-child(4) { animation-delay: 12s; }
+      @keyframes vchip {
+        0%, 2% { color: var(--muted); background: none; border-color: rgb(255 255 255 / 0.16); }
+        5%, 23% { color: #000; background: #fff; border-color: #fff; }
+        27%, 100% { color: var(--muted); background: none; border-color: rgb(255 255 255 / 0.16); }
+      }
+
+      /* -- 05 css light animations -- */
+      .cssstage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .cssstage .lay-kv { animation: kvfloat 4.5s ease-in-out infinite; }
+      @keyframes kvfloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+      .cssstage .shine {
+        position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.22) 50%, transparent 62%);
+        background-size: 260% 100%;
+        animation: shinemove 4.5s ease-in-out infinite;
+        border-radius: inherit;
+      }
+      @keyframes shinemove { 0%, 55% { background-position: 130% 0; } 90%, 100% { background-position: -50% 0; } }
+
+      /* -- 06 ai animations -- */
+      .aistage { position: relative; width: min(250px, 70vw); aspect-ratio: 3 / 4; }
+      .aistage .lay-kv { animation: aibreathe 5.5s ease-in-out infinite; transform-origin: 50% 70%; }
+      @keyframes aibreathe { 0%, 100% { scale: 1; rotate: 0deg; } 40% { scale: 1.035; rotate: -0.6deg; } 70% { scale: 1.015; rotate: 0.4deg; } }
+      .aistage .scan {
+        position: absolute; left: 4%; right: 4%; height: 3px; top: 0; z-index: 3;
+        background: linear-gradient(90deg, transparent, #ffffff, transparent);
+        filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.8));
+        animation: scanmove 5.5s ease-in-out infinite;
+        border-radius: 999px;
+      }
+      @keyframes scanmove { 0% { top: 4%; opacity: 0; } 8% { opacity: 1; } 46% { top: 92%; opacity: 1; } 54%, 100% { top: 92%; opacity: 0; } }
+      .aistage .spark {
+        position: absolute; width: 6px; height: 6px; z-index: 3; border-radius: 999px;
+        background: #fff; box-shadow: 0 0 10px rgb(255 255 255 / 0.9);
+        opacity: 0; animation: sparkle 5.5s ease-in-out infinite;
+      }
+      @keyframes sparkle { 0%, 50% { opacity: 0; scale: 0.4; } 58%, 66% { opacity: 1; scale: 1; } 74%, 100% { opacity: 0; scale: 0.4; } }
+
+      /* -- 07 export api -- */
+      .codebox {
+        width: min(460px, 100%);
+        background: #0a0a0a;
+        border: 1px solid var(--ring);
+        border-radius: 18px;
+        padding: 22px 24px;
+        font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0;
+        line-height: 1.9;
+        overflow: hidden;
+      }
+      .codebox .ln { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgb(255 255 255 / 0.55); opacity: 0; animation: lnshow 9s ease-out infinite; }
+      .codebox .ln:nth-child(1) { animation-delay: 0s; }
+      .codebox .ln:nth-child(2) { animation-delay: 0.5s; }
+      .codebox .ln:nth-child(3) { animation-delay: 1s; }
+      .codebox .ln:nth-child(4) { animation-delay: 1.5s; }
+      .codebox .ln:nth-child(5) { animation-delay: 2.6s; }
+      .codebox .ln:nth-child(6) { animation-delay: 3.1s; }
+      .codebox .y { color: var(--yellow); }
+      .codebox .w { color: #fff; }
+      .codebox .g { color: #7ed321; }
+      @keyframes lnshow { 0%, 4% { opacity: 0; transform: translateY(4px); } 9%, 93% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+      .fchips .chip { animation: fchip 9s ease-in-out infinite; }
+      .fchips .chip:nth-child(1) { animation-delay: 4.0s; }
+      .fchips .chip:nth-child(2) { animation-delay: 4.6s; }
+      .fchips .chip:nth-child(3) { animation-delay: 5.2s; }
+      .fchips .chip:nth-child(4) { animation-delay: 5.8s; }
+      .fchips .chip:nth-child(5) { animation-delay: 6.4s; }
+      @keyframes fchip {
+        0%, 3% { color: var(--muted); background: none; border-color: rgb(255 255 255 / 0.16); }
+        6%, 12% { color: #000; background: #fff; border-color: #fff; }
+        15%, 100% { color: var(--muted); background: none; border-color: rgb(255 255 255 / 0.16); }
+      }
+
+      /* ================== business benefits ================== */
+      .bgrid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 48px;
+      }
+      .bcard {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 24px 24px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .bcard:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .bcard h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+      .bcard p { font-size: 14px; line-height: 23px; color: var(--muted); }
+      .bviz {
+        height: 128px;
+        border-radius: 16px;
+        background: var(--deep);
+        border: 1px solid rgb(255 255 255 / 0.05);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 4px;
+      }
+
+      /* 1 — catalogue fills in */
+      .bz-cat { display: grid; grid-template-columns: repeat(4, 30px); gap: 7px; }
+      .bz-cat img {
+        width: 30px; height: 40px; object-fit: cover; border-radius: 4px; display: block;
+        opacity: 0; animation: bzpop 8s ease-out infinite;
+      }
+      .bz-cat img:nth-child(1) { animation-delay: 0.0s; }
+      .bz-cat img:nth-child(2) { animation-delay: 0.25s; filter: hue-rotate(60deg); }
+      .bz-cat img:nth-child(3) { animation-delay: 0.5s; filter: hue-rotate(140deg); }
+      .bz-cat img:nth-child(4) { animation-delay: 0.75s; filter: hue-rotate(210deg); }
+      .bz-cat img:nth-child(5) { animation-delay: 1.0s; filter: hue-rotate(260deg); }
+      .bz-cat img:nth-child(6) { animation-delay: 1.25s; filter: hue-rotate(30deg) saturate(1.3); }
+      .bz-cat img:nth-child(7) { animation-delay: 1.5s; filter: hue-rotate(180deg); }
+      .bz-cat img:nth-child(8) { animation-delay: 1.75s; filter: hue-rotate(300deg); }
+      @keyframes bzpop {
+        0% { opacity: 0; transform: scale(0.6); }
+        4%, 90% { opacity: 1; transform: scale(1); }
+        96%, 100% { opacity: 0; }
+      }
+      .bz-count {
+        position: absolute; right: 10px; bottom: 8px;
+        font-size: 12px; font-weight: 700;
+        color: #fff; letter-spacing: 0.06em;
+        opacity: 0; animation: bzcount 8s ease-out infinite;
+      }
+      @keyframes bzcount { 0%, 24% { opacity: 0; } 30%, 90% { opacity: 1; } 96%, 100% { opacity: 0; } }
+
+      /* 2 — release slides in */
+      .bz-rel { display: flex; gap: 8px; align-items: center; }
+      .bz-rel img { width: 38px; height: 51px; object-fit: cover; border-radius: 5px; display: block; opacity: 0.45; }
+      .bz-rel img:nth-child(2) { filter: hue-rotate(120deg); }
+      .bz-rel img:nth-child(3) { filter: hue-rotate(240deg); }
+      .bz-new {
+        position: relative; width: 38px; height: 51px; border-radius: 5px; flex: none;
+        animation: bznew 6s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+      }
+      .bz-new img { width: 100%; height: 100%; opacity: 1; border-radius: 5px; border: 1.5px solid #fff; box-sizing: border-box; }
+      .bz-new i {
+        position: absolute; top: -8px; right: -10px;
+        font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+        background: #fff; color: #050505; border-radius: 999px; padding: 2px 6px;
+      }
+      @keyframes bznew {
+        0% { opacity: 0; transform: translateX(46px); }
+        14%, 88% { opacity: 1; transform: translateX(0); }
+        96%, 100% { opacity: 0; transform: translateX(0); }
+      }
+
+      /* 3 — badges & events cycle */
+      .bz-tag { position: relative; width: 64px; height: 86px; }
+      .bz-tag > img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; display: block; }
+      .bz-tag b {
+        position: absolute; left: -34px;
+        font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+        background: #fff; color: #050505; border-radius: 999px; padding: 2px 8px;
+        opacity: 0; animation: bztag 9s ease-in-out infinite; white-space: nowrap;
+      }
+      .bz-tag b:nth-of-type(1) { top: 4px; animation-delay: 0s; }
+      .bz-tag b:nth-of-type(2) { top: 34px; animation-delay: 3s; background: var(--yellow); }
+      .bz-tag b:nth-of-type(3) { top: 64px; animation-delay: 6s; }
+      @keyframes bztag {
+        0%, 2% { opacity: 0; transform: translateX(-8px); }
+        7%, 30% { opacity: 1; transform: none; }
+        36%, 100% { opacity: 0; }
+      }
+
+      /* 4 — UI knobs morph */
+      .bz-ui { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+      .bz-ui .frame {
+        width: 58px; height: 78px;
+        border: 2.5px solid #fff;
+        background: linear-gradient(180deg, #241d33, #4a1f3d);
+        animation: bzmorph 7s ease-in-out infinite;
+      }
+      @keyframes bzmorph {
+        0%, 100% { border-radius: 6px; filter: hue-rotate(0deg); }
+        33% { border-radius: 22px; filter: hue-rotate(140deg); }
+        66% { border-radius: 12px; filter: hue-rotate(260deg); }
+      }
+      .bz-ui .slider { position: relative; width: 92px; height: 5px; border-radius: 999px; background: #242424; }
+      .bz-ui .slider i {
+        position: absolute; top: 50%; translate: 0 -50%;
+        width: 13px; height: 13px; border-radius: 999px; background: #fff;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+        animation: bzslide 7s ease-in-out infinite;
+      }
+      @keyframes bzslide { 0%, 100% { left: 6%; } 33% { left: 78%; } 66% { left: 42%; } }
+
+      /* -- white-label service -- */
+      .wl-card { overflow: hidden; }
+      .wl-grid { display: flex; align-items: center; gap: clamp(32px, 5vw, 72px); }
+      .wl-mock {
+        flex: 1 1 0; min-width: 0;
+        border: 1px solid var(--ring); border-radius: 24px; background: var(--deep);
+        overflow: hidden;
+        display: grid; grid-template-columns: 108px 1fr;
+        min-height: 300px;
+        animation: wlhue 14s linear infinite;
+      }
+      @keyframes wlhue { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(300deg); } }
+      .wl-side { border-right: 1px solid rgb(255 255 255 / 0.07); padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; background: #101010; }
+      .wl-side .logo { width: 26px; height: 26px; border-radius: 999px; background: var(--yellow); margin-bottom: 6px; }
+      .wl-side i { display: block; height: 8px; border-radius: 999px; background: rgb(255 255 255 / 0.12); }
+      .wl-side i:first-of-type { background: rgb(255 255 255 / 0.55); }
+      .wl-main { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+      .wl-top { display: flex; gap: 8px; align-items: center; }
+      .wl-top i { height: 10px; border-radius: 999px; background: rgb(255 255 255 / 0.1); flex: 1; }
+      .wl-top b { width: 64px; height: 22px; border-radius: 999px; background: #fff; }
+      .wl-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .wl-tiles img {
+        width: 100%; aspect-ratio: 3 / 4; object-fit: cover;
+        border-radius: 8px; display: block;
+        opacity: 0; transform: translateY(8px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .wl-tiles img:nth-child(2) { filter: hue-rotate(70deg); }
+      .wl-tiles img:nth-child(3) { filter: hue-rotate(160deg); }
+      .wl-tiles img:nth-child(4) { filter: hue-rotate(230deg); }
+      .wl-tiles img:nth-child(5) { filter: hue-rotate(40deg) saturate(1.2); }
+      .wl-tiles img:nth-child(6) { filter: hue-rotate(120deg); }
+      .wl-tiles img:nth-child(7) { filter: hue-rotate(200deg); }
+      .wl-tiles img:nth-child(8) { filter: hue-rotate(300deg); }
+      .reveal.in .wl-tiles img { opacity: 1; transform: none; }
+      .reveal.in .wl-tiles img:nth-child(n) { transition-delay: calc(var(--i, 0) * 90ms); }
+
+      /* ---- breakpoints ---- */
+      @media (max-width: 1199.98px) {
+        .nav-links { display: none; }
+        .cols4 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .anatomy-grid { flex-direction: column; }
+        .bgrid { grid-template-columns: 1fr 1fr; }
+        .pstep, .pstep-card:nth-of-type(even) .pstep { flex-direction: column; }
+        .pcopy { align-items: center; text-align: center; }
+        .pcopy .step-tag { justify-content: center; }
+        .pcopy p { max-width: 640px; }
+        .chips { justify-content: center; }
+        .pstage { width: 100%; }
+        .wl-grid { flex-direction: column; }
+        .wl-mock { width: 100%; }
+      }
+      @media (max-width: 809.98px) {
+        main { padding: 120px 20px 0; gap: 100px; }
+        .hero { gap: 36px; }
+        .hero h1 { font-size: 38px; }
+        .h2 { font-size: 30px; line-height: 1.15em; }
+        .eyebrow { font-size: 12px; }
+        .cols4 { grid-template-columns: 1fr; gap: 36px; }
+        .pcol { align-items: center; text-align: center; }
+        .nav-cta .btn-o { display: none; }
+        .nav-links { display: none; }
+        .anatomy-stage .tilebox { width: 200px; }
+        .ltag { display: none; }
+        .marquee span { font-size: 12px; }
+        .bgrid { grid-template-columns: 1fr; gap: 12px; }
+        .pstage { min-height: 300px; padding: 22px 14px; }
+        .codebox { font-size: 12px; padding: 16px; }
+        .wl-tiles { grid-template-columns: repeat(4, 1fr); }
+      }
+
+
+      /* ---- studio feature showcase ---- */
+      .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+      .feat {
+        border: 1px solid var(--ring);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 22px 22px 24px;
+        display: flex; flex-direction: column; gap: 10px; min-width: 0;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+      .feat:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.28); }
+      .feat h3 { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+      .feat p { font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+      .fv {
+        height: 92px; border-radius: 14px;
+        background: var(--deep); border: 1px solid rgb(255 255 255 / 0.05);
+        display: grid; place-items: center; overflow: hidden; position: relative;
+        margin-bottom: 4px;
+      }
+      /* layers */
+      .fv-layers { display: flex; flex-direction: column; gap: 5px; width: 110px; }
+      .fv-layers i { display: block; height: 12px; border-radius: 5px; border: 1px solid rgb(255 255 255 / 0.16); background: rgb(255 255 255 / 0.05); animation: fvlay 5s ease-in-out infinite; }
+      .fv-layers i:nth-child(1) { animation-delay: 0s; }
+      .fv-layers i:nth-child(2) { animation-delay: 1s; }
+      .fv-layers i:nth-child(3) { animation-delay: 2s; }
+      .fv-layers i:nth-child(4) { animation-delay: 3s; }
+      @keyframes fvlay { 0%, 15%, 100% { background: rgb(255 255 255 / 0.05); border-color: rgb(255 255 255 / 0.16); } 5%, 10% { background: rgb(255 255 255 / 0.9); border-color: #fff; } }
+      /* per-size */
+      .fv-sizes { display: flex; align-items: flex-end; gap: 8px; }
+      .fv-sizes i { display: block; border: 1.5px solid rgb(255 255 255 / 0.5); border-radius: 5px; }
+      .fv-sizes i:nth-child(1) { width: 28px; height: 38px; }
+      .fv-sizes i:nth-child(2) { width: 25px; height: 38px; }
+      .fv-sizes i:nth-child(3) { width: 27px; height: 38px; }
+      .fv-sizes i:nth-child(4) { width: 56px; height: 32px; border-color: #fff; }
+      /* swatches */
+      .fv-sw { display: flex; gap: 8px; }
+      .fv-sw i { width: 18px; height: 18px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.25); animation: fvsw 4.5s ease-in-out infinite; }
+      .fv-sw i:nth-child(1) { background: #ff4fa3; animation-delay: 0s; }
+      .fv-sw i:nth-child(2) { background: #6c4fe8; animation-delay: 0.9s; }
+      .fv-sw i:nth-child(3) { background: #12c2c2; animation-delay: 1.8s; }
+      .fv-sw i:nth-child(4) { background: #e8a33d; animation-delay: 2.7s; }
+      .fv-sw i:nth-child(5) { background: #7ed321; animation-delay: 3.6s; }
+      @keyframes fvsw { 0%, 24%, 100% { transform: none; box-shadow: none; } 6%, 16% { transform: translateY(-3px); box-shadow: 0 0 0 3px #0a0a0a, 0 0 0 4.5px #fff; } }
+      /* logo variants */
+      .fv-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 180px; }
+      .fv-chips i {
+        font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+        border: 1px solid rgb(255 255 255 / 0.18); color: var(--muted);
+        border-radius: 999px; padding: 4px 11px;
+        animation: fvchip 6s ease-in-out infinite;
+      }
+      .fv-chips i:nth-child(1) { animation-delay: 0s; }
+      .fv-chips i:nth-child(2) { animation-delay: 1.5s; }
+      .fv-chips i:nth-child(3) { animation-delay: 3s; }
+      .fv-chips i:nth-child(4) { animation-delay: 4.5s; }
+      @keyframes fvchip { 0%, 25%, 100% { background: none; color: rgb(255 255 255 / 0.62); border-color: rgb(255 255 255 / 0.18); } 6%, 18% { background: #fff; color: #000; border-color: #fff; } }
+      /* band */
+      .fv-band { position: relative; width: 64px; height: 84px; border-radius: 8px; border: 2px solid #ff4fa3; overflow: hidden; background: #1c1428; }
+      .fv-band i {
+        position: absolute; left: 0; right: 0; bottom: 0; height: 55%;
+        background: linear-gradient(to top, #ff4fa3, transparent);
+        animation: fvband 4s ease-in-out infinite;
+      }
+      @keyframes fvband { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+      /* provider tab */
+      .fv-prov { position: relative; width: 64px; height: 84px; border-radius: 8px; border: 2px solid #6c4fe8; background: #191330; }
+      .fv-prov i {
+        position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%);
+        font-style: normal; font-size: 7px; font-weight: 700; letter-spacing: 0.08em;
+        background: #6c4fe8; color: #fff; border-radius: 5px 5px 0 0; padding: 3px 8px;
+      }
+      /* precision fields */
+      .fv-xy { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 130px; }
+      .fv-xy i {
+        font-style: normal; font-family: var(--mono); font-size: 10px; color: var(--muted);
+        border: 1px solid rgb(255 255 255 / 0.14); border-radius: 7px; padding: 5px 8px;
+      }
+      .fv-xy i b { color: rgb(255 255 255 / 0.35); font-weight: 500; margin-right: 5px; }
+      /* motion */
+      .fv-motion { position: relative; width: 64px; height: 84px; border-radius: 8px; border: 2px solid #12c2c2; background: #102426; overflow: hidden; }
+      .fv-motion i {
+        position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+        border-radius: 999px; background: radial-gradient(circle at 35% 30%, #7be3e3, #12c2c2);
+        animation: fvfloat 3.5s ease-in-out infinite;
+      }
+      @keyframes fvfloat { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-6px); } }
+      .fv-motion::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.28) 50%, transparent 62%);
+        background-size: 260% 100%;
+        animation: fvshine 3.5s ease-in-out infinite;
+      }
+      @keyframes fvshine { 0%, 45% { background-position: 130% 0; } 85%, 100% { background-position: -50% 0; } }
+      /* export */
+      .fv-exp { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+      .fv-exp .row { display: flex; gap: 6px; }
+      .fv-exp .row i {
+        font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+        border: 1px solid rgb(255 255 255 / 0.18); color: var(--muted);
+        border-radius: 999px; padding: 3px 9px;
+      }
+      .fv-exp .dl {
+        font-family: var(--mono); font-size: 10px; color: var(--green);
+        opacity: 0; animation: fvdl 4.5s ease-out infinite;
+      }
+      @keyframes fvdl { 0%, 30% { opacity: 0; transform: translateY(3px); } 40%, 88% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+      @media (max-width: 1199.98px) { .feats { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 809.98px) { .feats { grid-template-columns: 1fr; gap: 12px; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .reveal { opacity: 1; transform: none; }
+        /* Anything that appears only through an animation gets a static state. */
+        .up-file, .up-rows li, .up-done, .codebox .ln { opacity: 1 !important; transform: none !important; }
+        .up-bar i { width: 100% !important; }
+        .vstage .lay-logo[data-v='1'] { opacity: 1 !important; }
+        .wl-tiles img { opacity: 1 !important; transform: none !important; }
+        .bz-cat img, .bz-count, .bz-new { opacity: 1 !important; transform: none !important; }
+        .bz-tag b:nth-of-type(1) { opacity: 1 !important; transform: none !important; }
+      }
+    </style>
+    <style>
+      #ts-editor {
+        /* Site tokens — the yellow reads the page's own variable when the
+           widget is inlined, and falls back to its value inside an iframe. */
+        --ts-brand: #2c5cff;
+        --ts-page: #000000;
+        --ts-panel: #171717;
+        --ts-bg: #0c0c0c;
+        --ts-line: #222222;
+        --ts-line-soft: rgb(255 255 255 / 0.06);
+        --ts-text: #ffffff;
+        --ts-muted: #999999;
+        --ts-dim: #7d7d7d;
+        --ts-radius: 24px;
+
+        /* Type stack — Inter everywhere, as Endless Tools sets it. */
+        --ts-body: 'Inter', system-ui, sans-serif;
+        --ts-semi: 'Inter', system-ui, sans-serif;
+        --ts-display: 'Inter', system-ui, sans-serif;
+        --ts-mono: 'Inter', system-ui, sans-serif;
+
+        container-type: inline-size;
+        container-name: ts;
+        width: 100%;
+        box-sizing: border-box;
+        color: var(--ts-text);
+        font-family: var(--ts-body);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      #ts-editor *,
+      #ts-editor *::before,
+      #ts-editor *::after {
+        box-sizing: border-box;
+      }
+      #ts-editor :focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+
+      #ts-editor .ts-shell {
+        border: 1px solid var(--ts-line);
+        border-radius: var(--ts-radius);
+        background: #0a0a0a;
+        overflow: hidden;
+      }
+
+      /* ---- title bar ---- */
+      #ts-editor .ts-bar {
+        background: #171717;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .ts-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      #ts-editor .ts-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #2a2f37;
+      }
+      #ts-editor .ts-tabs {
+        display: flex;
+        gap: 3px;
+        font-size: 12px;
+        color: var(--ts-dim);
+        overflow: hidden;
+      }
+      #ts-editor .ts-tabs span {
+        padding: 4px 10px;
+        border-radius: 7px;
+        white-space: nowrap;
+      }
+      #ts-editor .ts-tabs span[data-on] {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-live {
+        margin-left: auto;
+        flex: none;
+        font-family: var(--ts-mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #050505;
+        background: #fef150;
+        border-radius: 999px;
+        padding: 2px 10px;
+        white-space: nowrap;
+      }
+
+      /* ---- body grid ---- */
+      #ts-editor .ts-body {
+        display: grid;
+        grid-template-columns: minmax(148px, 178px) minmax(0, 1fr) minmax(168px, 206px);
+      }
+      #ts-editor .ts-rail {
+        border-right: 1px solid var(--ts-line-soft);
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .ts-label {
+        font-family: var(--ts-mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgb(255 255 255 / 0.45);
+        margin: 6px 4px 2px;
+      }
+      #ts-editor .layer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        background: none;
+        font-family: var(--ts-body);
+        font-size: 13px;
+        color: var(--ts-muted);
+        text-align: left;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .layer i {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background: #2b313a;
+        flex: none;
+      }
+      #ts-editor .layer:hover {
+        background: rgb(255 255 255 / 0.05);
+      }
+      #ts-editor .layer[data-on] {
+        background: rgb(255 255 255 / 0.09);
+        border-color: rgb(255 255 255 / 0.32);
+        color: var(--ts-text);
+      }
+      #ts-editor .layer[data-on] i {
+        background: var(--ts-brand);
+      }
+
+      #ts-editor .ts-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 2px 4px;
+      }
+      #ts-editor .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1px solid rgb(255 255 255 / 0.18);
+        padding: 0;
+        cursor: pointer;
+      }
+      #ts-editor .swatch[aria-pressed='true'] {
+        box-shadow: 0 0 0 2px var(--ts-panel), 0 0 0 3.5px var(--ts-brand);
+      }
+
+      /* ---- canvas ---- */
+      #ts-editor .ts-canvas {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        place-items: start center;
+        min-width: 0;
+        background-color: #0c0c0c;
+        /* A height of its own — the frame is fitted inside it, so the canvas
+           must not be sized by the frame in turn. */
+        height: clamp(320px, 62cqi, 560px);
+        padding: 20px 20px 58px;
+        background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+      #ts-editor .ts-frame {
+        position: relative;
+        aspect-ratio: var(--ar, 3 / 4);
+        max-width: 100%;
+        height: auto;
+        justify-self: center;
+        touch-action: none;
+        cursor: grab;
+        filter: drop-shadow(0 18px 36px rgb(0 0 0 / 0.8));
+      }
+      #ts-editor .ts-frame.dragging {
+        cursor: grabbing;
+      }
+      #ts-editor .ts-frame:focus-visible {
+        outline: 2px solid var(--ts-brand);
+        outline-offset: 12px;
+      }
+
+      /* Frame chrome — Control Area frame: radius 16/244 and stroke 2.5/244
+         of the frame width (set in px by the script), light band on its edge,
+         colour glow + white overlay bloom, provider tab. */
+      .tsx .tile {
+        position: absolute;
+        inset: 0;
+        border-radius: 15px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #0a0c11;
+        border: 1px solid var(--accent, #ff4fa3);
+        container-type: inline-size;
+      }
+      .tsx .tile > .lay-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transform: scale(var(--bg-scale, 1));
+        transform-origin: center;
+      }
+      .tsx .tile > .lay-kv,
+      .tsx .tile > .lay-logo {
+        position: absolute;
+        object-fit: contain;
+      }
+      .tsx .tile > .lay-logo {
+        z-index: 2;
+      }
+      .tsx .t-band {
+        position: absolute;
+        z-index: 1;
+      }
+      .tsx .t-glow {
+        position: absolute;
+        left: 50%;
+        bottom: -5%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 34%;
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(2px);
+      }
+      .tsx .t-bloom {
+        position: absolute;
+        left: 50%;
+        bottom: -12.3%;
+        transform: translateX(-50%);
+        width: 81.1%;
+        height: 27.5%;
+        border-radius: 50%;
+        z-index: 1;
+        mix-blend-mode: overlay;
+        background: radial-gradient(closest-side, #ffffff, rgba(255, 255, 255, 0) 70%);
+      }
+      .tsx .t-prov {
+        position: absolute;
+        left: 50%;
+        bottom: 0.3%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45em 1.1em 0.55em;
+        border-radius: 3.3cqw 3.3cqw 0 0;
+        background: var(--accent);
+        font-size: 4cqw;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      /* Selection box + handles */
+      #ts-editor .ts-sel {
+        position: absolute;
+        border: 1.5px solid #2c5cff;
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 6;
+      }
+      #ts-editor .ts-sel[data-fixed] .handle {
+        display: none;
+      }
+      #ts-editor .handle {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        background: var(--ts-brand);
+        box-shadow: 0 0 0 2px #0a0b0d;
+        pointer-events: auto;
+      }
+      #ts-editor .handle.tl { left: -5px; top: -5px; cursor: nwse-resize; }
+      #ts-editor .handle.tr { right: -5px; top: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.bl { left: -5px; bottom: -5px; cursor: nesw-resize; }
+      #ts-editor .handle.br { right: -5px; bottom: -5px; cursor: nwse-resize; }
+
+      #ts-editor .ts-sizebar {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 26px;
+        display: flex;
+        gap: 3px;
+        max-width: calc(100% - 24px);
+        overflow-x: auto;
+        background: rgb(10 11 13 / 0.75);
+        border: 1px solid var(--ts-line);
+        border-radius: 999px;
+        padding: 3px;
+        scrollbar-width: none;
+      }
+      #ts-editor .ts-sizebar::-webkit-scrollbar {
+        display: none;
+      }
+      #ts-editor .size-btn {
+        border: 0;
+        background: none;
+        border-radius: 999px;
+        padding: 3px 11px;
+        font-family: var(--ts-mono);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ts-muted);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      #ts-editor .size-btn[aria-pressed='true'] {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--ts-text);
+      }
+      #ts-editor .ts-hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 7px;
+        margin: 0;
+        text-align: center;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+
+      /* ---- properties ---- */
+      #ts-editor .ts-props {
+        border-left: 1px solid var(--ts-line-soft);
+        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      #ts-editor .prop {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      #ts-editor .prop label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--ts-dim);
+      }
+      #ts-editor .prop label b {
+        font-family: var(--ts-semi);
+        color: var(--ts-muted);
+        font-weight: 600;
+      }
+      #ts-editor .prop:not([data-dim]) label b {
+        color: var(--ts-brand);
+      }
+      #ts-editor input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--ts-brand) 0 var(--fill, 50%),
+          #22262d var(--fill, 50%) 100%
+        );
+        cursor: pointer;
+      }
+      #ts-editor input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+      }
+      #ts-editor input[type='range']::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: 0;
+        border-radius: 999px;
+        background: #fff;
+      }
+      #ts-editor .switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ts-muted);
+        cursor: pointer;
+      }
+      #ts-editor .switch input {
+        accent-color: var(--ts-brand);
+        width: 14px;
+        height: 14px;
+      }
+      #ts-editor .ts-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      #ts-editor .field {
+        border: 1px solid var(--ts-line);
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 11.5px;
+        color: var(--ts-muted);
+        background: rgb(255 255 255 / 0.02);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #ts-editor .field b {
+        display: block;
+        font-size: 9px;
+        color: var(--ts-dim);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+      }
+      #ts-editor .ts-actions {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #ts-editor .ts-reset {
+        white-space: nowrap;
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 999px;
+        height: 40px;
+        background: rgb(38 38 38 / 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        font-family: var(--ts-mono);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #ffffff;
+        cursor: pointer;
+      }
+      #ts-editor .ts-reset:hover {
+        background: rgb(60 60 60 / 0.6);
+      }
+      #ts-editor .ts-export {
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 40px;
+        border: 0;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #050505;
+        font-family: var(--ts-mono);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      #ts-editor .ts-export:hover {
+        background: #fef150;
+      }
+
+      /* ---- filmstrip + status ---- */
+      #ts-editor .ts-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 10px 12px;
+        border-top: 1px solid var(--ts-line-soft);
+        background: rgb(255 255 255 / 0.015);
+      }
+      #ts-editor .film {
+        flex: 0 0 auto;
+        width: 54px;
+        aspect-ratio: 3 / 4;
+        border-radius: 7px;
+        overflow: hidden;
+        border: 1.5px solid transparent;
+        background: #14171c;
+        padding: 0;
+        opacity: 0.62;
+        cursor: pointer;
+      }
+      #ts-editor .film img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #ts-editor .film[aria-pressed='true'] {
+        opacity: 1;
+        border-color: var(--ts-brand);
+      }
+      #ts-editor .ts-note {
+        min-height: 18px;
+        margin: 0;
+        padding: 11px 12px 13px;
+        border-top: 1px solid var(--ts-line-soft);
+        background: #171717;
+        font-size: 13px;
+        color: var(--ts-muted);
+        text-align: center;
+      }
+
+      /* ===== responsive: driven by the widget's own width ===== */
+
+      /* Tablet and down — one column: rail becomes a chip row above the
+         canvas, properties move underneath in two columns. */
+      @container ts (max-width: 860px) {
+        #ts-editor .ts-body {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #ts-editor .ts-rail {
+          border-right: 0;
+          border-bottom: 1px solid var(--ts-line-soft);
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 10px 12px;
+          scrollbar-width: none;
+        }
+        #ts-editor .ts-rail::-webkit-scrollbar {
+          display: none;
+        }
+        #ts-editor .ts-label {
+          display: none;
+        }
+        #ts-editor .ts-swatches {
+          padding-left: 4px;
+          border-left: 1px solid var(--ts-line-soft);
+        }
+        #ts-editor .ts-layers {
+          display: flex;
+          gap: 6px;
+          flex: none;
+        }
+        #ts-editor .layer {
+          width: auto;
+        }
+        #ts-editor .ts-swatches {
+          flex-wrap: nowrap;
+          flex: none;
+        }
+        #ts-editor .ts-props {
+          border-left: 0;
+          border-top: 1px solid var(--ts-line-soft);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px 16px;
+          align-items: end;
+        }
+        #ts-editor .ts-actions {
+          grid-column: 1 / -1;
+          flex-direction: row;
+        }
+        #ts-editor .ts-actions > * {
+          flex: 1;
+        }
+        #ts-editor .ts-fields {
+          grid-column: 1 / -1;
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      /* Phone — single-column controls, tighter chrome, no hint line. */
+      @container ts (max-width: 460px) {
+        #ts-editor .ts-export,
+        #ts-editor .ts-reset {
+          font-size: 12px;
+        }
+        #ts-editor .size-btn {
+          font-size: 11px;
+          padding: 3px 9px;
+        }
+        #ts-editor .ts-canvas {
+          padding: 14px 14px 52px;
+          height: clamp(300px, 96cqi, 420px);
+        }
+        #ts-editor .ts-props {
+          grid-template-columns: 1fr;
+        }
+        #ts-editor .ts-fields {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        #ts-editor .ts-hint {
+          display: none;
+        }
+        #ts-editor .ts-tabs span:nth-child(n + 3) {
+          display: none;
+        }
+        #ts-editor .ts-live {
+          display: none;
+        }
+        #ts-editor .ts-shell {
+          border-radius: 12px;
+        }
+      }
+
+      /* Fallback for engines without container queries: same two breakpoints,
+         measured against the viewport instead of the widget. */
+      @supports not (container-type: inline-size) {
+        @media (max-width: 860px) {
+          #ts-editor .ts-body { grid-template-columns: minmax(0, 1fr); }
+          #ts-editor .ts-rail { border-right: 0; border-bottom: 1px solid var(--ts-line-soft); flex-direction: row; align-items: center; gap: 8px; overflow-x: auto; padding: 10px 12px; }
+          #ts-editor .ts-label { display: none; }
+          #ts-editor .ts-layers { display: flex; gap: 6px; flex: none; }
+          #ts-editor .layer { width: auto; }
+          #ts-editor .ts-swatches { flex-wrap: nowrap; flex: none; }
+          #ts-editor .ts-canvas { height: 420px; }
+          #ts-editor .ts-props { border-left: 0; border-top: 1px solid var(--ts-line-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; align-items: end; }
+          #ts-editor .ts-actions { grid-column: 1 / -1; flex-direction: row; }
+          #ts-editor .ts-fields { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 460px) {
+          #ts-editor .ts-props { grid-template-columns: 1fr; }
+          #ts-editor .ts-canvas { height: 360px; padding: 14px 14px 52px; }
+          #ts-editor .ts-hint, #ts-editor .ts-live { display: none; }
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #ts-editor * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+      <link rel="canonical" href="https://www.thumbs.store/studio" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta property="og:site_name" content="thumbs.store" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="thumbs.store Studio — How One Template Draws 10,000+ Casino Thumbnails" />
+    <meta property="og:description" content="Inside the thumbs.store Studio: a live thumbnail editor, the 7-step rendering process, per-size layouts, logo variants, light bands, CSS and AI motion, and API export. Try the real template in your browser." />
+    <meta property="og:url" content="https://www.thumbs.store/studio" />
+    <meta property="og:image" content="https://www.thumbs.store/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="thumbs.store Studio — How One Template Draws 10,000+ Casino Thumbnails" />
+    <meta name="twitter:description" content="Inside the thumbs.store Studio: a live thumbnail editor, the 7-step rendering process, per-size layouts, logo variants, light bands, CSS and AI motion, and API export. Try the real template in your browser." />
+    <meta name="twitter:image" content="https://www.thumbs.store/og.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"thumbs.store Studio","applicationCategory":"DesignApplication","operatingSystem":"Web","url":"https://www.thumbs.store/studio","description":"A live browser editor for casino game thumbnails: move layers, switch sizes, recolour frames \u2014 every game inherits one template.","offers":{"@type":"Offer","price":"69","priceCurrency":"USD","url":"https://www.thumbs.store/pricing"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.thumbs.store/"},{"@type":"ListItem","position":2,"name":"Studio","item":"https://www.thumbs.store/studio"}]}]}</script>
+  </head>
+
+  <body>
+    <div class="navwrap">
+      <nav>
+        <a class="brand" href="/" aria-label="thumbs.store — home">
+          <!-- Mark + wordmark: the site's own SVGs, paths unchanged (ids renamed
+               only so they can't collide when this page is embedded). -->
+          <svg class="brand-mark" viewBox="0 0 47 43" fill="none" aria-hidden="true">
+            <g clip-path="url(#ts-brand-mark-clip)">
+              <path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/>
+            </g>
+            <defs><clipPath id="ts-brand-mark-clip"><rect width="46.8486" height="43" fill="white"/></clipPath></defs>
+          </svg>
+          <span class="brand-lock">
+            <svg class="brand-word" viewBox="0 0 239 24" fill="none" aria-hidden="true">
+              <g clip-path="url(#ts-brand-word-clip)">
+                <path d="M165.069 23.822V0H188.822C189.014 0 190.279 0.37239 190.534 0.479179C192.308 1.21574 197.53 6.04039 199.159 7.5984C202.297 10.5967 202.182 13.3403 199.093 16.2975C197.428 17.8912 192.461 22.5104 190.627 23.3018C190.334 23.4277 189.197 23.822 188.956 23.822H165.066H165.069ZM196.147 9.58357V7.18768C196.147 6.30873 194.318 4.79179 193.477 4.79179H170.271V9.58357H196.147ZM196.147 14.3754H170.271V19.0302H193.614C194.079 19.0302 195.232 18.2033 195.533 17.8008C195.69 17.5927 196.147 16.6727 196.147 16.4974V14.3754Z" fill="white"/>
+                <path d="M238.999 0V4.79179H210.591C210.037 4.79179 208.885 5.56669 208.545 6.03217C208.455 6.15539 207.921 7.12196 207.921 7.18768V9.58357H238.999V12.1164C238.999 14.2631 234.377 18.4799 232.772 19.9913C231.453 21.2345 228.901 23.822 227.02 23.822H202.718V19.0302H231.264C231.658 19.0302 232.688 18.3402 232.978 18.0062C233.18 17.7734 233.797 16.7247 233.797 16.4974V14.3754H202.718V11.5687C202.718 11.2456 203.315 9.97787 203.518 9.63012C204.567 7.82567 209.449 3.16258 211.207 1.71135C212.036 1.02681 213.901 0.00273816 214.974 0.00273816H239.002L238.999 0Z" fill="white"/>
+                <path d="M142.068 0V4.92869C143.749 3.61164 145.321 1.18015 147.369 0.440844C147.695 0.323103 148.845 0 149.119 0H162.878V23.822H157.676V4.79179H144.875C144.483 4.79179 143.38 5.35859 143.076 5.66252C142.583 6.15539 142.068 7.33006 142.068 8.00913V23.822H136.866V4.79179H124.065C123.512 4.79179 122.359 5.56669 122.019 6.03217C121.929 6.15539 121.395 7.12196 121.395 7.18768V23.822H116.192V11.5687C116.192 11.2456 116.789 9.97787 116.992 9.63012C118.041 7.82567 122.923 3.16258 124.681 1.71135C125.51 1.02681 127.375 0.00273816 128.448 0.00273816H142.071L142.068 0Z" fill="white"/>
+                <path d="M44.3157 0V6.77695C44.3157 6.89196 44.6306 7.70793 44.7209 7.8777C45.3343 9.01677 46.4624 9.45214 47.6863 9.56714C52.5685 10.0272 58.1215 9.15916 63.0064 9.58083C65.9389 9.83274 68.0802 12.9187 70.3255 14.515V0H75.528V23.822H70.3255V17.182C70.3255 15.9169 68.8606 14.5533 67.6448 14.3863C62.7462 14.1426 57.5985 14.6683 52.7273 14.3808C48.6693 14.1399 47.5823 11.8562 44.7264 9.64929C44.5895 9.5425 44.5512 9.38642 44.3157 9.44393V23.8193H39.1132V0H44.3157Z" fill="white"/>
+                <path d="M108.799 0H114.002V23.822H108.799V18.8933C106.316 21.0127 105.089 23.5756 101.48 23.8275C98.2985 24.0493 93.1399 24.0657 89.9691 23.8275C88.4302 23.7125 87.3705 23.2278 86.2068 22.2503C84.7994 21.0647 79.041 15.4186 78.351 14.0878C78.0197 13.4471 77.5816 11.9932 77.5816 11.2977V0H82.7157L82.921 0.205362V16.7712C82.921 17.5708 84.835 19.1452 85.7304 19.0275C92.2116 18.5921 99.4705 19.6135 105.861 19.0357C107.203 18.9152 108.799 17.6365 108.799 16.2236V0Z" fill="white"/>
+                <path d="M21.452 0V4.79179C21.6902 4.85203 21.7258 4.69321 21.8627 4.58642C23.8123 3.09412 25.447 0 28.3659 0H36.8542L37.0595 0.205362V4.79179H24.1217C23.826 4.79179 22.8129 5.31751 22.5445 5.54204C22.2214 5.81038 21.452 6.96041 21.452 7.32459V23.822H16.2495V4.79179H0.641968V0H21.452Z" fill="white"/>
+              </g>
+              <defs><clipPath id="ts-brand-word-clip"><rect width="238.357" height="24" fill="white" transform="translate(0.641968)"/></clipPath></defs>
+            </svg>
+            <span class="brand-sub"><i>.store</i><b>By Cubicle</b></span>
+          </span>
+        </a>
+        <div class="nav-links">
+          <a class="nav-link" href="/">Home</a>
+          <a class="nav-link" href="/studio" aria-current="page">Studio</a>
+          <a class="nav-link" href="/pricing">Pricing</a>
+          <a class="nav-link" href="/blog">Blog</a>
+          <a class="nav-link" href="/roadmap">Roadmap</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-o" href="https://app.thumbs.store/login">Log in</a>
+          <a class="btn btn-y" href="https://app.thumbs.store/signup">Sign up</a>
+        </div>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ============================== HERO ============================== -->
+      <section class="card hero" id="editor">
+        <div class="hero-copy">
+          <p class="hero-kicker">For casino operators, aggregators and platform providers — the system behind the 10,000-thumbnail library — with new releases added every week.</p>
+          <h1>Every thumbnail, drawn by one template.</h1>
+          <p class="hero-lede">
+            thumbs.store isn’t a folder of images. It’s a rendering system: three shared layers per
+            game, one layout per aspect, and 10,000+ titles that inherit it — new ones added every
+            week. This is the real
+            template below — move it.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
+          </div>
+        </div>
+        <div class="hero-editor">
+<div id="ts-editor" class="tsx">
+        <div class="ts-shell">
+          <div class="ts-bar">
+            <div class="ts-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="ts-tabs">
+              <span data-on>Thumbnails</span><span>Template</span><span>Frames</span><span>Brand assets</span>
+            </div>
+            <span class="ts-live">live · try it</span>
+          </div>
+
+          <div class="ts-body">
+            <aside class="ts-rail">
+              <div class="ts-label ts-label-layers" id="ts-layersLabel">Layers</div>
+              <div class="ts-layers" role="radiogroup" aria-labelledby="ts-layersLabel">
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="bg"><i></i> Background</button>
+                <button class="layer" type="button" role="radio" aria-checked="true" data-layer="kv" data-on><i></i> Key visual</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="logo"><i></i> Game logotype</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="band"><i></i> Light band</button>
+                <button class="layer" type="button" role="radio" aria-checked="false" data-layer="prov"><i></i> Provider badge</button>
+              </div>
+              <div class="ts-label" id="ts-paletteLabel">Frame colour</div>
+              <div class="ts-swatches" id="ts-swatches" role="group" aria-labelledby="ts-paletteLabel"></div>
+            </aside>
+
+            <div class="ts-canvas" id="ts-canvas">
+              <div
+                class="ts-frame"
+                id="ts-frame"
+                tabindex="0"
+                role="application"
+                aria-label="Thumbnail canvas — drag the selected layer, arrow keys nudge it, corner handles resize it"
+              >
+                <div class="tile" id="ts-tile">
+                  <img class="lay-bg" id="ts-layBg" alt="" decoding="async" />
+                  <div class="t-band" id="ts-layBand"></div>
+                  <div class="t-glow" id="ts-layGlow"></div>
+                  <div class="t-bloom" id="ts-layBloom"></div>
+                  <img class="lay-kv" id="ts-layKv" alt="The game's key visual" decoding="async" />
+                  <img class="lay-logo" id="ts-layLogo" alt="" decoding="async" />
+                  <div class="t-prov" id="ts-layProv">PRAGMATIC</div>
+                </div>
+                <div class="ts-sel" id="ts-sel">
+                  <span class="handle tl" data-h="tl"></span>
+                  <span class="handle tr" data-h="tr"></span>
+                  <span class="handle bl" data-h="bl"></span>
+                  <span class="handle br" data-h="br"></span>
+                </div>
+              </div>
+              <div class="ts-sizebar" id="ts-sizeBar" role="group" aria-label="Frame size"></div>
+              <p class="ts-hint">Drag to move · corner to resize · arrow keys to nudge</p>
+            </div>
+
+            <aside class="ts-props">
+              <div class="prop" data-for="kv">
+                <label for="ts-kvScale">Key visual scale <b id="ts-kvScaleVal">122%</b></label>
+                <input id="ts-kvScale" type="range" min="40" max="220" step="1" value="122" />
+              </div>
+              <div class="prop" data-for="logo">
+                <label for="ts-logoScale">Logo scale <b id="ts-logoScaleVal">38%</b></label>
+                <input id="ts-logoScale" type="range" min="10" max="120" step="1" value="38" />
+              </div>
+              <div class="prop" data-for="band">
+                <label for="ts-bandOpacity">Band opacity <b id="ts-bandVal">100%</b></label>
+                <input id="ts-bandOpacity" type="range" min="0" max="100" step="1" value="100" />
+              </div>
+              <label class="switch"><input type="checkbox" id="ts-provOn" checked /> <span>Provider badge</span></label>
+              <label class="switch"><input type="checkbox" id="ts-whiteOn" checked /> <span>White logotype</span></label>
+              <div class="ts-fields">
+                <div class="field"><b>X</b><span id="ts-fX">0</span></div>
+                <div class="field"><b>Y</b><span id="ts-fY">0</span></div>
+                <div class="field"><b>W</b><span id="ts-fW">0</span></div>
+                <div class="field"><b>H</b><span id="ts-fH">0</span></div>
+              </div>
+              <div class="ts-actions">
+                <button class="ts-reset" type="button" id="ts-resetBtn">Reset</button>
+                <button class="ts-export" type="button" id="ts-exportBtn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Export PNG
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div class="ts-strip" id="ts-filmstrip" role="group" aria-label="Pick a game"></div>
+          <p class="ts-note" id="ts-labNote" role="status">Loading the editor…</p>
+        </div>
+      </div>
+        </div>
+      </section>
+
+      <!-- ============================ MARQUEE ============================= -->
+      <div class="marquee" aria-hidden="true">
+        <div class="track">
+          <div class="grp">
+            <span>10,000+ thumbnails</span><span>·</span><span>new every week</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+          <div class="grp">
+            <span>10,000+ thumbnails</span><span>·</span><span>new every week</span><span>·</span><span>60+ providers</span><span>·</span>
+            <span>one template</span><span>·</span><span>3:4</span><span>·</span><span>2:3</span><span>·</span>
+            <span>47:66</span><span>·</span><span>16:9</span><span>·</span><span>brand-accurate</span><span>·</span>
+            <span>no mock-ups</span><span>·</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== STUDIO FEATURE SHOWCASE ==================== -->
+      <section class="card reveal" id="features">
+        <div class="center-stack">
+          <p class="eyebrow">Inside the studio</p>
+          <h2 class="h2">Every control, doing real work.</h2>
+          <p class="lede">
+            Nothing here is a mock-up — each of these is a live control in the editor above,
+            backed by the same template that renders the whole library.
+          </p>
+        </div>
+        <div class="feats">
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-layers"><i></i><i></i><i></i><i></i></div></div>
+            <h3>Layer control</h3>
+            <p>Background, key visual, logotype, light band, provider badge — select any layer and work on it alone, exactly like a design tool.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-sizes"><i></i><i></i><i></i><i></i></div></div>
+            <h3>A layout per size</h3>
+            <p>3:4, 2:3, 47:66 and 16:9 each remember their own anchors, scales and offsets. Portrait stacks; landscape splits. Switch cuts, nothing breaks.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-sw"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <h3>Frame colour, everywhere at once</h3>
+            <p>Pick an accent and the stroke, light band, glow and badge all repaint together — per game or across the whole catalogue.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-chips"><i>White</i><i>Colour</i><i>Text · EN</i><i>Text · DE</i></div></div>
+            <h3>Logo variants &amp; translations</h3>
+            <p>Original colour logotype, a white knockout for busy art, or the title set as text in your typeface — localised for every market you run.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-band"><i></i></div></div>
+            <h3>The light band, tuned live</h3>
+            <p>The seamless accent gradient from the renderer — smootherstep eased, no visible edge — with opacity on a slider from 0 to 100.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-prov"><i>PRAGMATIC</i></div></div>
+            <h3>Provider badge</h3>
+            <p>The studio's name on a tab in the frame colour, flush to the bottom edge — toggle it per game or per lobby policy.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-xy"><i><b>X</b>-99</i><i><b>Y</b>-26</i><i><b>W</b>1098</i><i><b>H</b>1373</i></div></div>
+            <h3>Pixel-level precision</h3>
+            <p>Drag to move, corners to resize, arrow keys to nudge — with live X / Y / W / H readouts in the real export pixels.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-motion"><i></i></div></div>
+            <h3>Motion, two tiers</h3>
+            <p>Free CSS presets — float, pulse, shine — that cost your players nothing, and AI animations that loop perfectly with alpha.</p>
+          </div>
+          <div class="feat">
+            <div class="fv" aria-hidden="true"><div class="fv-exp"><div class="row"><i>PNG</i><i>WebP</i><i>AVIF</i><i>WebM</i></div><span class="dl">↓ sweet-bonanza-3x4.png</span></div></div>
+            <h3>Export, or don't</h3>
+            <p>Pull a file straight from the canvas in any format — or skip files entirely and let the API serve every cut from the CDN.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== BUSINESS BENEFITS ====================== -->
+      <section class="card reveal" id="benefits">
+        <div class="center-stack">
+          <p class="eyebrow">Business benefits</p>
+          <h2 class="h2">What your team actually gets.</h2>
+          <p class="lede">
+            Less a design tool, more an operations upgrade: coverage on day one, releases that ship
+            themselves, and a lobby your team can run without a designer in the loop.
+          </p>
+        </div>
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-cat">
+                <img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+              </div>
+              <span class="bz-count">10,000+</span>
+            </div>
+            <h3>Get all your games</h3>
+            <p>Your full catalogue, covered on day one. 10,000+ thumbnails, with new ones added every week — no gaps, no grey placeholders in the lobby.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-rel">
+                <img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <span class="bz-new"><img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" /><i>NEW</i></span>
+              </div>
+            </div>
+            <h3>Automatic game releases</h3>
+            <p>New titles arrive with artwork already made. The moment a release lands in the library, your API serves it — your lobby is never the last to launch.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-tag">
+                <img src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <b>NEW</b><b>HOT</b><b>DROPS &amp; WINS</b>
+              </div>
+            </div>
+            <h3>Manage thumbnails, tags &amp; promo events</h3>
+            <p>Pin NEW and HOT badges, run Drops &amp; Wins or tournament frames, schedule seasonal takeovers — from one dashboard, without touching a design file.</p>
+          </div>
+          <div class="bcard">
+            <div class="bviz" aria-hidden="true">
+              <div class="bz-ui">
+                <div class="frame"></div>
+                <div class="slider"><i></i></div>
+              </div>
+            </div>
+            <h3>Customize your UI</h3>
+            <p>Corner radius, stroke, band, badge shape — tuned to your lobby per brand. One template change restyles every tile you serve, everywhere.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ PROBLEM ============================= -->
+      <section class="card reveal">
+        <h2 class="h2">Hand-made thumbnails don’t scale.</h2>
+        <div class="cols4">
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#141414" />
+              <rect x="20" y="30" width="30" height="28" rx="6" fill="#FFFFFF" opacity="0.35" />
+              <rect x="26" y="25" width="30" height="28" rx="6" fill="#FFFFFF" opacity="0.6" />
+              <rect x="32" y="20" width="30" height="28" rx="6" fill="#FFFFFF" />
+            </svg>
+            <div class="tcol">
+              <h3>One-off files</h3>
+              <p>Every new game and every new size becomes another file to redraw, rename and eventually lose.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#141414" />
+              <rect x="18" y="24" width="26" height="34" rx="5" stroke="#FFFFFF" stroke-width="3" opacity="0.4" />
+              <rect x="34" y="20" width="26" height="34" rx="5" stroke="#FFFFFF" stroke-width="3" />
+            </svg>
+            <div class="tcol">
+              <h3>Layout drift</h3>
+              <p>Logos and key visuals slide out of place from game to game — the lobby stops reading as one product.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#141414" />
+              <circle cx="38.5" cy="40" r="17" stroke="#FFFFFF" stroke-width="3" opacity="0.4" />
+              <path d="M38.5 30v10l7 6" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Slow launches</h3>
+              <p>New titles sit in a design queue waiting for artwork instead of going live the day you get them.</p>
+            </div>
+          </div>
+          <div class="pcol">
+            <svg class="ico" viewBox="0 0 77 80" fill="none" aria-hidden="true">
+              <rect width="77" height="80" rx="24" fill="#141414" />
+              <path d="M24 30h20M34 30v22" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+              <path d="M46 40l10 12M56 40L46 52" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <div class="tcol">
+              <h3>Brand breakage</h3>
+              <p>Generic typography replaces the game’s original art — and the recognition players buy with dies with it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== THE PROCESS ====================== -->
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">01</i>Upload</span>
+            <h2>Upload your CSV — or any file you have.</h2>
+            <p>
+              Send us your game list however it lives today: a CSV export, a spreadsheet, a JSON
+              dump from your aggregator. We match every row against the 10,000+ thumbnail library —
+              providers, slugs and all — and flag anything we don't cover yet.
+            </p>
+            <div class="chips"><span class="chip">CSV</span><span class="chip">XLSX</span><span class="chip">JSON</span><span class="chip">API feed</span></div>
+          </div>
+          <div class="pstage" aria-hidden="true">
+            <div class="up-zone">
+              <div class="up-file"><i></i> games.csv</div>
+              <ul class="up-rows">
+                <li>sweet-bonanza · Pragmatic <b>MATCHED</b></li>
+                <li>gates-of-olympus · Pragmatic <b>MATCHED</b></li>
+                <li>wanted-dead-or-a-wild · Hacksaw <b>MATCHED</b></li>
+              </ul>
+              <div class="up-bar"><i></i></div>
+              <p class="up-done">10,000+ GAMES MATCHED</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card anatomy">
+        <div class="pstep pstep-wide">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">02</i>Frame</span>
+            <h2>Make your branded frame.</h2>
+            <p>
+              Stroke, corner radius, light band, glow and provider tab — designed once with our
+              team, in your colours, as a template. Tap the stack to see the layers every game
+              inherits; nothing is ever drawn into a file by hand.
+            </p>
+            <div class="swrow" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+          <div class="anatomy-grid tsx">
+          <div class="anatomy-stage" id="anatomyStage" role="button" tabindex="0" aria-label="Toggle the exploded layer view">
+            <div class="tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div>
+                <div class="t-glow"></div>
+                <div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza key visual" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <span class="ltag" style="top: 84%; transform: translateZ(0)">Background</span>
+                <span class="ltag" style="top: 66%; transform: translateZ(52px)">Light band</span>
+                <span class="ltag" style="top: 30%; transform: translateZ(115px)">Key visual</span>
+                <span class="ltag" style="top: 55%; transform: translateZ(155px)">Logotype</span>
+                <span class="ltag" style="top: 93%; transform: translateZ(190px)">Provider tab</span>
+              </div>
+            </div>
+          </div>
+          <div class="anatomy-list">
+            <div class="row"><span class="k">Background</span><p>The game’s own scene, filling the frame at 120% so every cut stays covered.</p></div>
+            <div class="row"><span class="k">Key visual</span><p>A clean cutout with its own transparent padding, anchored and scaled by the template — never stretched.</p></div>
+            <div class="row"><span class="k">Light band</span><p>A seamless gradient in the game’s accent colour, eased in so there’s no visible edge.</p></div>
+            <div class="row"><span class="k">Glow + bloom</span><p>A colour glow and a white overlay bloom lift the lower third, exactly like the renderer.</p></div>
+            <div class="row"><span class="k">Logotype</span><p>The original game logotype, white where the art needs it — original branding, not typography.</p></div>
+            <div class="row"><span class="k">Provider tab</span><p>The provider’s name on a tab in the frame colour, flush to the bottom edge.</p></div>
+            <p class="anatomy-hint">Click the tile to stack it back together.</p>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep pstep-wide">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">03</i>Scale</span>
+            <h2>Scale at any size.</h2>
+            <p>
+              Portrait stacks the key visual over the logotype; landscape splits them left and
+              right. Each aspect keeps its own layout in the template, so a new lobby size is one
+              decision — not thousands of redraws.
+            </p>
+          </div>
+          <div class="cutrow tsx" aria-label="One game rendered at four aspect sizes">
+          <div class="cut">
+            <div class="tilebox" style="width: 132px; aspect-ratio: 3 / 4">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 3:4 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>3:4</b><span>900 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 118px; aspect-ratio: 2 / 3">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="2:3">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 2:3 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>2:3</b><span>800 × 1200</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 126px; aspect-ratio: 47 / 66">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="47:66">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 47:66 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>47:66</b><span>940 × 1320</span>
+          </div>
+          <div class="cut">
+            <div class="tilebox" style="width: 232px; aspect-ratio: 16 / 9">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="16:9">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="Sweet Bonanza, 16:9 cut" loading="lazy" decoding="async" /><img class="lay-logo" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <b>16:9</b><span>1280 × 720</span>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">04</i>Variants</span>
+            <h2>Original colour, white knockouts — or text with custom fonts and translations.</h2>
+            <p>
+              Every game ships with its original colour logotype and a clean white variant for busy
+              art. No logotype at all? We set the title as text in your typeface — and localise it
+              for every market you run.
+            </p>
+            <div class="chips vchips"><span class="chip">White</span><span class="chip">Colour</span><span class="chip">Text · EN</span><span class="chip">Text · DE</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="vstage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" data-v="1" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo lay-logo-c" data-v="2" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/assets/47453318-634c-4833-aeb2-4598bd73d543/logoColor.png" alt="" loading="lazy" decoding="async" />
+                <span class="tlogo" data-v="3">SWEET BONANZA</span>
+                <span class="tlogo" data-v="4">SÜSSE BONANZA</span>
+                <div class="t-prov">PRAGMATIC</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">05</i>Motion</span>
+            <h2>Light CSS animations, free with every tile.</h2>
+            <p>
+              Float, pulse and shine presets run as pure CSS — no video, no payload, no GPU tax.
+              The lobby feels alive the moment thumbnails land, and it costs your players nothing.
+            </p>
+            <div class="chips"><span class="chip on">Float</span><span class="chip">Pulse</span><span class="chip">Shine</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="cssstage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <div class="shine"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">06</i>AI motion</span>
+            <h2>Advanced AI animations that loop perfectly.</h2>
+            <p>
+              The character breathes, blinks and sways — generated per game, alpha-matted over your
+              frame, and looped so the restart is invisible. Camera locked, artwork preserved,
+              served as a transparent clip.
+            </p>
+            <div class="chips"><span class="chip">Hailuo 02</span><span class="chip">Kling Pro</span><span class="chip">Perfect loop</span><span class="chip">Alpha WebM</span></div>
+          </div>
+          <div class="pstage tsx" aria-hidden="true">
+            <div class="aistage tilebox">
+              <div class="tile live" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+                <img class="lay-bg" alt="" loading="lazy" decoding="async" />
+                <div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
+                <img class="lay-kv" alt="" loading="lazy" decoding="async" />
+                <img class="lay-logo" alt="" loading="lazy" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
+                <div class="scan"></div>
+                <i class="spark" style="left: 22%; top: 26%"></i>
+                <i class="spark" style="left: 70%; top: 38%; animation-delay: 0.4s"></i>
+                <i class="spark" style="left: 46%; top: 16%; animation-delay: 0.9s"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reveal pstep-card">
+        <div class="pstep">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">07</i>Export</span>
+            <h2>Export via API, in every format you serve.</h2>
+            <p>
+              One call returns the right cut, the right format and the right variant for every game
+              in your catalogue — stills or animated, cached on our CDN. No manual uploads, ever.
+            </p>
+            <div class="chips fchips"><span class="chip">PNG</span><span class="chip">WebP</span><span class="chip">AVIF</span><span class="chip">WebM</span><span class="chip">JSON</span></div>
+          </div>
+          <div class="pstage" aria-hidden="true">
+            <div class="codebox">
+              <span class="ln"><span class="y">POST</span> <span class="w">/v1/thumbnails/render</span></span>
+              <span class="ln">{ "game": <span class="w">"sweet-bonanza"</span>,</span>
+              <span class="ln">&nbsp;&nbsp;"size": <span class="w">"3:4"</span>, "format": <span class="w">"webp"</span> }</span>
+              <span class="ln">&nbsp;</span>
+              <span class="ln"><span class="g">200 OK · 84 ms</span></span>
+              <span class="ln"><span class="y">→</span> cdn.thumbs.store/sweet-bonanza-3x4.webp</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== WHITE-LABEL SERVICE ====================== -->
+      <section class="card reveal wl-card">
+        <div class="wl-grid">
+          <div class="pcopy">
+            <span class="step-tag"><i class="step-num">+</i>Service</span>
+            <h2>White-label dashboard integration for aggregators and platforms.</h2>
+            <p>
+              Put the whole system inside your own product. Your operators upload their catalogue,
+              pick a frame, and serve branded thumbnails from your dashboard — powered by
+              thumbs.store underneath, wearing your name on top.
+            </p>
+            <div class="chips"><span class="chip">Your domain</span><span class="chip">Your brand</span><span class="chip">SSO</span><span class="chip">Usage API</span></div>
+            <div class="hero-cta"><a class="btn btn-y" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a></div>
+          </div>
+          <div class="wl-mock" aria-hidden="true">
+            <div class="wl-side">
+              <div class="logo"></div>
+              <i style="width: 78%"></i><i style="width: 62%"></i><i style="width: 70%"></i><i style="width: 54%"></i>
+            </div>
+            <div class="wl-main">
+              <div class="wl-top"><i></i><b></b></div>
+              <div class="wl-tiles">
+                <img style="--i:0" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:1" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:2" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:3" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:4" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:5" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:6" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+                <img style="--i:7" src="https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public/previews/47453318-634c-4833-aeb2-4598bd73d543.webp?v=v1_mrju2y" alt="" loading="lazy" decoding="async" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ============================== CTA =============================== -->
+      <section class="card cta-card reveal">
+        <div class="center-stack">
+          <h2 class="h2">Get instant access to 10,000+ compliant casino thumbnails</h2>
+          <p class="lede">Solve the thumbnail problem once and for all — and forget about brand misuse forever.</p>
+          <div class="cta-row">
+            <a class="btn btn-y" href="https://www.thumbs.store/apply" target="_blank" rel="noopener">Get started</a>
+            <a class="btn btn-o" href="https://cal.com/cubicle" target="_blank" rel="noopener">Book a demo</a>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>© <span id="year">2026</span> thumbs.store · By Cubicle</span>
+        <div class="links">
+          <a href="/">Home</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/blog">Blog</a>
+          <a href="/roadmap">Roadmap</a>
+          <a href="https://cal.com/cubicle">Book a demo</a>
+        </div>
+      </footer>
+    </main>
+
+<script>
+    ;(() => {
+      // Page builders drop embeds in odd orders: this script may run before the
+      // markup exists, or after the document is already parsed. Wait for the
+      // root either way, and give up loudly rather than leaving an empty shell.
+      function boot() {
+        const root = document.getElementById('ts-editor')
+        if (root) return start(root)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot, { once: true })
+          return
+        }
+        let tries = 0
+        const t = setInterval(() => {
+          const r = document.getElementById('ts-editor')
+          if (r) {
+            clearInterval(t)
+            start(r)
+          } else if (++tries > 40) {
+            clearInterval(t)
+            console.error('[ts-editor] markup not found — is the #ts-editor block on the page?')
+          }
+        }, 50)
+      }
+      boot()
+
+      function start(lab) {
+      const $ = (id) => document.getElementById('ts-' + id)
+
+      const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
+      const GAMES = [
+        { name: 'Sweet Bonanza', slug: 'sweet-bonanza', id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y', accent: '#FF4FA3' },
+      ]
+      // Background zoom, as params.bgScale does it in the app.
+      const BG_SCALE = 1.2
+
+      // The studio's own frame sizes (FRAME_SIZES in src/lib/thumb.ts).
+      const SIZES = [
+        { key: '3:4', w: 900, h: 1200 },
+        { key: '2:3', w: 800, h: 1200 },
+        { key: '47:66', w: 940, h: 1320 },
+        { key: '16:9', w: 1280, h: 720 },
+      ]
+      // A slice of the dark palette (src/lib/palettes.ts).
+      const SWATCHES = ['#6C4FE8', '#FF4FA3', '#9B30FF', '#E8A33D', '#2FA4E7', '#F0C020', '#E23A2E', '#12C2C2', '#7ED321']
+      // The live template's per-size layouts (thumb_templates.params.layouts):
+      // a 9-point anchor, a scale on the layer's contain-fit, and a fine offset.
+      const TEMPLATE = {
+        '3:4': { kvAlign: 'mc', kvScale: 1.22, kvDX: 0, kvDY: 0.05, logoAlign: 'bc', logoScale: 0.38, logoDX: 0, logoDY: 0.04 },
+        '2:3': { kvAlign: 'mc', kvScale: 0.96, kvDX: 0, kvDY: -0.05, logoAlign: 'bc', logoScale: 0.4, logoDX: 0, logoDY: 0.11 },
+        '47:66': { kvAlign: 'mc', kvScale: 0.98, kvDX: 0, kvDY: -0.09, logoAlign: 'bc', logoScale: 0.34, logoDX: 0, logoDY: 0.04 },
+        '16:9': { kvAlign: 'ml', kvScale: 1.06, kvDX: -0.13, kvDY: 0, logoAlign: 'mr', logoScale: 0.28, logoDX: -0.04, logoDY: 0 },
+      }
+      // Light-band gradient per size (params.gradients, else the base values).
+      const GRAD = {
+        default: { dir: 'bottom', s1: 30, s2: 53, bottom: 100, band: 50 },
+        '16:9': { dir: 'right', s1: 34, s2: 69, bottom: 100, band: 63.7 }, // template 49 +30%
+      }
+      const LOGO_ASPECT_K = 2.2 // thumb.ts — a width-bound logo fits 2.2·scale·W
+
+      const el = {
+        frame: $('frame'), tile: $('tile'), bg: $('layBg'), band: $('layBand'), kv: $('layKv'),
+        logo: $('layLogo'), prov: $('layProv'), sel: $('sel'), sizeBar: $('sizeBar'),
+        glow: $('layGlow'), bloom: $('layBloom'),
+        strip: $('filmstrip'), swatches: $('swatches'), note: $('labNote'), canvas: $('canvas'),
+        kvScale: $('kvScale'), logoScale: $('logoScale'), bandOpacity: $('bandOpacity'),
+        kvScaleVal: $('kvScaleVal'), logoScaleVal: $('logoScaleVal'), bandVal: $('bandVal'),
+        provOn: $('provOn'), whiteOn: $('whiteOn'),
+        fX: $('fX'), fY: $('fY'), fW: $('fW'), fH: $('fH'),
+      }
+      const layerBtns = Array.from(lab.querySelectorAll('button.layer[data-layer]'))
+
+      const state = { g: 0, size: '3:4', accent: null, band: 1, prov: true, white: true, layer: 'kv', layouts: {} }
+
+      // The contain-fit needs the image's natural size, so re-place on load.
+      ;[el.kv, el.logo, el.bg].forEach((img) => img.addEventListener('load', () => render()))
+
+      const game = () => GAMES[state.g]
+      const sizeDef = () => SIZES.find((s) => s.key === state.size) || SIZES[0]
+      const landscape = () => sizeDef().w / sizeDef().h > 1.2
+      const accent = () => state.accent || game().accent
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+
+      function layout() {
+        if (!state.layouts[state.size]) {
+          const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+          state.layouts[state.size] = {
+            kv: { s: t.kvScale, dx: t.kvDX, dy: t.kvDY },
+            logo: { s: t.logoScale, dx: t.logoDX, dy: t.logoDY },
+          }
+        }
+        return state.layouts[state.size]
+      }
+
+      /** Contain-fit of an image in the frame, as frame fractions (baseFit). */
+      function fitOf(img, ar) {
+        const nw = img && img.naturalWidth ? img.naturalWidth : 1000
+        const nh = img && img.naturalHeight ? img.naturalHeight : 1000
+        // Work in frame units where width = 1 and height = 1/ar.
+        const H = 1 / ar
+        const f = Math.min(1 / nw, H / nh)
+        return { w: nw * f, h: (nh * f) / H }
+      }
+
+      /** Box for a layer, in frame fractions: the layer's contain-fit scaled by
+       *  k, centred on the template's 9-point anchor plus its offset. */
+      function boxOf(key) {
+        if (key === 'bg') return { x: 0, y: 0, w: 1, h: 1 }
+        if (key === 'band') {
+          const g = GRAD[state.size] || GRAD.default
+          return g.dir === 'right'
+            ? { x: 1 - g.band / 100, y: 0, w: g.band / 100, h: 1 }
+            : { x: 0, y: 1 - g.band / 100, w: 1, h: g.band / 100 }
+        }
+        if (key === 'prov') {
+          const f = el.frame.getBoundingClientRect()
+          const p = el.prov.getBoundingClientRect()
+          if (!f.width) return { x: 0.35, y: 0.9, w: 0.3, h: 0.07 }
+          return { x: (p.left - f.left) / f.width, y: (p.top - f.top) / f.height, w: p.width / f.width, h: p.height / f.height }
+        }
+        const t = TEMPLATE[state.size] || TEMPLATE['3:4']
+        const st = layout()[key]
+        const s = sizeDef()
+        const align = key === 'kv' ? t.kvAlign : t.logoAlign
+        const fit = fitOf(key === 'kv' ? el.kv : el.logo, s.w / s.h)
+        const k = key === 'kv' ? st.s : st.s * LOGO_ASPECT_K
+        const w = fit.w * k
+        const h = fit.h * k
+        const col = align[1]
+        const row = align[0]
+        const cx = (col === 'l' ? 0.27 : col === 'r' ? 0.73 : 0.5) + st.dx
+        const cy = (row === 't' ? 0.32 : row === 'b' ? 0.68 : 0.5) + st.dy
+        return { x: cx - w / 2, y: cy - h / 2, w, h }
+      }
+
+      const pct = (n) => (n * 100).toFixed(2) + '%'
+
+      function rgbaOf(hex, a) {
+        const v = String(hex).replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      /** bandStops() from thumb.ts: a smootherstep fade in, the semantic→blur
+       *  crossover, then a fade out — so the band has no visible seam. */
+      function bandCss(hex, g, opacity) {
+        const semA = 0.6 * opacity
+        const blurA = 1 * opacity
+        const lo = Math.min(g.s1, g.s2) / 100
+        const hi = Math.max(g.s1, g.s2) / 100
+        const bot = Math.max(hi, g.bottom / 100)
+        const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+        const out = []
+        for (let i = 0; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, semA * smooth(t)) + ' ' + (lo * t * 100).toFixed(2) + '%')
+        }
+        out.push(rgbaOf(hex, blurA) + ' ' + (hi * 100).toFixed(2) + '%')
+        out.push(rgbaOf(hex, blurA) + ' ' + (bot * 100).toFixed(2) + '%')
+        for (let i = 1; i <= 12; i++) {
+          const t = i / 12
+          out.push(rgbaOf(hex, blurA * smooth(1 - t)) + ' ' + ((bot + (1 - bot) * t) * 100).toFixed(2) + '%')
+        }
+        return 'linear-gradient(to ' + g.dir + ', ' + out.join(', ') + ')'
+      }
+
+      /** Size the frame to the space the canvas actually has, in both axes,
+       *  so the whole widget stays responsive to its container — not to the
+       *  viewport, and not to a hard-coded width. */
+      function fitFrame() {
+        const s = sizeDef()
+        const box = el.canvas.getBoundingClientRect()
+        if (!box.width) return
+        const cs = getComputedStyle(el.canvas)
+        const availW = box.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+        // Measure against the size bar itself rather than assuming the padding
+        // clears it, so the frame always sits above the controls at any width.
+        const bar = el.sizeBar.getBoundingClientRect()
+        const floor = bar.height ? bar.top - 10 : box.bottom - parseFloat(cs.paddingBottom)
+        const availH = floor - (box.top + parseFloat(cs.paddingTop))
+        const ar = s.w / s.h
+        const w = Math.max(120, Math.min(availW, availH * ar))
+        if (Math.abs(parseFloat(el.frame.style.width || '0') - w) > 0.5) el.frame.style.width = w + 'px'
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        let raf = 0
+        const ro = new ResizeObserver(() => {
+          cancelAnimationFrame(raf)
+          raf = requestAnimationFrame(() => {
+            fitFrame()
+            applyMetrics()
+          })
+        })
+        ro.observe(el.canvas)
+      }
+      window.addEventListener('orientationchange', () => setTimeout(render, 120))
+
+      /** Corner radius 16/244 and stroke 2.5/244 of the frame width, in px —
+       *  percentages would make the corner elliptical on a non-square frame. */
+      function applyMetrics() {
+        document.querySelectorAll('.tsx .tile').forEach((t) => {
+          const w = t.offsetWidth
+          if (!w) return
+          t.style.borderRadius = Math.max(3, (16 / 244) * w) + 'px'
+          if (!t.classList.contains('shot')) t.style.borderWidth = Math.max(1, (2.5 / 244) * w) + 'px'
+        })
+      }
+      window.addEventListener('resize', () => {
+        fitFrame()
+        applyMetrics()
+      })
+
+      /** Paint the frame chrome — band on its edge, colour glow, white bloom. */
+      function paintChrome(nodes, sizeKey, hex, opacity) {
+        const g = GRAD[sizeKey] || GRAD.default
+        const band = nodes.band
+        if (band) {
+          band.style.cssText = ''
+          band.style.position = 'absolute'
+          if (g.dir === 'right') {
+            band.style.top = '0'
+            band.style.bottom = '0'
+            band.style.right = '0'
+            band.style.width = g.band + '%'
+          } else {
+            band.style.left = '0'
+            band.style.right = '0'
+            band.style.bottom = '0'
+            band.style.height = g.band + '%'
+          }
+          band.style.zIndex = '1'
+          band.style.background = bandCss(hex, g, opacity)
+        }
+        if (nodes.glow) {
+          nodes.glow.style.background =
+            'radial-gradient(closest-side, ' + rgbaOf(hex, 0.85 * opacity) + ', ' + rgbaOf(hex, 0) + ' 72%)'
+        }
+        if (nodes.bloom) nodes.bloom.style.opacity = String(opacity)
+      }
+
+      function place(node, box, objPos) {
+        node.style.left = pct(box.x)
+        node.style.top = pct(box.y)
+        node.style.width = pct(box.w)
+        node.style.height = pct(box.h)
+        node.style.bottom = 'auto'
+        node.style.right = 'auto'
+        node.style.objectPosition = objPos
+      }
+
+      function render() {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        const base = SB + '/assets/' + g.id
+
+        el.frame.style.setProperty('--ar', s.w + ' / ' + s.h)
+        fitFrame()
+        el.tile.classList.toggle('land', land)
+        el.tile.style.setProperty('--accent', accent())
+        el.tile.style.setProperty('--bg-scale', String(BG_SCALE))
+
+        if (el.bg.dataset.game !== g.id) {
+          el.bg.src = base + '/bg.jpg'
+          el.kv.src = base + '/kv.png'
+          el.bg.dataset.game = g.id
+          el.kv.alt = g.name + ' key visual on the editor canvas'
+        }
+        const logoSrc = base + (state.white ? '/logoWhite.png' : '/logoColor.png')
+        if (el.logo.getAttribute('src') !== logoSrc) el.logo.src = logoSrc
+
+        place(el.kv, boxOf('kv'), 'center center')
+        place(el.logo, boxOf('logo'), 'center center')
+        paintChrome({ band: el.band, glow: el.glow, bloom: el.bloom }, state.size, accent(), state.band)
+        el.prov.hidden = !state.prov
+
+        const sel = boxOf(state.layer)
+        el.sel.style.left = pct(sel.x)
+        el.sel.style.top = pct(sel.y)
+        el.sel.style.width = pct(sel.w)
+        el.sel.style.height = pct(sel.h)
+        const movable = state.layer === 'kv' || state.layer === 'logo'
+        if (movable) el.sel.removeAttribute('data-fixed')
+        else el.sel.setAttribute('data-fixed', '')
+
+        layerBtns.forEach((b) => {
+          const on = b.dataset.layer === state.layer
+          b.toggleAttribute('data-on', on)
+          b.setAttribute('aria-checked', String(on))
+        })
+        lab.querySelectorAll('.prop[data-for]').forEach((p) => {
+          if (p.dataset.for !== state.layer) p.setAttribute('data-dim', '')
+          else p.removeAttribute('data-dim')
+        })
+
+        const lay = layout()
+        setRange(el.kvScale, Math.round(lay.kv.s * 100), el.kvScaleVal, '%')
+        setRange(el.logoScale, Math.round(lay.logo.s * 100), el.logoScaleVal, '%')
+        setRange(el.bandOpacity, Math.round(state.band * 100), el.bandVal, '%')
+
+        el.fX.textContent = Math.round(sel.x * s.w)
+        el.fY.textContent = Math.round(sel.y * s.h)
+        el.fW.textContent = Math.round(sel.w * s.w)
+        el.fH.textContent = Math.round(sel.h * s.h)
+
+        lab.querySelectorAll('.size-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.size === state.size)))
+        lab.querySelectorAll('.film').forEach((b, i) => b.setAttribute('aria-pressed', String(i === state.g)))
+        lab.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color === accent())))
+        applyMetrics()
+      }
+
+      function setRange(input, value, out, suffix) {
+        input.value = String(value)
+        const min = Number(input.min)
+        const max = Number(input.max)
+        input.style.setProperty('--fill', ((value - min) / (max - min)) * 100 + '%')
+        if (out) out.textContent = value + suffix
+      }
+
+      function note(msg) {
+        el.note.textContent = msg || ''
+      }
+
+      // ── controls ────────────────────────────────────────────────────────
+      SIZES.forEach((s) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'size-btn'
+        b.dataset.size = s.key
+        b.textContent = s.key
+        b.title = s.w + ' × ' + s.h
+        b.addEventListener('click', () => {
+          state.size = s.key
+          render()
+          note('Frame size ' + s.key + ' — ' + s.w + ' × ' + s.h + '. Each size keeps its own layout.')
+        })
+        el.sizeBar.appendChild(b)
+      })
+
+      if (GAMES.length < 2) el.strip.hidden = true
+      GAMES.forEach((g, i) => {
+        if (GAMES.length < 2) return
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'film'
+        b.title = g.name
+        b.setAttribute('aria-label', g.name)
+        const img = document.createElement('img')
+        img.src = SB + '/previews/' + g.id + '.webp?v=' + g.sig
+        img.alt = ''
+        img.loading = 'lazy'
+        img.decoding = 'async'
+        b.appendChild(img)
+        b.addEventListener('click', () => {
+          state.g = i
+          state.accent = null
+          render()
+          note(g.name + ' — same template, same layout. Only the assets and the colour changed.')
+        })
+        el.strip.appendChild(b)
+      })
+
+      SWATCHES.forEach((c) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'swatch'
+        b.dataset.color = c
+        b.style.background = c
+        b.title = c
+        b.setAttribute('aria-label', 'Frame colour ' + c)
+        b.addEventListener('click', () => {
+          state.accent = c
+          render()
+        })
+        el.swatches.appendChild(b)
+      })
+
+      layerBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          state.layer = b.dataset.layer
+          render()
+        })
+      })
+
+      el.kvScale.addEventListener('input', () => {
+        state.layer = 'kv'
+        layout().kv.s = Number(el.kvScale.value) / 100
+        render()
+      })
+      el.logoScale.addEventListener('input', () => {
+        state.layer = 'logo'
+        layout().logo.s = Number(el.logoScale.value) / 100
+        render()
+      })
+      el.bandOpacity.addEventListener('input', () => {
+        state.layer = 'band'
+        state.band = Number(el.bandOpacity.value) / 100
+        render()
+      })
+      el.provOn.addEventListener('change', () => {
+        state.prov = el.provOn.checked
+        render()
+      })
+      el.whiteOn.addEventListener('change', () => {
+        state.white = el.whiteOn.checked
+        render()
+      })
+      $('resetBtn').addEventListener('click', () => {
+        delete state.layouts[state.size]
+        state.band = 1
+        render()
+        note('Back to the template layout for ' + state.size + '.')
+      })
+
+      // ── drag / resize ───────────────────────────────────────────────────
+      let drag = null
+
+      function hitLayer(fx, fy) {
+        const inBox = (b) => fx >= b.x && fx <= b.x + b.w && fy >= b.y && fy <= b.y + b.h
+        if (inBox(boxOf('logo'))) return 'logo'
+        if (inBox(boxOf('kv'))) return 'kv'
+        return 'bg'
+      }
+
+      el.frame.addEventListener('pointerdown', (e) => {
+        const r = el.frame.getBoundingClientRect()
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const handle = e.target.closest && e.target.closest('.handle')
+
+        if (handle && (state.layer === 'kv' || state.layer === 'logo')) {
+          const b = boxOf(state.layer)
+          const cx = b.x + b.w / 2
+          const cy = b.y + b.h / 2
+          drag = {
+            mode: 'scale',
+            key: state.layer,
+            startDist: Math.hypot((fx - cx) * r.width, (fy - cy) * r.height) || 1,
+            startScale: layout()[state.layer].s,
+            cx,
+            cy,
+            r,
+          }
+        } else {
+          const key = hitLayer(fx, fy)
+          if (key !== state.layer) {
+            state.layer = key
+            render()
+          }
+          if (key !== 'kv' && key !== 'logo') return
+          drag = { mode: 'move', key, x: fx, y: fy, r }
+          el.frame.classList.add('dragging')
+        }
+        el.frame.setPointerCapture(e.pointerId)
+        e.preventDefault()
+      })
+
+      el.frame.addEventListener('pointermove', (e) => {
+        if (!drag) return
+        const r = drag.r
+        const fx = (e.clientX - r.left) / r.width
+        const fy = (e.clientY - r.top) / r.height
+        const st = layout()[drag.key]
+        if (drag.mode === 'move') {
+          st.dx = clamp(st.dx + (fx - drag.x), -0.6, 0.6)
+          st.dy = clamp(st.dy + (fy - drag.y), -0.6, 0.6)
+          drag.x = fx
+          drag.y = fy
+        } else {
+          const dist = Math.hypot((fx - drag.cx) * r.width, (fy - drag.cy) * r.height)
+          st.s = clamp((drag.startScale * dist) / drag.startDist, 0.1, 2.2)
+        }
+        render()
+      })
+
+      const endDrag = (e) => {
+        if (!drag) return
+        drag = null
+        el.frame.classList.remove('dragging')
+        if (e && e.pointerId != null && el.frame.hasPointerCapture(e.pointerId)) el.frame.releasePointerCapture(e.pointerId)
+      }
+      el.frame.addEventListener('pointerup', endDrag)
+      el.frame.addEventListener('pointercancel', endDrag)
+
+      el.frame.addEventListener('keydown', (e) => {
+        const step = e.shiftKey ? 0.02 : 0.005
+        const key = state.layer
+        if (key !== 'kv' && key !== 'logo') return
+        const st = layout()[key]
+        const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }
+        if (moves[e.key]) {
+          st.dx = clamp(st.dx + moves[e.key][0], -0.6, 0.6)
+          st.dy = clamp(st.dy + moves[e.key][1], -0.6, 0.6)
+          e.preventDefault()
+          render()
+        } else if (e.key === '+' || e.key === '=' || e.key === '-') {
+          st.s = clamp(st.s + (e.key === '-' ? -0.05 : 0.05), 0.1, 2.2)
+          e.preventDefault()
+          render()
+        }
+      })
+
+      // ── export ──────────────────────────────────────────────────────────
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image()
+          img.crossOrigin = 'anonymous'
+          img.onload = () => resolve(img)
+          img.onerror = reject
+          img.src = src
+        })
+      }
+
+      function drawFit(ctx, img, box, W, H, anchor, cover) {
+        const bw = box.w * W
+        const bh = box.h * H
+        const scale = cover ? Math.max(bw / img.width, bh / img.height) : Math.min(bw / img.width, bh / img.height)
+        const w = img.width * scale
+        const h = img.height * scale
+        const x = box.x * W + (bw - w) / 2
+        let y = box.y * H + (bh - h) / 2
+        if (anchor === 'top') y = box.y * H
+        if (anchor === 'bottom') y = box.y * H + (bh - h)
+        ctx.drawImage(img, x, y, w, h)
+      }
+
+      function rgba(hex, a) {
+        const v = hex.replace('#', '')
+        const n = parseInt(v.length === 3 ? v.replace(/./g, '$&$&') : v, 16)
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+      }
+
+      $('exportBtn').addEventListener('click', async () => {
+        const g = game()
+        const s = sizeDef()
+        const land = landscape()
+        note('Rendering ' + s.w + ' × ' + s.h + '…')
+        try {
+          const base = SB + '/assets/' + g.id
+          const [bg, kv, logo] = await Promise.all([
+            loadImage(base + '/bg.jpg'),
+            loadImage(base + '/kv.png'),
+            loadImage(base + (state.white ? '/logoWhite.png' : '/logoColor.png')),
+          ])
+          const c = document.createElement('canvas')
+          c.width = s.w
+          c.height = s.h
+          const ctx = c.getContext('2d')
+          const bgBox = { x: (1 - BG_SCALE) / 2, y: (1 - BG_SCALE) / 2, w: BG_SCALE, h: BG_SCALE }
+          drawFit(ctx, bg, bgBox, s.w, s.h, 'center', true)
+
+          // Light band — the same stops the live frame paints.
+          const gd = GRAD[s.key] || GRAD.default
+          if (state.band > 0) {
+            const b = boxOf('band')
+            const x0 = b.x * s.w
+            const y0 = b.y * s.h
+            const bw = b.w * s.w
+            const bh = b.h * s.h
+            const grad = gd.dir === 'right' ? ctx.createLinearGradient(x0, 0, x0 + bw, 0) : ctx.createLinearGradient(0, y0, 0, y0 + bh)
+            const semA = 0.6 * state.band
+            const blurA = state.band
+            const lo = Math.min(gd.s1, gd.s2) / 100
+            const hi = Math.max(gd.s1, gd.s2) / 100
+            const bot = Math.max(hi, gd.bottom / 100)
+            const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+            for (let i = 0; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(lo * t, rgba(accent(), semA * smooth(t)))
+            }
+            grad.addColorStop(hi, rgba(accent(), blurA))
+            grad.addColorStop(bot, rgba(accent(), blurA))
+            for (let i = 1; i <= 12; i++) {
+              const t = i / 12
+              grad.addColorStop(Math.min(1, bot + (1 - bot) * t), rgba(accent(), blurA * smooth(1 - t)))
+            }
+            ctx.fillStyle = grad
+            ctx.fillRect(x0, y0, bw, bh)
+          }
+
+          // The two bottom glows: colour ellipse, then the white overlay bloom.
+          const ellipse = (cy, rw, rh, inner, outer, blend, alpha) => {
+            ctx.save()
+            if (blend) ctx.globalCompositeOperation = blend
+            ctx.globalAlpha = alpha == null ? 1 : alpha
+            ctx.translate(s.w / 2, cy)
+            ctx.scale(rw, rh)
+            const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+            rg.addColorStop(0, inner)
+            rg.addColorStop(0.72, outer)
+            ctx.fillStyle = rg
+            ctx.fillRect(-1, -1, 2, 2)
+            ctx.restore()
+          }
+          ellipse(s.h * 0.88, s.w * 0.45, s.h * 0.17, rgba(accent(), 0.85 * state.band), rgba(accent(), 0))
+          ellipse(s.h * 0.985, s.w * 0.4055, s.h * 0.1375, '#ffffff', 'rgba(255,255,255,0)', 'overlay', state.band)
+
+          drawFit(ctx, kv, boxOf('kv'), s.w, s.h, 'center', false)
+          drawFit(ctx, logo, boxOf('logo'), s.w, s.h, 'center', false)
+
+          // Provider badge — the template's bottom tab (radius 8/8/0/0 @244).
+          if (state.prov) {
+            const fs = Math.round(s.w * 0.032)
+            ctx.font = '600 ' + fs + 'px system-ui, sans-serif'
+            const label = 'PRAGMATIC'
+            const tw = ctx.measureText(label).width
+            const padX = fs * 1.15
+            const bw = tw + padX * 2
+            const bh = fs * 2
+            const bx = (s.w - bw) / 2
+            const by = s.h - bh - s.h * 0.003
+            const rr = (8 / 244) * s.w
+            ctx.fillStyle = accent()
+            ctx.beginPath()
+            ctx.moveTo(bx, by + bh)
+            ctx.lineTo(bx, by + rr)
+            ctx.arcTo(bx, by, bx + rr, by, rr)
+            ctx.lineTo(bx + bw - rr, by)
+            ctx.arcTo(bx + bw, by, bx + bw, by + rr, rr)
+            ctx.lineTo(bx + bw, by + bh)
+            ctx.closePath()
+            ctx.fill()
+            ctx.fillStyle = '#ffffff'
+            ctx.textBaseline = 'middle'
+            ctx.textAlign = 'center'
+            ctx.fillText(label, s.w / 2, by + bh / 2 + 1)
+            ctx.textAlign = 'left'
+          }
+
+          // Frame: 2.5/244 stroke on a 16/244 corner radius, outside the art.
+          const lw = (2.5 / 244) * s.w
+          const rad = (16 / 244) * s.w
+          ctx.strokeStyle = accent()
+          ctx.lineWidth = lw
+          ctx.beginPath()
+          if (ctx.roundRect) ctx.roundRect(lw / 2, lw / 2, s.w - lw, s.h - lw, rad)
+          else ctx.rect(lw / 2, lw / 2, s.w - lw, s.h - lw)
+          ctx.stroke()
+
+          const blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('no blob'))), 'image/png'))
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = g.slug + '-' + s.key.replace(':', 'x') + '.png'
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          setTimeout(() => URL.revokeObjectURL(url), 4000)
+          note('Exported ' + g.name + ' at ' + s.w + ' × ' + s.h + ' — same draw code as the app.')
+        } catch (err) {
+          note('Couldn’t render here (the asset host blocked a cross-origin read). Export works inside the editor.')
+        }
+      })
+
+      /** Paint a static tile from the same template: layers by data-id, the
+       *  cut by data-size, the frame colour by data-accent. */
+      function paintComposite(tile) {
+        const id = tile.dataset.id
+        const sizeKey = tile.dataset.size || '3:4'
+        const hex = tile.dataset.accent || '#FF4FA3'
+        const sz = SIZES.find((x) => x.key === sizeKey) || SIZES[0]
+        const t = TEMPLATE[sizeKey] || TEMPLATE['3:4']
+        const base = SB + '/assets/' + id
+        const q = (c) => tile.querySelector(c)
+        const bg = q('.lay-bg')
+        const kv = q('.lay-kv')
+        const logos = Array.from(tile.querySelectorAll('.lay-logo'))
+        const logo = logos[0]
+        tile.style.setProperty('--accent', hex)
+        tile.style.setProperty('--bg-scale', String(BG_SCALE))
+        const put = () => {
+          const ar = sz.w / sz.h
+          const fit = (img, k) => {
+            const nw = img.naturalWidth || 1000
+            const nh = img.naturalHeight || 1000
+            const H = 1 / ar
+            const f = Math.min(1 / nw, H / nh)
+            return { w: nw * f * k, h: (nh * f) / H * k }
+          }
+          const anchor = (al, dx, dy, b) => {
+            const cx = (al[1] === 'l' ? 0.27 : al[1] === 'r' ? 0.73 : 0.5) + dx
+            const cy = (al[0] === 't' ? 0.32 : al[0] === 'b' ? 0.68 : 0.5) + dy
+            return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
+          }
+          place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)), 'center center')
+          logos.forEach((lg) => {
+            place(lg, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(lg, t.logoScale * LOGO_ASPECT_K)), 'center center')
+          })
+          paintChrome({ band: q('.t-band'), glow: q('.t-glow'), bloom: q('.t-bloom') }, sizeKey, hex, 1)
+          applyMetrics()
+        }
+        kv.addEventListener('load', put)
+        logos.forEach((lg) => lg.addEventListener('load', put))
+        bg.src = base + '/bg.jpg'
+        kv.src = base + '/kv.png'
+        logo.src = base + '/logoWhite.png'
+        put()
+      }
+      document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
+
+      render()
+      requestAnimationFrame(() => {
+        fitFrame()
+        applyMetrics()
+      })
+      setTimeout(() => {
+        fitFrame()
+        applyMetrics()
+      }, 400)
+      note('Drag the key visual, resize it, change the cut — the template layout stays put.')
+      }
+    })()
+    </script>
+    <script>
+      // Reveal-on-scroll; degrades to visible without IntersectionObserver.
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const items = document.querySelectorAll('.reveal')
+      if (reduced || !('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('in'))
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add('in')
+                io.unobserve(e.target)
+              }
+            })
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.1 },
+        )
+        items.forEach((el) => io.observe(el))
+      }
+
+      // Anatomy: auto-explode when it scrolls into view; click or Enter toggles.
+      const anatomy = document.querySelector('.anatomy')
+      const stage = document.getElementById('anatomyStage')
+      if (anatomy && stage) {
+        const toggle = () => anatomy.classList.toggle('on')
+        stage.addEventListener('click', toggle)
+        stage.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            toggle()
+          }
+        })
+        if ('IntersectionObserver' in window) {
+          const ai = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  setTimeout(() => anatomy.classList.add('on'), 450)
+                  ai.disconnect()
+                }
+              })
+            },
+            { threshold: 0.35 },
+          )
+          ai.observe(anatomy)
+        } else {
+          anatomy.classList.add('on')
+        }
+      }
+
+      document.getElementById('year').textContent = String(new Date().getFullYear())
+    </script>
+  </body>
+</html>

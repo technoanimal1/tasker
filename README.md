@@ -129,6 +129,32 @@ The Endless Tools-skinned pages now form a small site with a shared nav
 The design language for all of it is documented in
 [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
+### The deployable website (`site/`)
+
+[`site/`](site/) is the production website built from those pages with clean
+URLs and full SEO plumbing, ready for Vercel static hosting:
+
+| URL | file | source page |
+| --- | --- | --- |
+| `/` | `index.html` | `public/home-et.html` |
+| `/studio` | `studio.html` | `public/landing-et.html` |
+| `/pricing` | `pricing.html` | `public/pricing-et.html` |
+| `/blog` | `blog.html` | `public/blog-et.html` |
+| `/roadmap` | `roadmap.html` | `public/roadmap-et.html` |
+
+Each page carries a canonical URL on `https://www.thumbs.store`, Open Graph +
+Twitter cards pointing at `/og.png` (1200×630, rendered from the real logo),
+`index, follow` robots, and JSON-LD (Organization, WebSite,
+SoftwareApplication, Product offers, Blog, BreadcrumbLists). The directory
+also ships `sitemap.xml`, `robots.txt`, `favicon.svg` (the brand mark),
+`404.html` and `vercel.json` (`cleanUrls`, security headers).
+
+Deploying: the folder is a zero-build static site — point a Vercel project at
+the repo with **Root Directory = `site`**, or `vercel deploy site/`. To attach
+the real domain later: Vercel project → Settings → Domains → add
+`thumbs.store` / `www.thumbs.store`; the canonicals and sitemap already point
+there, so no page changes are needed.
+
 Two standalone builds of the editor live in `public/`:
 [`editor.html`](public/editor.html) is the neutral one, and
 [`editor-framer.html`](public/editor-framer.html) is restyled to the thumbs.store
