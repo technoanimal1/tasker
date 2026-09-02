@@ -67,18 +67,23 @@ Rules that keep this manageable:
    on both projects; production is whatever `main` (or the configured
    production branch) says. Rollback = one click in Vercel.
 
-## Domains & DNS (when attaching thumbs.store)
+## Domains & DNS (Railway hosting — live values)
 
 | record | value | serves |
 | --- | --- | --- |
-| `thumbs.store` A | `76.76.21.21` | marketing (redirects to www or serves directly — pick one canonical host, Vercel handles the redirect) |
-| `www` CNAME | `cname.vercel-dns.com` | marketing |
-| `app` CNAME | `cname.vercel-dns.com` | dashboard |
+| `www` CNAME | `ll5q3bug.up.railway.app` | marketing (canonical host) — **set at GoDaddy 2026-09** |
+| `thumbs.store` (apex) | CNAME/ALIAS `jv19qqlb.up.railway.app` | 301 → www (Caddy) — **blocked at GoDaddy** (no apex CNAME/ALIAS), pending move of DNS to Cloudflare |
+| `app` | dashboard host | dashboard |
 | `cdn` / `api` | wherever delivery lives | thumbnails / render API |
 
-The marketing pages already canonicalize to `https://www.thumbs.store/...`
-and the sitemap points there — attaching the domain requires **zero page
-edits**, and the `*.vercel.app` staging URL won't compete in search.
+Cautions for the Cloudflare DNS migration: (1) carry over the **Amazon SES
+records** (three `_domainkey` CNAMEs, MX + TXT on `envelope`) or outbound
+mail silently fails DKIM; (2) keep Railway and SES records **DNS only**
+(grey cloud) — proxying breaks Railway's certificate issuance.
+
+The marketing pages canonicalize to `https://www.thumbs.store/...` and the
+sitemap points there — attaching the domain needs **zero page edits**, and
+the `up.railway.app` staging URL won't compete in search.
 
 ## Shared brand & code
 

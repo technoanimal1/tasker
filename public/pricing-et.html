@@ -806,7 +806,7 @@
           <h2 class="h2">What would your lobby cost?</h2>
           <p class="lede">
             Set your catalogue and monthly flow. We compute your thumbs.store bill — and the same
-            job priced on Lobby Magic's published rates, side by side.
+            job priced on other solutions' published per-game rates, side by side.
           </p>
         </div>
         <div class="calc">
@@ -834,7 +834,7 @@
             </div>
             <label class="chk"><input type="checkbox" id="c-annual" /> Annual billing (−20% on the plan)</label>
             <p class="calc-note">
-              Lobby Magic figures come from their public pricing page: $99/mo with 30 games ×
+              The comparison uses per-game pricing published by other solutions: $99/mo with 30 games ×
               2 sizes included, $4/game overage, bulk packs from $1.92 down to $0.52 per game
               (prepaid, valid 6 months), +$0.75 per extra size per game, $8/game animation.
               We give them their best applicable bulk rate and their first-pack discount.
@@ -852,7 +852,7 @@
                 <div class="vbar"><i id="b-us"></i></div>
               </div>
               <div class="vrow them">
-                <div class="vl"><span>Lobby Magic · year one</span><b id="v-them">$10,028</b></div>
+                <div class="vl"><span>Other solutions · year one</span><b id="v-them">$10,028</b></div>
                 <div class="vbar"><i id="b-them"></i></div>
               </div>
             </div>
@@ -1008,7 +1008,7 @@
           ],
           // batch pack $/credit by prepaid volume
           packRate: (c) => (c <= 0 ? 0 : c <= 1000 ? 0.24 : c <= 5000 ? 0.2 : c <= 20000 ? 0.16 : 0.12),
-          // Lobby Magic, from their public pricing page (Sept 2026)
+          // typical per-game competitor pricing, from published rates (Sept 2026)
           lm: {
             base: 99, baseGames: 30, baseSizes: 2,
             overage: 4.0, extraSize: 0.75, anim: 8, annualOff: 0.25,
@@ -1090,7 +1090,7 @@
             'plan ' + u.plan.key + ': ' + fmt(u.planCost) + '/mo' + (u.topupCredits ? ' + top-up ' + fmt(u.topupCost) + '/mo' : ''),
             'year one: ' + fmt(u.once) + ' + 12 × ' + fmt(u.monthly) + ' = ' + fmt(u.year1),
             '&nbsp;',
-            '<b style="color:#fff">Lobby Magic (their published rates)</b>',
+            '<b style="color:#fff">Other solutions (published per-game rates)</b>',
             'catalogue: ' + fnum(state.cat) + ' games × $' + t.bulkRate.toFixed(2) + ' = ' + fmt(t.onceGames) + (t.onceSizes ? ' + extra sizes ' + fmt(t.onceSizes) : ''),
             'monthly: $' + Math.round(t.base) + ' base + overage ' + fmt(t.over) + ' + extra sizes ' + fmt(t.sizeMo) + ' + animation ' + fmt(t.animMo),
             'year one: ' + fmt(t.once) + ' + 12 × ' + fmt(t.monthly) + ' = ' + fmt(t.year1),
