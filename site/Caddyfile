@@ -4,6 +4,11 @@
 }
 
 :{$PORT:8080} {
+	# Canonical host: the bare domain redirects to www (canonicals + sitemap
+	# point at https://www.thumbs.store).
+	@apex host thumbs.store
+	redir @apex https://www.thumbs.store{uri} permanent
+
 	root * /srv
 	encode gzip
 
