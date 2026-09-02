@@ -228,7 +228,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800"
+            className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06]"
           >
             ← Frames
           </button>
@@ -238,9 +238,9 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
               setName(e.target.value)
               setDirty(true)
             }}
-            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm font-medium outline-none focus:border-accent"
+            className="rounded-pill border border-white/[0.16] bg-deep px-3 py-1.5 text-sm font-medium outline-none focus:border-accent"
           />
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-dim">
             {width}×{height}
           </span>
         </div>
@@ -249,14 +249,14 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800 disabled:opacity-60"
+            className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06] disabled:opacity-60"
           >
             {exporting ? 'Exporting…' : 'Export PNG'}
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !dirty}
-            className="rounded-lg bg-accent px-4 py-1.5 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
+            className="rounded-pill bg-white px-4 py-1.5 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
@@ -266,7 +266,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
       <div className="grid gap-4 lg:grid-cols-[190px_1fr_260px]">
         {/* Left: add layers */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Add layer</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-dim">Add layer</p>
           <ToolButton label="Background" hint="shared asset" onClick={() => addLayer('asset', 'background')} />
           <ToolButton label="Key visual" hint="shared asset" onClick={() => addLayer('asset', 'key_visual')} />
           <ToolButton label="Logotype" hint="shared asset" onClick={() => addLayer('asset', 'logo')} />
@@ -276,7 +276,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-2 pt-2">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-500">Canvas W</span>
+              <span className="mb-1 block text-xs text-dim">Canvas W</span>
               <input
                 type="number"
                 value={width}
@@ -284,11 +284,11 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setWidth(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-500">Canvas H</span>
+              <span className="mb-1 block text-xs text-dim">Canvas H</span>
               <input
                 type="number"
                 value={height}
@@ -296,13 +296,13 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setHeight(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
           </div>
 
           <div className="pt-2">
-            <label className="mb-1 block text-xs text-slate-500">Canvas background</label>
+            <label className="mb-1 block text-xs text-dim">Canvas background</label>
             <input
               type="color"
               value={bg}
@@ -310,13 +310,13 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                 setBg(e.target.value)
                 setDirty(true)
               }}
-              className="h-8 w-full cursor-pointer rounded border border-slate-700 bg-slate-950"
+              className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
             />
           </div>
         </div>
 
         {/* Center: canvas */}
-        <div className="overflow-auto rounded-xl border border-slate-800 bg-slate-950/60 p-6">
+        <div className="overflow-auto rounded-card border border-ring bg-deep p-6">
           <div
             className="checker relative mx-auto shadow-2xl"
             style={{ width: width * scale, height: height * scale }}
@@ -375,7 +375,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
         {/* Right: layers + properties */}
         <div className="space-y-4">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-dim">
               Layers
             </p>
             <div className="space-y-1">
@@ -386,17 +386,17 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   <div
                     key={l.id}
                     onClick={() => setSelectedId(l.id)}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-sm ${
-                      l.id === selectedId ? 'bg-slate-800' : 'hover:bg-slate-900'
+                    className={`flex cursor-pointer items-center justify-between rounded-pill px-2 py-1.5 text-sm ${
+                      l.id === selectedId ? 'bg-white/[0.06]' : 'hover:bg-panel'
                     }`}
                   >
                     <span className="truncate">
-                      <span className="mr-1 text-slate-500">
+                      <span className="mr-1 text-dim">
                         {l.type === 'asset' ? '▤' : l.type === 'text' ? 'T' : '▭'}
                       </span>
                       {l.name}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-1 text-xs text-dim">
                       <button onClick={(e) => { e.stopPropagation(); reorder(l.id, 'up') }} title="Forward">↑</button>
                       <button onClick={(e) => { e.stopPropagation(); reorder(l.id, 'down') }} title="Back">↓</button>
                       <button
@@ -428,10 +428,10 @@ function ToolButton({ label, hint, onClick }: { label: string; hint?: string; on
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-left text-sm hover:border-slate-700 hover:bg-slate-800"
+      className="flex w-full items-center justify-between rounded-pill border border-ring bg-panel px-3 py-2 text-left text-sm hover:border-white/[0.16] hover:bg-white/[0.06]"
     >
       <span>{label}</span>
-      {hint && <span className="text-[10px] text-slate-500">{hint}</span>}
+      {hint && <span className="text-[10px] text-dim">{hint}</span>}
     </button>
   )
 }
@@ -444,8 +444,8 @@ function PropertiesPanel({
   onChange: (patch: Partial<Layer>) => void
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className="rounded-card border border-ring bg-panel p-3">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-dim">
         {layer.type} properties
       </p>
 
@@ -463,14 +463,14 @@ function PropertiesPanel({
       </div>
 
       {layer.type === 'text' && (
-        <div className="mt-3 space-y-2 border-t border-slate-800 pt-3">
+        <div className="mt-3 space-y-2 border-t border-ring pt-3">
           <div>
-            <label className="mb-1 block text-[11px] text-slate-500">Text</label>
+            <label className="mb-1 block text-[11px] text-dim">Text</label>
             <textarea
               value={layer.text ?? ''}
               onChange={(e) => onChange({ text: e.target.value })}
               rows={2}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-accent"
+              className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -479,20 +479,20 @@ function PropertiesPanel({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="mb-1 block text-[11px] text-slate-500">Color</label>
+              <label className="mb-1 block text-[11px] text-dim">Color</label>
               <input
                 type="color"
                 value={layer.color ?? '#ffffff'}
                 onChange={(e) => onChange({ color: e.target.value })}
-                className="h-8 w-full cursor-pointer rounded border border-slate-700 bg-slate-950"
+                className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-slate-500">Align</label>
+              <label className="mb-1 block text-[11px] text-dim">Align</label>
               <select
                 value={layer.align ?? 'left'}
                 onChange={(e) => onChange({ align: e.target.value as Layer['align'] })}
-                className="h-8 w-full rounded border border-slate-700 bg-slate-950 px-2 text-sm outline-none focus:border-accent"
+                className="h-8 w-full rounded-pill border border-white/[0.16] bg-deep px-2 text-sm outline-none focus:border-accent"
               >
                 <option value="left">Left</option>
                 <option value="center">Center</option>
@@ -504,14 +504,14 @@ function PropertiesPanel({
       )}
 
       {layer.type === 'rect' && (
-        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">
+        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-ring pt-3">
           <div>
-            <label className="mb-1 block text-[11px] text-slate-500">Fill</label>
+            <label className="mb-1 block text-[11px] text-dim">Fill</label>
             <input
               type="color"
               value={layer.fill ?? '#6d5efc'}
               onChange={(e) => onChange({ fill: e.target.value })}
-              className="h-8 w-full cursor-pointer rounded border border-slate-700 bg-slate-950"
+              className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
             />
           </div>
           <Num label="Radius" value={layer.radius ?? 0} onChange={(v) => onChange({ radius: v })} />
@@ -519,19 +519,19 @@ function PropertiesPanel({
       )}
 
       {layer.type === 'image' && (
-        <div className="mt-3 space-y-1 border-t border-slate-800 pt-3">
-          <label className="block text-[11px] text-slate-500">Image URL</label>
+        <div className="mt-3 space-y-1 border-t border-ring pt-3">
+          <label className="block text-[11px] text-dim">Image URL</label>
           <input
             value={layer.src ?? ''}
             onChange={(e) => onChange({ src: e.target.value })}
             placeholder="https://…"
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-accent"
+            className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
           />
         </div>
       )}
 
       {layer.type === 'asset' && (
-        <p className="mt-3 border-t border-slate-800 pt-3 text-[11px] text-slate-500">
+        <p className="mt-3 border-t border-ring pt-3 text-[11px] text-dim">
           Shows the shared <b>{layer.assetKind}</b> asset. Update it in Brand assets to change it
           across every frame.
         </p>
@@ -551,12 +551,12 @@ function Num({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] text-slate-500">{label}</span>
+      <span className="mb-1 block text-[11px] text-dim">{label}</span>
       <input
         type="number"
         value={Number.isFinite(value) ? value : 0}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-accent"
+        className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
       />
     </label>
   )

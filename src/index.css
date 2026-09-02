@@ -2,14 +2,174 @@
 @tailwind components;
 @tailwind utilities;
 
+/* thumbs.store design system — docs/DESIGN_SYSTEM.md.
+   Pure black, Inter, monochrome by default, pills everywhere, colour rationed. */
+
 :root {
   color-scheme: dark;
 }
 
 body {
-  @apply text-zinc-100 antialiased;
-  background: #0a0b0d;
-  font-family: 'Google Sans Flex', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  @apply bg-page text-text antialiased;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Numbers read as "tool", not "brochure". */
+.num {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: #fef150;
+  color: #050505;
+}
+
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@layer components {
+  /* ── Buttons: always pills ─────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill px-6 py-3
+           text-sm font-semibold leading-none transition disabled:cursor-not-allowed disabled:opacity-40;
+    letter-spacing: -0.01em;
+  }
+  /* The signature move: white by default, yellow on hover. */
+  .btn-primary {
+    @apply btn bg-white text-black hover:bg-yellow;
+  }
+  .btn-secondary {
+    @apply btn bg-white/[0.06] text-white backdrop-blur-sm hover:bg-white/[0.12];
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:bg-white/[0.06] hover:text-white;
+  }
+  /* Compact variant for toolbars and nav. */
+  .btn-sm {
+    @apply px-[18px] py-[9px] text-[13px];
+  }
+  .btn-xs {
+    @apply gap-1.5 px-3 py-1.5 text-xs;
+  }
+
+  /* ── Chips: uppercase pills; active is white fill / black text ─────────── */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-pill border border-white/[0.16] px-3 py-[5px]
+           text-[11px] font-semibold uppercase text-muted transition hover:text-white;
+    letter-spacing: 0.08em;
+  }
+  .chip-on {
+    @apply border-white bg-white text-black hover:text-black;
+  }
+
+  /* ── Badges ────────────────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center rounded-pill bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-black;
+    letter-spacing: 0.06em;
+  }
+  /* One per screen — DRAFT, LIVE, a saved state. */
+  .badge-yellow {
+    @apply badge bg-yellow text-black;
+  }
+
+  /* ── Cards & wells ─────────────────────────────────────────────────────── */
+  .card {
+    @apply rounded-card border border-ring bg-panel p-6 transition duration-[250ms] ease-spring;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:border-white/[0.28];
+  }
+  .card-lg {
+    @apply rounded-hero;
+  }
+  /* Dark inset area that holds a canvas, preview or demo. */
+  .well {
+    @apply rounded-[28px] border border-ring bg-deep;
+  }
+
+  /* ── Labels ────────────────────────────────────────────────────────────── */
+  .eyebrow {
+    @apply text-[13px] font-semibold uppercase text-dim;
+    letter-spacing: 0.14em;
+  }
+  .label-sm {
+    @apply text-[12px] font-semibold uppercase text-dim;
+    letter-spacing: 0.12em;
+  }
+
+  /* Hairline used inside components. */
+  .hairline {
+    @apply border-white/[0.08];
+  }
+}
+
+/* ── Sliders ──────────────────────────────────────────────────────────────
+   5px track, white fill to --fill, 16px white thumb. Inside the editor the
+   fill accent is blue instead of white (.slider-blue). */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fff 0 var(--fill, 50%), #26262b var(--fill, 50%) 100%);
+  outline: none;
+}
+.slider-blue {
+  background: linear-gradient(90deg, #2c5cff 0 var(--fill, 50%), #26262b var(--fill, 50%) 100%);
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+  cursor: ew-resize;
+}
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+  cursor: ew-resize;
+}
+
+/* ── Toggle switch: 48×26 pill. On = white track, black thumb. ───────────── */
+.switch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  flex: none;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+.switch > i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), background 0.2s ease;
+}
+.switch[aria-checked='true'] {
+  background: #fff;
+}
+.switch[aria-checked='true'] > i {
+  background: #000;
+  transform: translateX(22px);
 }
 
 /* Indeterminate spinner used by the loaders. */
@@ -57,18 +217,33 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 7px;
-  background: #fff050;
-  box-shadow: 0 0 18px rgb(255 240 80 / 0.4);
+  background: #fef150;
+  box-shadow: 0 0 18px rgb(254 241 80 / 0.4);
   animation: brand-pulse 1.3s ease-in-out infinite;
+}
+
+/* Reveal-on-scroll entrances must never leave content invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .brand-loader > i,
+  .brand-loader::before {
+    animation: none !important;
+  }
 }
 
 /* Checkerboard used behind transparent asset previews. */
 .checker {
   background-image:
-    linear-gradient(45deg, #1e293b 25%, transparent 25%),
-    linear-gradient(-45deg, #1e293b 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #1e293b 75%),
-    linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+    linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }

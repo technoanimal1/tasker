@@ -15,7 +15,7 @@ import {
   type SizeLayout,
   type TemplateParams,
 } from '../lib/thumb'
-import { KvControls, LogoControls, Slider, pct } from './LayoutControls'
+import { KvControls, LogoControls, Slider, Toggle, pct } from './LayoutControls'
 import { ThumbnailCard } from './Thumbnail'
 import { LoadingScreen, Spinner } from './Spinner'
 import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Undo2, Redo2, RotateCcw } from 'lucide-react'
@@ -233,7 +233,7 @@ export function TemplateView() {
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold">Template controller</h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             Master layout &amp; gradient <b>per aspect size</b>. Saving writes only the sizes you edited.
           </p>
         </div>
@@ -243,7 +243,7 @@ export function TemplateView() {
             disabled={!undoStack.length}
             title="Undo (⌘Z)"
             aria-label="Undo"
-            className="grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
           >
             <Undo2 size={16} />
           </button>
@@ -252,7 +252,7 @@ export function TemplateView() {
             disabled={!redoStack.length}
             title="Redo (⌘⇧Z)"
             aria-label="Redo"
-            className="grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-pill border border-white/[0.16] text-white transition hover:bg-white/[0.06] disabled:opacity-40"
           >
             <Redo2 size={16} />
           </button>
@@ -260,7 +260,7 @@ export function TemplateView() {
             onClick={saveEdited}
             disabled={saving || !dirty}
             title={dirty ? `Save ${editedSizes.size ? `${editedSizes.size} size${editedSizes.size > 1 ? 's' : ''}` : 'changes'}${globalsDirty ? (editedSizes.size ? ' + label' : 'label') : ''}` : 'Nothing to save'}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
+            className="rounded-pill bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
           >
             {saving
               ? 'Saving…'
@@ -280,15 +280,15 @@ export function TemplateView() {
               key={s.key}
               onClick={() => setSize(s.key)}
               title={edited ? `${s.key} · edited (unsaved)` : s.key}
-              className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                sizeKey === s.key ? 'bg-accent text-zinc-900' : 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700'
+              className={`relative rounded-pill px-3 py-1.5 text-xs font-medium transition ${
+                sizeKey === s.key ? 'bg-white text-black' : 'bg-white/[0.06] text-muted hover:bg-white/[0.12]'
               }`}
             >
               {s.key}
               {edited && (
                 <span
                   className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ring-2 ${
-                    sizeKey === s.key ? 'bg-zinc-900 ring-accent' : 'bg-accent ring-zinc-900'
+                    sizeKey === s.key ? 'bg-panel ring-accent' : 'bg-accent ring-black'
                   }`}
                 />
               )}
@@ -299,7 +299,7 @@ export function TemplateView() {
           <button
             onClick={() => resetSize(sizeKey)}
             title={`Revert ${sizeKey} to the saved version`}
-            className="flex items-center gap-1 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
+            className="flex items-center gap-1 rounded-pill border border-white/[0.16] px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-white/[0.06]"
           >
             <RotateCcw size={13} /> Reset {sizeKey}
           </button>
@@ -307,7 +307,7 @@ export function TemplateView() {
         <button
           onClick={applyLayoutToAll}
           title="Copy this size's KV + logo alignment, size and offsets to every aspect size"
-          className="ml-auto rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800"
+          className="ml-auto rounded-pill border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/[0.06]"
         >
           Apply KV + logo to all sizes
         </button>
@@ -316,7 +316,7 @@ export function TemplateView() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* preview */}
         <div
-          className="sticky top-2 z-20 flex min-h-0 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950/85 p-3 backdrop-blur lg:static lg:min-h-[520px] lg:bg-transparent lg:p-8 lg:backdrop-blur-0"
+          className="sticky top-2 z-20 flex min-h-0 items-center justify-center rounded-card border border-ring bg-deep/85 p-3 backdrop-blur lg:static lg:min-h-[520px] lg:bg-transparent lg:p-8 lg:backdrop-blur-0"
           style={{ backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)', backgroundSize: '22px 22px' }}
         >
           {sample ? (
@@ -324,22 +324,22 @@ export function TemplateView() {
               <ThumbnailCard thumb={sample} params={params} assets={assetsFor(sample)} displayW={previewW} showFrame />
             </div>
           ) : pageLoading ? (
-            <div className="flex items-center gap-2 text-sm text-zinc-500">
+            <div className="flex items-center gap-2 text-sm text-dim">
               <Spinner size={18} /> Loading a preview game…
             </div>
           ) : (
-            <p className="text-sm text-zinc-500">No thumbnails to preview yet.</p>
+            <p className="text-sm text-dim">No thumbnails to preview yet.</p>
           )}
         </div>
 
         {/* controls */}
-        <aside className="flex flex-col gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-3">
+        <aside className="flex flex-col gap-3.5 rounded-card border border-ring bg-panel p-3">
           {pageItems.length > 1 && (
             <Row label="Preview game">
               <select
                 value={previewIdx}
                 onChange={(e) => setPreviewIdx(Number(e.target.value))}
-                className="max-w-[200px] rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="max-w-[200px] rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {pageItems.map((t, i) => (
                   <option key={t.id} value={i}>
@@ -371,8 +371,8 @@ export function TemplateView() {
                     key={d}
                     onClick={() => setGrad({ gradDir: d })}
                     title={d}
-                    className={`grid h-7 w-7 place-items-center rounded-md border text-sm transition ${
-                      grad.gradDir === d ? 'border-accent bg-accent/15 text-accent' : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800'
+                    className={`grid h-7 w-7 place-items-center rounded-pill border text-sm transition ${
+                      grad.gradDir === d ? 'border-accent bg-accent/15 text-accent' : 'border-white/[0.16] text-muted hover:bg-white/[0.06]'
                     }`}
                   >
                     {d === 'bottom' ? <ArrowDown size={14} /> : d === 'top' ? <ArrowUp size={14} /> : d === 'left' ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
@@ -393,7 +393,7 @@ export function TemplateView() {
                   delete next[p.sizeKey]
                   return { ...p, gradients: next }
                 })}
-                className="text-[11px] text-zinc-400 underline hover:text-zinc-200"
+                className="text-[11px] text-muted underline hover:text-white"
               >
                 Reset to global gradient
               </button>
@@ -402,11 +402,11 @@ export function TemplateView() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold text-zinc-300">Provider label</p>
+              <p className="text-[11px] font-semibold text-muted">Provider label</p>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setLabelEdit((e) => !e)}
-                  className="rounded-md border border-zinc-700 px-2 py-0.5 text-[11px] text-zinc-300 transition hover:bg-zinc-800"
+                  className="rounded-pill border border-white/[0.16] px-2 py-0.5 text-[11px] text-muted transition hover:bg-white/[0.06]"
                 >
                   {labelEdit ? 'Lock' : 'Edit'}
                 </button>
@@ -416,7 +416,7 @@ export function TemplateView() {
                     setLabelEdit(false)
                   }}
                   disabled={saving || !dirty}
-                  className="rounded-md bg-accent px-2 py-0.5 text-[11px] font-medium text-zinc-900 transition hover:bg-accent-dark disabled:opacity-40"
+                  className="rounded-pill bg-white px-2 py-0.5 text-[11px] font-medium text-black transition hover:bg-yellow disabled:opacity-40"
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -424,18 +424,13 @@ export function TemplateView() {
             </div>
             <div className={labelEdit ? 'space-y-2' : 'pointer-events-none space-y-2 opacity-50'}>
             <Row label="Show">
-              <input
-                type="checkbox"
-                checked={params.showProvider}
-                onChange={(e) => setP({ showProvider: e.target.checked })}
-                className="h-4 w-4 accent-accent"
-              />
+              <Toggle checked={params.showProvider} onChange={(v) => setP({ showProvider: v })} />
             </Row>
             <Row label="Position">
               <select
                 value={params.providerPos}
                 onChange={(e) => setP({ providerPos: e.target.value as ProviderPos })}
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {PROVIDER_POSITIONS.map((pos) => (
                   <option key={pos} value={pos}>
@@ -448,7 +443,7 @@ export function TemplateView() {
               <select
                 value={params.providerCase ?? 'as-is'}
                 onChange={(e) => setP({ providerCase: e.target.value as TemplateParams['providerCase'] })}
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {PROVIDER_CASES.map((c) => (
                   <option key={c} value={c}>
@@ -470,13 +465,13 @@ export function TemplateView() {
               <Slider label="R ◟" min={0} max={40} value={params.providerRadius.bl} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, bl: v } })} fmt={(v) => `${Math.round(v)}`} />
               <Slider label="R ◞" min={0} max={40} value={params.providerRadius.br} onChange={(v) => setP({ providerRadius: { ...params.providerRadius, br: v } })} fmt={(v) => `${Math.round(v)}`} />
             </div>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-dim">
               {labelEdit ? 'The badge text is each game’s provider. Styling applies to every thumbnail.' : 'Locked — tap Edit to change the provider label.'}
             </p>
             </div>
           </div>
 
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[11px] text-dim">
             Layout &amp; gradient are saved per aspect size — a dot marks an edited size, and only edited sizes are written on save. ⌘Z undoes, ⌘⇧Z redoes.
           </p>
         </aside>
@@ -488,7 +483,7 @@ export function TemplateView() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-zinc-300">{title}</p>
+      <p className="text-[11px] font-semibold text-muted">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -497,7 +492,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-zinc-400">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       {children}
     </div>
   )

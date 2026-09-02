@@ -45,7 +45,7 @@ export function LazyMount({
 
   return (
     <div ref={ref} style={{ width: w, height: h }} className="grid place-items-center">
-      {show ? children : <div className="h-full w-full animate-pulse rounded-lg bg-zinc-800/40" />}
+      {show ? children : <div className="h-full w-full animate-pulse rounded-pill bg-white/[0.04]" />}
     </div>
   )
 }

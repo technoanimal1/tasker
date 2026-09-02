@@ -22,7 +22,7 @@ export function BrandLoader({ className = '' }: { className?: string }) {
 /** Full-area loading state: centered branded loader with an optional label. */
 export function LoadingScreen({ label = 'Loading…', className = '' }: { label?: string; className?: string }) {
   return (
-    <div className={`flex flex-col items-center justify-center gap-4 py-20 text-zinc-400 ${className}`}>
+    <div className={`flex flex-col items-center justify-center gap-4 py-20 text-muted ${className}`}>
       <BrandLoader />
       <p className="animate-pulse text-sm">{label}</p>
     </div>

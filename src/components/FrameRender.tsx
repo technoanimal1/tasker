@@ -25,7 +25,7 @@ export function LayerContent({ layer, assetUrl }: { layer: Layer; assetUrl?: str
         style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
       />
     ) : (
-      <div className="grid h-full w-full place-items-center border border-dashed border-slate-500/60 text-[10px] text-slate-400">
+      <div className="grid h-full w-full place-items-center border border-dashed border-white/[0.28] text-[10px] text-muted">
         {layer.assetKind} — no asset
       </div>
     )
@@ -41,7 +41,7 @@ export function LayerContent({ layer, assetUrl }: { layer: Layer; assetUrl?: str
         style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
       />
     ) : (
-      <div className="grid h-full w-full place-items-center border border-dashed border-slate-500/60 text-[10px] text-slate-400">
+      <div className="grid h-full w-full place-items-center border border-dashed border-white/[0.28] text-[10px] text-muted">
         image — no URL
       </div>
     )

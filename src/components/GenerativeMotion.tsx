@@ -213,9 +213,9 @@ export function GenerativeMotion({
   const inserted = !!thumb.anim_video_url
 
   return (
-    <div className="space-y-2 border-t border-zinc-800 pt-3">
+    <div className="space-y-2 border-t border-ring pt-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold text-zinc-300">Generative motion · AI</p>
+        <p className="text-[11px] font-semibold text-muted">Generative motion · AI</p>
         {inserted && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold text-accent">● inserted</span>}
       </div>
 
@@ -226,7 +226,7 @@ export function GenerativeMotion({
           loop
           muted
           playsInline
-          className="w-full rounded-lg border border-zinc-800 bg-[conic-gradient(#1a1a1a_90deg,#111_0_180deg,#1a1a1a_0_270deg,#111_0)] [background-size:16px_16px]"
+          className="w-full rounded-pill border border-ring bg-[conic-gradient(#1a1a1a_90deg,#111_0_180deg,#1a1a1a_0_270deg,#111_0)] [background-size:16px_16px]"
         />
       )}
 
@@ -235,14 +235,14 @@ export function GenerativeMotion({
         onChange={(e) => setPrompt(e.target.value)}
         rows={3}
         placeholder="e.g. the lion roars on loop, keep artwork & proportions"
-        className="w-full resize-none rounded-lg border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-zinc-500"
+        className="w-full resize-none rounded-pill border border-white/[0.16] bg-white/[0.06] px-3 py-2 text-xs text-white outline-none focus:border-white/[0.4]"
       />
       <div className="space-y-1">
         <select
           value={loopModel}
           onChange={(e) => setLoopModel(e.target.value)}
           disabled={busy}
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs outline-none focus:border-zinc-500 disabled:opacity-60"
+          className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs outline-none focus:border-white/[0.4] disabled:opacity-60"
         >
           {LOOP_MODELS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -250,7 +250,7 @@ export function GenerativeMotion({
             </option>
           ))}
         </select>
-        <p className="text-[11px] text-zinc-500">
+        <p className="text-[11px] text-dim">
           {LOOP_MODELS.find((m) => m.id === loopModel)?.note} · always a seamless loop.
         </p>
       </div>
@@ -259,7 +259,7 @@ export function GenerativeMotion({
         <button
           onClick={animate}
           disabled={busy}
-          className="flex-1 rounded-lg bg-accent py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-60"
+          className="flex-1 rounded-pill bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-60"
         >
           {stage === 'generating'
             ? `Animating… ${elapsed}s`
@@ -272,12 +272,12 @@ export function GenerativeMotion({
                   : 'Animate & insert'}
         </button>
         {matted && !busy && (
-          <button onClick={download} className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800">
+          <button onClick={download} className="flex items-center gap-1.5 rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-white hover:bg-white/[0.06]">
             <Download size={14} /> webm
           </button>
         )}
         {inserted && !busy && (
-          <button onClick={remove} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-red-300 hover:bg-zinc-800">
+          <button onClick={remove} className="rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-red-300 hover:bg-white/[0.06]">
             Remove
           </button>
         )}
@@ -285,10 +285,10 @@ export function GenerativeMotion({
 
       {busy && (
         <div className="space-y-1">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
             <div className="h-full w-2/5 animate-pulse rounded-full bg-accent" />
           </div>
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[11px] text-dim">
             {stage === 'generating'
               ? 'Rendering the clip'
               : stage === 'matting'
@@ -299,7 +299,7 @@ export function GenerativeMotion({
       )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
       {!busy && !error && !inserted && (
-        <p className="text-[11px] text-zinc-500">Animates the key visual, cuts out the background, and drops it into the thumbnail.</p>
+        <p className="text-[11px] text-dim">Animates the key visual, cuts out the background, and drops it into the thumbnail.</p>
       )}
     </div>
   )

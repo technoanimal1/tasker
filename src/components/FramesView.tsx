@@ -45,7 +45,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
   const sample = thumbnails[previewIdx] ?? thumbnails[0] ?? null
 
   if (tLoading || thLoading || !base || !p) {
-    return <div className="py-20 text-center text-zinc-500">Loading frame design…</div>
+    return <div className="py-20 text-center text-dim">Loading frame design…</div>
   }
 
   function set<K extends keyof TemplateParams>(key: K, value: TemplateParams[K]) {
@@ -75,9 +75,9 @@ export function FramesView({ branch, saveFrameParams }: Props) {
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">
-            Frame design <span className="text-zinc-500">· {branch.name}</span>
+            Frame design <span className="text-dim">· {branch.name}</span>
           </h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             The frame every thumbnail on this branch inherits. Select <b>{branch.name}</b> on the Thumbnails page to see it applied.
           </p>
         </div>
@@ -85,14 +85,14 @@ export function FramesView({ branch, saveFrameParams }: Props) {
           <button
             onClick={() => setFp((branch.frame_params as ParamOverride) ?? {})}
             disabled={!dirty}
-            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 disabled:opacity-40"
+            className="rounded-pill border border-white/[0.16] px-4 py-2 text-sm text-muted disabled:opacity-40"
           >
             Reset
           </button>
           <button
             onClick={save}
             disabled={saving || !dirty}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark disabled:opacity-50"
+            className="rounded-pill bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
           >
             {saving ? 'Saving…' : dirty ? 'Save frame' : 'Saved'}
           </button>
@@ -100,15 +100,15 @@ export function FramesView({ branch, saveFrameParams }: Props) {
       </div>
 
       {branch.is_default && (
-        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-800/30 p-3 text-xs text-zinc-400">
-          <b className="text-zinc-300">main</b> is the general template. Create a client branch (top bar → New) to design that client’s own frame here — it then shows on the Thumbnails page whenever that branch is selected.
+        <div className="mb-4 rounded-card border border-ring bg-white/[0.04] p-3 text-xs text-muted">
+          <b className="text-muted">main</b> is the general template. Create a client branch (top bar → New) to design that client’s own frame here — it then shows on the Thumbnails page whenever that branch is selected.
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* preview */}
         <div
-          className="flex min-h-[520px] items-center justify-center rounded-2xl border border-zinc-800 p-8"
+          className="flex min-h-[520px] items-center justify-center rounded-card border border-ring p-8"
           style={{ backgroundImage: 'radial-gradient(circle at center, #1a1c22 1px, transparent 1px)', backgroundSize: '22px 22px' }}
         >
           {sample ? (
@@ -116,18 +116,18 @@ export function FramesView({ branch, saveFrameParams }: Props) {
               <ThumbnailCard thumb={sample} params={p} assets={assetsFor(sample)} displayW={360} />
             </div>
           ) : (
-            <p className="text-sm text-zinc-500">No thumbnails to preview yet.</p>
+            <p className="text-sm text-dim">No thumbnails to preview yet.</p>
           )}
         </div>
 
         {/* controls */}
-        <aside className="flex flex-col gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-3">
+        <aside className="flex flex-col gap-3.5 rounded-card border border-ring bg-panel p-3">
           {thumbnails.length > 1 && (
             <Row label="Preview game">
               <select
                 value={previewIdx}
                 onChange={(e) => setPreviewIdx(Number(e.target.value))}
-                className="max-w-[200px] rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="max-w-[200px] rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {thumbnails.map((t, i) => (
                   <option key={t.id} value={i}>
@@ -164,7 +164,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
               <select
                 value={p.providerPos}
                 onChange={(e) => set('providerPos', e.target.value as TemplateParams['providerPos'])}
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               >
                 {PROVIDER_POSITIONS.map((o) => (
                   <option key={o} value={o}>
@@ -178,7 +178,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
                 value={p.providerName}
                 onChange={(e) => set('providerName', e.target.value)}
                 placeholder={sample?.provider ?? 'per game'}
-                className="w-[150px] rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                className="w-[150px] rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1 text-xs outline-none focus:border-white/[0.4]"
               />
             </Row>
             <Slider label="Size" min={0.4} max={3} step={0.05} value={p.providerScale} onChange={(v) => set('providerScale', v)} fmt={(v) => `${Math.round(v * 100)}%`} />
@@ -217,7 +217,7 @@ export function FramesView({ branch, saveFrameParams }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-zinc-300">{title}</p>
+      <p className="text-[11px] font-semibold text-muted">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -226,7 +226,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-zinc-400">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       {children}
     </div>
   )
@@ -242,13 +242,13 @@ function Seg({
   onChange: (v: string) => void
 }) {
   return (
-    <div className="flex rounded-lg bg-zinc-800/70 p-0.5 text-xs">
+    <div className="flex rounded-pill bg-white/[0.06] p-0.5 text-xs">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded py-1 capitalize transition ${
-            value === o.value ? 'bg-zinc-700 font-medium text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
+          className={`flex-1 rounded-pill py-1 capitalize transition ${
+            value === o.value ? 'bg-white/[0.12] font-medium text-white' : 'text-muted hover:text-white'
           }`}
         >
           {o.label}
@@ -277,10 +277,10 @@ function Slider({
 }) {
   const frac = Math.max(0, Math.min(1, (value - min) / (max - min)))
   return (
-    <label className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
-      <span className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
-      <span className="relative z-10 text-xs text-zinc-300">{label}</span>
-      <span className="relative z-10 text-xs tabular-nums text-zinc-100">{fmt(value)}</span>
+    <label className="relative flex h-9 cursor-ew-resize select-none items-center justify-between overflow-hidden rounded-pill bg-white/[0.06] px-3">
+      <span className="pointer-events-none absolute inset-y-0 left-0 bg-white/[0.10]" style={{ width: `${frac * 100}%` }} />
+      <span className="relative z-10 text-xs text-muted">{label}</span>
+      <span className="relative z-10 text-xs tabular-nums text-white">{fmt(value)}</span>
       <input
         type="range"
         min={min}

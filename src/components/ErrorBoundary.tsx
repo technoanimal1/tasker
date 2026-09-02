@@ -19,13 +19,13 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   render() {
     if (this.state.error) {
       return (
-        <div className="grid min-h-screen place-items-center bg-[#0a0b0d] p-6 text-center">
+        <div className="grid min-h-screen place-items-center bg-page p-6 text-center">
           <div className="max-w-sm space-y-3">
-            <p className="text-sm font-medium text-zinc-200">Something went wrong.</p>
-            <p className="break-words text-xs text-zinc-500">{this.state.error.message}</p>
+            <p className="text-sm font-medium text-white">Something went wrong.</p>
+            <p className="break-words text-xs text-dim">{this.state.error.message}</p>
             <button
               onClick={() => window.location.reload()}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-accent-dark"
+              className="rounded-pill bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow"
             >
               Reload
             </button>

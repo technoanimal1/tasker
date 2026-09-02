@@ -40,7 +40,7 @@ export function KvControls({
         <Slider label="Offset Y" min={-0.5} max={0.5} step={0.01} value={lay.kvDY ?? 0} onChange={(v) => onLayout({ kvDY: v })} {...pct} />
       </div>
       <Row label="Center on artwork">
-        <input type="checkbox" checked={autoCenter} onChange={(e) => onAutoCenter(e.target.checked)} className="h-4 w-4 accent-accent" />
+        <Toggle checked={autoCenter} onChange={onAutoCenter} label="Center on artwork" />
       </Row>
     </>
   )
@@ -82,12 +82,12 @@ export function LogoPresetBar({ value, onChange }: { value: Align9; onChange: (a
           <button
             key={p.align}
             onClick={() => onChange(p.align)}
-            className={`relative h-11 flex-1 rounded-md border transition ${
-              active ? 'border-accent bg-accent/10' : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-500'
+            className={`relative h-11 flex-1 rounded-pill border transition ${
+              active ? 'border-accent bg-accent/10' : 'border-white/[0.16] bg-white/[0.06] hover:border-white/[0.28]'
             }`}
           >
             <span
-              className={`absolute h-2.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] ${active ? 'bg-accent' : 'bg-zinc-400'}`}
+              className={`absolute h-2.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-pill ${active ? 'bg-accent' : 'bg-white/[0.5]'}`}
               style={{ left: `${p.dot[0] * 100}%`, top: `${p.dot[1] * 100}%` }}
             />
           </button>
@@ -99,16 +99,16 @@ export function LogoPresetBar({ value, onChange }: { value: Align9; onChange: (a
 
 export function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Align9) => void }) {
   return (
-    <div className="grid grid-cols-3 gap-0.5 rounded-md bg-zinc-800/70 p-0.5">
+    <div className="grid grid-cols-3 gap-0.5 rounded-pill bg-white/[0.06] p-0.5">
       {ALIGN9.map((a) => {
         const active = value === a
         return (
           <button
             key={a}
             onClick={() => onChange(a)}
-            className={`grid h-6 w-6 place-items-center rounded-[3px] transition ${active ? 'bg-accent' : 'hover:bg-zinc-700'}`}
+            className={`grid h-6 w-6 place-items-center rounded-pill transition ${active ? 'bg-accent' : 'hover:bg-white/[0.12]'}`}
           >
-            <span className={`h-2 w-2 rounded-[1px] ${active ? 'bg-zinc-900' : 'bg-zinc-500'}`} />
+            <span className={`h-2 w-2 rounded-pill ${active ? 'bg-panel' : 'bg-white/[0.4]'}`} />
           </button>
         )
       })}
@@ -116,10 +116,29 @@ export function AlignGrid({ value, onChange }: { value: Align9; onChange: (a: Al
   )
 }
 
+/**
+ * DS toggle switch: a 48×26 pill, white thumb on a translucent track; when on
+ * the track goes white and the thumb black. Never a coloured toggle.
+ */
+export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className="switch"
+    >
+      <i />
+    </button>
+  )
+}
+
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-zinc-400">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       {children}
     </div>
   )
@@ -162,9 +181,9 @@ export function Slider({
 
   return (
     // A div, not a label: a label would forward stray clicks into the text field.
-    <div className="relative flex h-9 select-none items-center justify-between overflow-hidden rounded-lg bg-zinc-800/50 px-3">
-      <span className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-700/45" style={{ width: `${frac * 100}%` }} />
-      <span className="pointer-events-none relative z-10 text-xs text-zinc-300">{label}</span>
+    <div className="relative flex h-9 select-none items-center justify-between overflow-hidden rounded-pill bg-white/[0.06] px-3">
+      <span className="pointer-events-none absolute inset-y-0 left-0 bg-blue/[0.28]" style={{ width: `${frac * 100}%` }} />
+      <span className="pointer-events-none relative z-10 text-xs text-muted">{label}</span>
       {/* LEFT: drag zone — the invisible range stops short of the value field */}
       <input
         type="range"
@@ -196,7 +215,7 @@ export function Slider({
             e.currentTarget.blur()
           }
         }}
-        className="relative z-30 w-14 cursor-text rounded bg-transparent px-1 text-right text-xs tabular-nums text-zinc-100 outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-accent"
+        className="relative z-30 w-14 cursor-text rounded-pill bg-transparent px-1 text-right text-xs tabular-nums text-white outline-none focus:bg-panel focus:ring-1 focus:ring-accent"
       />
     </div>
   )

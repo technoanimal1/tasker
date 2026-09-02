@@ -469,7 +469,7 @@ function particleStyle(p: Particle, unit: number, W: number, H: number): CSSProp
       }
     }
     case 'flame': {
-      // A tall tongue: elongated, rounded at the top, tapered at the base,
+      // A tall tongue: elongated, rounded-pill at the top, tapered at the base,
       // with a white-hot core that cools outward. Additive blending (set on the
       // layer) is what makes overlapping tongues build into a fire.
       const h = d * p.stretch

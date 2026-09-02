@@ -11,7 +11,7 @@ export function BrandAssets({ api }: Props) {
     <div>
       <div className="mb-6">
         <h1 className="text-lg font-semibold">Brand assets</h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted">
           Shared across every branch and frame. Replace one here and it updates everywhere it's used.
         </p>
       </div>
@@ -56,10 +56,10 @@ function AssetCard({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+    <div className="rounded-card border border-ring bg-panel p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">{label}</h2>
-        {asset && <span className="text-xs text-slate-500">{kind}</span>}
+        {asset && <span className="text-xs text-dim">{kind}</span>}
       </div>
 
       <div
@@ -74,14 +74,14 @@ function AssetCard({
           setDrag(false)
           handleFile(e.dataTransfer.files[0])
         }}
-        className={`checker grid aspect-video cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed transition ${
-          drag ? 'border-accent' : 'border-slate-700'
+        className={`checker grid aspect-video cursor-pointer place-items-center overflow-hidden rounded-card border-2 border-dashed transition ${
+          drag ? 'border-accent' : 'border-white/[0.16]'
         }`}
       >
         {asset ? (
           <img src={asset.url} alt={label} className="max-h-full max-w-full object-contain" />
         ) : (
-          <span className="px-4 text-center text-xs text-slate-400">
+          <span className="px-4 text-center text-xs text-muted">
             {busy ? 'Uploading…' : 'Click or drop a file'}
           </span>
         )}
@@ -99,23 +99,23 @@ function AssetCard({
         <div className="min-w-0">
           {asset ? (
             <>
-              <p className="truncate text-xs text-slate-300" title={asset.name}>
+              <p className="truncate text-xs text-muted" title={asset.name}>
                 {asset.name}
               </p>
               {asset.width && asset.height && (
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-dim">
                   {asset.width}×{asset.height}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-xs text-slate-500">No asset yet</p>
+            <p className="text-xs text-dim">No asset yet</p>
           )}
         </div>
         <button
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs hover:bg-slate-700 disabled:opacity-60"
+          className="shrink-0 rounded-pill bg-white/[0.06] px-3 py-1.5 text-xs hover:bg-white/[0.12] disabled:opacity-60"
         >
           {busy ? '…' : asset ? 'Replace' : 'Upload'}
         </button>
