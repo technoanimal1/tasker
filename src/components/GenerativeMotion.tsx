@@ -226,7 +226,7 @@ export function GenerativeMotion({
           loop
           muted
           playsInline
-          className="w-full rounded-lg border border-ring bg-[conic-gradient(#1a1a1a_90deg,#111_0_180deg,#1a1a1a_0_270deg,#111_0)] [background-size:16px_16px]"
+          className="w-full rounded-pill border border-ring bg-[conic-gradient(#1a1a1a_90deg,#111_0_180deg,#1a1a1a_0_270deg,#111_0)] [background-size:16px_16px]"
         />
       )}
 
@@ -235,14 +235,14 @@ export function GenerativeMotion({
         onChange={(e) => setPrompt(e.target.value)}
         rows={3}
         placeholder="e.g. the lion roars on loop, keep artwork & proportions"
-        className="w-full resize-none rounded-lg border border-white/[0.16] bg-white/[0.06] px-3 py-2 text-xs text-white outline-none focus:border-white/[0.4]"
+        className="w-full resize-none rounded-pill border border-white/[0.16] bg-white/[0.06] px-3 py-2 text-xs text-white outline-none focus:border-white/[0.4]"
       />
       <div className="space-y-1">
         <select
           value={loopModel}
           onChange={(e) => setLoopModel(e.target.value)}
           disabled={busy}
-          className="w-full rounded-md border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs outline-none focus:border-white/[0.4] disabled:opacity-60"
+          className="w-full rounded-pill border border-white/[0.16] bg-white/[0.06] px-2 py-1.5 text-xs outline-none focus:border-white/[0.4] disabled:opacity-60"
         >
           {LOOP_MODELS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -259,7 +259,7 @@ export function GenerativeMotion({
         <button
           onClick={animate}
           disabled={busy}
-          className="flex-1 rounded-lg bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-60"
+          className="flex-1 rounded-pill bg-white py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-60"
         >
           {stage === 'generating'
             ? `Animating… ${elapsed}s`
@@ -272,12 +272,12 @@ export function GenerativeMotion({
                   : 'Animate & insert'}
         </button>
         {matted && !busy && (
-          <button onClick={download} className="flex items-center gap-1.5 rounded-lg border border-white/[0.16] px-3 py-2 text-xs font-medium text-white hover:bg-white/[0.06]">
+          <button onClick={download} className="flex items-center gap-1.5 rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-white hover:bg-white/[0.06]">
             <Download size={14} /> webm
           </button>
         )}
         {inserted && !busy && (
-          <button onClick={remove} className="rounded-lg border border-white/[0.16] px-3 py-2 text-xs font-medium text-red-300 hover:bg-white/[0.06]">
+          <button onClick={remove} className="rounded-pill border border-white/[0.16] px-3 py-2 text-xs font-medium text-red-300 hover:bg-white/[0.06]">
             Remove
           </button>
         )}

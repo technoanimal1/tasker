@@ -228,7 +228,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="rounded-lg border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06]"
+            className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06]"
           >
             ← Frames
           </button>
@@ -238,7 +238,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
               setName(e.target.value)
               setDirty(true)
             }}
-            className="rounded-lg border border-white/[0.16] bg-deep px-3 py-1.5 text-sm font-medium outline-none focus:border-accent"
+            className="rounded-pill border border-white/[0.16] bg-deep px-3 py-1.5 text-sm font-medium outline-none focus:border-accent"
           />
           <span className="text-xs text-dim">
             {width}×{height}
@@ -249,14 +249,14 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="rounded-lg border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06] disabled:opacity-60"
+            className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-sm hover:bg-white/[0.06] disabled:opacity-60"
           >
             {exporting ? 'Exporting…' : 'Export PNG'}
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !dirty}
-            className="rounded-lg bg-white px-4 py-1.5 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
+            className="rounded-pill bg-white px-4 py-1.5 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
@@ -284,7 +284,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setWidth(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
             <label className="block">
@@ -296,7 +296,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   setHeight(Math.max(1, Number(e.target.value)))
                   setDirty(true)
                 }}
-                className="w-full rounded-lg border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
               />
             </label>
           </div>
@@ -310,13 +310,13 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                 setBg(e.target.value)
                 setDirty(true)
               }}
-              className="h-8 w-full cursor-pointer rounded border border-white/[0.16] bg-deep"
+              className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
             />
           </div>
         </div>
 
         {/* Center: canvas */}
-        <div className="overflow-auto rounded-xl border border-ring bg-deep p-6">
+        <div className="overflow-auto rounded-card border border-ring bg-deep p-6">
           <div
             className="checker relative mx-auto shadow-2xl"
             style={{ width: width * scale, height: height * scale }}
@@ -386,7 +386,7 @@ export function FrameBuilder({ frame, assets, onSave, onClose }: Props) {
                   <div
                     key={l.id}
                     onClick={() => setSelectedId(l.id)}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-sm ${
+                    className={`flex cursor-pointer items-center justify-between rounded-pill px-2 py-1.5 text-sm ${
                       l.id === selectedId ? 'bg-white/[0.06]' : 'hover:bg-panel'
                     }`}
                   >
@@ -428,7 +428,7 @@ function ToolButton({ label, hint, onClick }: { label: string; hint?: string; on
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg border border-ring bg-panel px-3 py-2 text-left text-sm hover:border-white/[0.16] hover:bg-white/[0.06]"
+      className="flex w-full items-center justify-between rounded-pill border border-ring bg-panel px-3 py-2 text-left text-sm hover:border-white/[0.16] hover:bg-white/[0.06]"
     >
       <span>{label}</span>
       {hint && <span className="text-[10px] text-dim">{hint}</span>}
@@ -444,7 +444,7 @@ function PropertiesPanel({
   onChange: (patch: Partial<Layer>) => void
 }) {
   return (
-    <div className="rounded-xl border border-ring bg-panel p-3">
+    <div className="rounded-card border border-ring bg-panel p-3">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-dim">
         {layer.type} properties
       </p>
@@ -470,7 +470,7 @@ function PropertiesPanel({
               value={layer.text ?? ''}
               onChange={(e) => onChange({ text: e.target.value })}
               rows={2}
-              className="w-full rounded-lg border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
+              className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -484,7 +484,7 @@ function PropertiesPanel({
                 type="color"
                 value={layer.color ?? '#ffffff'}
                 onChange={(e) => onChange({ color: e.target.value })}
-                className="h-8 w-full cursor-pointer rounded border border-white/[0.16] bg-deep"
+                className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
               />
             </div>
             <div>
@@ -492,7 +492,7 @@ function PropertiesPanel({
               <select
                 value={layer.align ?? 'left'}
                 onChange={(e) => onChange({ align: e.target.value as Layer['align'] })}
-                className="h-8 w-full rounded border border-white/[0.16] bg-deep px-2 text-sm outline-none focus:border-accent"
+                className="h-8 w-full rounded-pill border border-white/[0.16] bg-deep px-2 text-sm outline-none focus:border-accent"
               >
                 <option value="left">Left</option>
                 <option value="center">Center</option>
@@ -511,7 +511,7 @@ function PropertiesPanel({
               type="color"
               value={layer.fill ?? '#6d5efc'}
               onChange={(e) => onChange({ fill: e.target.value })}
-              className="h-8 w-full cursor-pointer rounded border border-white/[0.16] bg-deep"
+              className="h-8 w-full cursor-pointer rounded-pill border border-white/[0.16] bg-deep"
             />
           </div>
           <Num label="Radius" value={layer.radius ?? 0} onChange={(v) => onChange({ radius: v })} />
@@ -525,7 +525,7 @@ function PropertiesPanel({
             value={layer.src ?? ''}
             onChange={(e) => onChange({ src: e.target.value })}
             placeholder="https://…"
-            className="w-full rounded-lg border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
+            className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1.5 text-sm outline-none focus:border-accent"
           />
         </div>
       )}
@@ -556,7 +556,7 @@ function Num({
         type="number"
         value={Number.isFinite(value) ? value : 0}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
+        className="w-full rounded-pill border border-white/[0.16] bg-deep px-2 py-1 text-sm outline-none focus:border-accent"
       />
     </label>
   )

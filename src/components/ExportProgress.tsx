@@ -53,7 +53,7 @@ export function ExportProgress({
   ]
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[min(94vw,420px)] overflow-hidden rounded-2xl border border-ring bg-[#111214] shadow-2xl">
+    <div className="fixed bottom-4 right-4 z-50 w-[min(94vw,420px)] overflow-hidden rounded-card border border-ring bg-[#111214] shadow-2xl">
       {/* header */}
       <div className="flex items-center justify-between px-4 pt-4">
         <span className="text-base font-semibold text-white">Exports</span>
@@ -61,21 +61,21 @@ export function ExportProgress({
           {running ? (
             <button
               onClick={onCancel}
-              className="rounded-lg border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
+              className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
             >
               Cancel all
             </button>
           ) : (
             <button
               onClick={onClose}
-              className="rounded-lg border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
+              className="rounded-pill border border-white/[0.16] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.06]"
             >
               Close
             </button>
           )}
           <button
             onClick={() => setCollapsed((c) => !c)}
-            className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-white/[0.06]"
+            className="grid h-8 w-8 place-items-center rounded-pill text-muted hover:bg-white/[0.06]"
             aria-label={collapsed ? 'Expand' : 'Collapse'}
           >
             <span className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}>⌄</span>
@@ -113,7 +113,7 @@ export function ExportProgress({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-white">{j.name}</p>
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted">
+                    <span className="rounded-pill bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted">
                       {j.format}
                     </span>
                     <span className="truncate text-xs text-dim">

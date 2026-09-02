@@ -31,7 +31,7 @@ export function ClientOnboarding({
         {providers.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between rounded-xl border border-ring bg-panel p-4"
+            className="flex items-center justify-between rounded-card border border-ring bg-panel p-4"
           >
             <div>
               <p className="font-medium text-white">{p.name}</p>
@@ -47,7 +47,7 @@ export function ClientOnboarding({
                   setBusy(null)
                 }
               }}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
+              className="rounded-pill bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-yellow disabled:opacity-50"
             >
               {busy === p.id ? 'Unlocking…' : 'Choose'}
             </button>

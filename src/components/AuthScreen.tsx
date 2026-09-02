@@ -40,7 +40,7 @@ export function AuthScreen() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mb-2 inline-flex items-center gap-2.5 text-2xl font-semibold">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-yellow text-black">
+            <span className="grid h-9 w-9 place-items-center rounded-card bg-yellow text-black">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="3" y="5" width="14" height="14" rx="3" fill="currentColor" opacity="0.35" />
                 <rect x="7" y="3" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="2.2" />
@@ -51,19 +51,19 @@ export function AuthScreen() {
           <p className="text-sm text-muted">thumbs.store — scalable client design system</p>
         </div>
 
-        <div className="rounded-2xl border border-ring bg-panel p-6">
-          <div className="mb-5 flex rounded-lg bg-white/[0.06] p-1 text-sm">
+        <div className="rounded-card border border-ring bg-panel p-6">
+          <div className="mb-5 flex rounded-pill bg-white/[0.06] p-1 text-sm">
             <button
               type="button"
               onClick={() => setMode('signin')}
-              className={`flex-1 rounded-md py-1.5 transition ${mode === 'signin' ? 'bg-white text-black' : 'text-muted'}`}
+              className={`flex-1 rounded-pill py-1.5 transition ${mode === 'signin' ? 'bg-white text-black' : 'text-muted'}`}
             >
               Sign in
             </button>
             <button
               type="button"
               onClick={() => setMode('signup')}
-              className={`flex-1 rounded-md py-1.5 transition ${mode === 'signup' ? 'bg-white text-black' : 'text-muted'}`}
+              className={`flex-1 rounded-pill py-1.5 transition ${mode === 'signup' ? 'bg-white text-black' : 'text-muted'}`}
             >
               Sign up
             </button>
@@ -78,7 +78,7 @@ export function AuthScreen() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@studio.com"
-                className="w-full rounded-lg border border-white/[0.16] bg-deep px-3 py-2 text-sm outline-none focus:border-white/[0.4]"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-3 py-2 text-sm outline-none focus:border-white/[0.4]"
               />
             </div>
             <div>
@@ -90,7 +90,7 @@ export function AuthScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-white/[0.16] bg-deep px-3 py-2 text-sm outline-none focus:border-white/[0.4]"
+                className="w-full rounded-pill border border-white/[0.16] bg-deep px-3 py-2 text-sm outline-none focus:border-white/[0.4]"
               />
             </div>
 
