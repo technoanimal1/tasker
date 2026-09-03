@@ -46,10 +46,14 @@ branch per client; assets stay shared, layouts diverge).
 - Target end state: **2 Vercel projects** — one landing, one dashboard —
   cleaned up from a larger set that currently exists on Guga's Vercel.
 
-> ⚠️ Open item: Guga reports ~4 Vercel projects that should collapse to 2, but
-> the Vercel account connected in-chat (`personal` team) only exposes the single
-> `thumbs-store-dashboard` project. The other projects are likely on a different
-> Vercel account/team that still needs to be connected before cleanup.
+> ⚠️ Open item: Guga wants ~4 Vercel projects (all on the `personal` team)
+> collapsed to 2 (landing + dashboard). Diagnosed 2026-09-03: the in-chat Vercel
+> connection is **project-scoped to `thumbs-store-dashboard`** — `list_projects`
+> returns only that one, and probing `thumbs.store` returns **401 Unauthorized**
+> (it exists but this connection can't access it). Cleanup is blocked until the
+> Vercel connector is re-authorized with **team-wide / all-projects** access.
+> Confirmed projects so far: `thumbs-store-dashboard` (accessible),
+> `thumbs.store` (exists, unauthorized).
 
 ## Working preferences
 
