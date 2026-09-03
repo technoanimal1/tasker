@@ -1,80 +1,34 @@
-# thumbs.store — Design Studio (MVP)
+# thumbs.store — marketing site
 
-A scalable dashboard for producing per-client design deliverables from a shared
-set of brand assets — so you stop hand-maintaining a pile of one-off design
-files every time the product changes.
+The public marketing site for [thumbs.store](https://www.thumbs.store), deployed
+on Vercel. Zero build step: plain static HTML, one file per page.
 
-## The idea
-
-- **Brand assets** (background, key visual, logotype) are uploaded once and
-  **shared**. Frames reference them *by kind*, not by copy — so replacing the
-  key visual updates every frame on every branch at once.
-- **Frames** are sized design canvases (OG image, square, story, banner, …)
-  built from layers: the shared assets plus text and shapes.
-- **Branches** hold frame-layout variants. Fork a branch for a client and its
-  frames diverge, while the core brand stays shared. A product-wide asset change
-  propagates everywhere; only the per-client *layout* lives on the branch.
-
-```
-        shared, referenced by kind                per-branch layouts
-   ┌───────────────────────────────┐        ┌──────────────────────────┐
-   │ background · key visual · logo │───────▶│ main   → frames…         │
-   └───────────────────────────────┘        │ acme   → frames… (fork)  │
-        swap one → updates all              │ beta   → frames… (fork)  │
-                                             └──────────────────────────┘
-```
-
-## Stack
-
-- **Vite + React + TypeScript**, **Tailwind CSS**
-- **Supabase** (`thumbs-store` project): Auth, Postgres (`brand_assets`,
-  `branches`, `frames`), and a public **Storage** bucket (`brand-assets`)
-- No canvas library — the builder and PNG export are hand-rolled (drag/resize
-  layers; export renders the frame to a `<canvas>` at full resolution)
-
-## Features (MVP)
-
-- Email + password auth
-- **Brand assets**: drag-drop upload of background / key visual / logo; replace
-  to update everywhere
-- **Branches**: create empty or **fork** the current branch (copies its frames,
-  shares the assets)
-- **Frame builder**:
-  - Add layers — shared assets (by kind), text, rectangles
-  - Drag to move, corner-handle to resize, properties panel (position, size,
-    rotation, opacity, z-order; text content/size/weight/color/align; rect
-    fill/radius), canvas size + background
-  - Live preview, save layout, **Export PNG**
-
-## Data model (`thumbs-store`)
-
-| Table | Purpose |
+| URL | file |
 | --- | --- |
-| `brand_assets` | Shared core assets (`kind` = background \| key_visual \| logo), one active per kind |
-| `branches` | Named layout variants; `parent_branch_id` records fork lineage |
-| `frames` | Sized canvas + `layout` (jsonb layers), scoped to a branch |
+| `/` | `index.html` — homepage |
+| `/studio` | `studio.html` — the Studio explainer with the live editor |
+| `/pricing` | `pricing.html` — credit pricing + cost calculator |
+| `/blog` | `blog.html` |
+| `/roadmap` | `roadmap.html` |
+| `/license` | `license.html` — API License Agreement v1.3 (+ `api-license-v1.3.pdf`) |
 
-RLS: any authenticated user manages the design data (internal team tool).
-Storage bucket `brand-assets` is public-read, authenticated-write.
-SQL: [`supabase/thumbs-store/0002_design_system.sql`](supabase/thumbs-store/0002_design_system.sql).
+Also ships `sitemap.xml`, `robots.txt`, `favicon.svg`, the `og.png` share card
+and a branded `404.html`.
 
-## Getting started
+## Deploying
 
-```bash
-npm install
-cp .env.example .env   # set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (thumbs-store)
-npm run dev            # http://localhost:5173
-```
+Vercel project **thumbs-store-landing**, framework **Other**, no build command —
+the repo root is served as-is. Every push to `main` deploys automatically.
+`vercel.json` provides clean URLs (`/studio` → `studio.html`), security headers
+and the apex → `www` redirect.
 
-## Scripts
+## Editing
 
-- `npm run dev` — dev server
-- `npm run build` — typecheck + production build
-- `npm run preview` — preview the production build
+Each page is self-contained: its CSS lives in a `<style>` block in the file and
+its behaviour in one `<script>` at the bottom. Shared design tokens, components
+and rules are documented in the design system doc in the
+`technoanimal1/thumbs-store-site` repo (`docs/DESIGN_SYSTEM.md`).
 
-## Roadmap
-
-- Import assets directly from Figma (paste a frame link)
-- Per-element branch overrides (git-style inherit/override) and a base template
-- Batch export (all frames on a branch → ZIP) and size variants per frame
-- Publish/serve rendered frames via an API for client sites
+Pricing numbers live in one `CFG` object at the top of the script in
+`pricing.html`. The Studio editor's template constants (`TEMPLATE`, `GRAD`)
+mirror the renderer in the dashboard app — update them together.
