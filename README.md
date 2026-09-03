@@ -3,7 +3,7 @@
 The public marketing site for [thumbs.store](https://www.thumbs.store), deployed
 on Vercel. Zero build step: plain static HTML, one file per page.
 
-| URL | file |
+| URL | file (under `site/`) |
 | --- | --- |
 | `/` | `index.html` — homepage |
 | `/studio` | `studio.html` — the Studio explainer with the live editor |
@@ -17,8 +17,9 @@ and a branded `404.html`.
 
 ## Deploying
 
-Vercel project **thumbs-store-landing**, framework **Other**, no build command —
-the repo root is served as-is. Every push to `main` deploys automatically.
+Vercel project **thumbs-store-landing**, framework **Other**, Root Directory
+**`site`**, no build command — the folder is served as-is. Every push to `main`
+deploys automatically.
 `vercel.json` provides clean URLs (`/studio` → `studio.html`), security headers
 and the apex → `www` redirect.
 
