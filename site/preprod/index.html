@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pre-production — thumbs.store</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      body { margin: 0; min-height: 100vh; background: #000; color: #fff; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+      main { max-width: 720px; margin: 0 auto; padding: 96px 24px; display: flex; flex-direction: column; gap: 28px; }
+      .head { display: flex; align-items: center; gap: 14px; }
+      .head svg { width: 34px; height: 32px; }
+      .pill { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #000; background: #fef150; border-radius: 999px; padding: 4px 12px; }
+      h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; }
+      p { margin: 0; color: rgb(255 255 255 / 0.62); font-size: 15px; line-height: 1.6; }
+      ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+      li a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border: 1px solid #222; border-radius: 16px; background: #121212; color: #fff; text-decoration: none; font-weight: 600; font-size: 15px; transition: border-color .2s, transform .2s; }
+      li a:hover { border-color: rgb(255 255 255 / 0.32); transform: translateY(-2px); }
+      li a span { font-weight: 400; font-size: 13px; color: rgb(255 255 255 / 0.4); }
+      .note { font-size: 13px; color: rgb(255 255 255 / 0.4); border-top: 1px solid rgb(255 255 255 / 0.08); padding-top: 20px; line-height: 1.6; }
+      a.home { color: rgb(255 255 255 / 0.62); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+      a.home:hover { color: #fff; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="head">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47 43" fill="none"><path d="M41.7042 4.77305V0H20.9914C17.7229 0 15.6381 1.04435 13.4141 2.98993L2.98993 13.2748C1.04435 15.4989 0 17.5837 0 20.8521V38.227H5.14824V43H25.8572C29.1257 43 31.2105 41.9557 33.4346 40.0101L43.8587 29.7252C45.8043 27.5011 46.8486 25.4124 46.8486 22.1479V4.77305H41.7042ZM38.5093 30.3479C38.5093 33.129 36.146 35.3531 33.3649 35.3531H8.34317V12.6521C8.34317 9.87101 10.7026 7.64694 13.4837 7.64694H38.5093V30.3479Z" fill="#FFF050"/></svg>
+        <span class="pill">Pre-production</span>
+      </div>
+      <div>
+        <h1>Staging area — internal preview</h1>
+        <p>Work-in-progress pages live here before they're promoted to the public site. Not linked from anywhere, kept out of search (noindex + robots disallow). Share these links only with the team.</p>
+      </div>
+      <ul>
+        <li>
+          <a href="/preprod/pricing">Pricing (draft) <span>full credit plans + calculator →</span></a>
+        </li>
+      </ul>
+      <p class="note">To promote a page: move it out of <code>site/preprod/</code>, restore its nav link and sitemap entry, and flip its robots tag back to <code>index, follow</code>. The pricing page here is the finished draft — hidden from the public site until you're ready.</p>
+      <a class="home" href="/">← Back to the live site</a>
+    </main>
+  </body>
+</html>
