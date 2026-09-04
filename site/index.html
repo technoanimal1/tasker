@@ -470,6 +470,17 @@
       }
       @keyframes bzslide { 0%, 100% { left: 6%; } 33% { left: 76%; } 66% { left: 40%; } }
 
+      /* Real game thumbnails inside the decorative tiles: cover-fit, and drop
+         the hue-rotate that would recolour real art (the gradients only needed
+         it to fake variety). JS paints each tile's background-image on boot. */
+      .bz-cat i, .bz-rel i, .bz-new i, .bz-tag > i, .bz-ui .frame, .wl-tiles i, .hv-frame {
+        background-size: cover !important; background-position: center; background-repeat: no-repeat;
+      }
+      .bz-cat i, .bz-rel i, .wl-tiles i { filter: none !important; }
+      .wl-mock, .hv-frame { animation: none !important; }
+      .bz-ui .frame { animation-name: bzradius !important; }
+      @keyframes bzradius { 0%, 100% { border-radius: 6px; } 33% { border-radius: 20px; } 66% { border-radius: 11px; } }
+
       /* ---- pricing teaser ---- */
       .minis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
       .mini {
@@ -1390,10 +1401,55 @@
           requestAnimationFrame(loop)
         }
 
+        // Real game thumbnails for the decorative catalogue tiles — a varied,
+        // recognisable slice of the library. The baked preview is one image per
+        // game (previews/{id}.webp), so these grids cost one request per tile.
+        const SHOWCASE = [
+          '47453318-634c-4833-aeb2-4598bd73d543', // Sweet Bonanza
+          '0c089fee-01ec-4be8-ae29-5f2768a1c862', // Gates of Olympus
+          '11cbbc64-f77a-49ba-8ddd-5cc71166b84d', // Big Bass Bonanza
+          '13b22600-c0c0-4ee4-8795-26343e25472a', // Wolf Gold
+          '27bf72d9-2ad3-45d4-9022-3cbdd298f4d5', // Fruit Party
+          '15f719a3-69e8-43a1-9923-b83fc184e296', // Sugar Rush
+          'b359f813-8809-49e8-b626-23887bc70c1b', // Magic Portals
+          '26191150-8f3e-42ef-bb4b-873b82994e40', // The Dog House
+          'f3097dca-f89a-4e14-a043-1b8a00afd3de', // Sweet Bonanza 1000
+          '5b5bcf5e-d7bd-4323-9c11-202d4dfb6001', // 3 Magic Eggs
+          '9715ffc5-323c-4785-9390-daef5d4bb754', // The Dog House Megaways
+        ]
+        const prevUrl = (id) => SB + '/previews/' + id + '.webp'
+        const paintShowcase = () => {
+          let n = 0
+          const paint = (el, id) => {
+            if (!el) return
+            el.style.backgroundImage = 'url("' + prevUrl(id) + '")'
+            el.style.backgroundSize = 'cover'
+            el.style.backgroundPosition = 'center'
+          }
+          const fill = (sel, ids) => {
+            const els = document.querySelectorAll(sel)
+            els.forEach((el, i) => paint(el, ids[i % ids.length]))
+          }
+          // Get all your games — the full catalogue grid.
+          fill('.bz-cat i', SHOWCASE)
+          // Automatic releases — three shipped, one arriving.
+          fill('.bz-rel > i', [SHOWCASE[4], SHOWCASE[7], SHOWCASE[2]])
+          paint(document.querySelector('.bz-new i'), SHOWCASE[9])
+          // Tags & promo — badges cycle over one real tile.
+          paint(document.querySelector('.bz-tag > i'), SHOWCASE[1])
+          // Customize your UI — a real tile inside the morphing frame.
+          paint(document.querySelector('.bz-ui .frame'), SHOWCASE[3])
+          // How-it-works step 02 — the template drawing a real game.
+          paint(document.querySelector('.hv-frame'), SHOWCASE[0])
+          // White-label dashboard mockup — an operator's lobby.
+          fill('.wl-tiles i', SHOWCASE.slice(0, 8).concat(SHOWCASE).slice(0, 8))
+        }
+
         const boot = () => {
           document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
           applyMetrics()
           document.querySelectorAll('.tsx .tile[data-treatment="css"] .coins').forEach(initCoins)
+          paintShowcase()
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true })
         else boot()

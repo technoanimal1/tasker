@@ -2349,6 +2349,10 @@
       const SB = 'https://udvbjvwavgrjwsziqtxl.supabase.co/storage/v1/object/public'
       const GAMES = [
         { name: 'Sweet Bonanza', slug: 'sweet-bonanza', id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y', accent: '#FF4FA3' },
+        { name: 'Gates of Olympus', slug: 'gates-of-olympus', id: '0c089fee-01ec-4be8-ae29-5f2768a1c862', sig: 'v1_11ecz4u', accent: '#8A5CF6' },
+        { name: 'Big Bass Bonanza', slug: 'big-bass-bonanza', id: '11cbbc64-f77a-49ba-8ddd-5cc71166b84d', sig: 'v16_pdmewt', accent: '#2FA8E0' },
+        { name: 'Wolf Gold', slug: 'wolf-gold', id: '13b22600-c0c0-4ee4-8795-26343e25472a', sig: 'v1_jxl70i', accent: '#E8A33D' },
+        { name: 'Fruit Party', slug: 'fruit-party', id: '27bf72d9-2ad3-45d4-9022-3cbdd298f4d5', sig: 'v1_1ocf02d', accent: '#FF7A3D' },
       ]
       // Background zoom, as params.bgScale does it in the app.
       const BG_SCALE = 1.2
@@ -3017,6 +3021,33 @@
         put()
       }
       document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
+
+      // Real, varied game thumbnails in the decorative catalogue grids — they
+      // otherwise all showed Sweet Bonanza. Baked previews, one image per tile.
+      const SHOWCASE = [
+        { id: '47453318-634c-4833-aeb2-4598bd73d543', sig: 'v1_mrju2y' },   // Sweet Bonanza
+        { id: '0c089fee-01ec-4be8-ae29-5f2768a1c862', sig: 'v1_11ecz4u' },  // Gates of Olympus
+        { id: '11cbbc64-f77a-49ba-8ddd-5cc71166b84d', sig: 'v16_pdmewt' },  // Big Bass Bonanza
+        { id: '13b22600-c0c0-4ee4-8795-26343e25472a', sig: 'v1_jxl70i' },   // Wolf Gold
+        { id: '27bf72d9-2ad3-45d4-9022-3cbdd298f4d5', sig: 'v1_1ocf02d' },  // Fruit Party
+        { id: '15f719a3-69e8-43a1-9923-b83fc184e296', sig: 'v1_nbkasl' },   // Sugar Rush
+        { id: 'b359f813-8809-49e8-b626-23887bc70c1b', sig: 'v16_hp8xnw' },  // Magic Portals
+        { id: '26191150-8f3e-42ef-bb4b-873b82994e40', sig: 'v1_2cy06h' },   // The Dog House
+        { id: 'f3097dca-f89a-4e14-a043-1b8a00afd3de', sig: 'v1_1noewsm' },  // Sweet Bonanza 1000
+        { id: '5b5bcf5e-d7bd-4323-9c11-202d4dfb6001', sig: 'v16_1oupni8' }, // 3 Magic Eggs
+        { id: '9715ffc5-323c-4785-9390-daef5d4bb754', sig: 'v1_5v70ih' },   // The Dog House Megaways
+      ]
+      const showUrl = (g) => SB + '/previews/' + g.id + '.webp?v=' + g.sig
+      const vary = (sel, order) => {
+        document.querySelectorAll(sel).forEach((img, i) => {
+          const g = SHOWCASE[(order ? order[i % order.length] : i) % SHOWCASE.length]
+          img.src = showUrl(g)
+        })
+      }
+      vary('.bz-cat img')               // catalogue grid — eight different games
+      vary('.bz-rel img', [4, 7, 2, 9]) // three shipped + one arriving (NEW)
+      vary('.bz-tag img', [1])          // one tile, promo badges cycle over it
+      vary('.wl-tiles img')             // dashboard mockup — eight different games
 
       render()
       requestAnimationFrame(() => {
