@@ -10,7 +10,7 @@
     <!-- Inter, the site typeface. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
 
     <style>
       :root {
@@ -239,6 +239,40 @@
         font-size: 4cqw; font-weight: 600; letter-spacing: 0.08em;
         text-transform: uppercase; color: #fff; white-space: nowrap;
       }
+
+      /* ---- hero treatment variants ---- */
+      .tsx .tile > .shine {
+        position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+        background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.28) 50%, transparent 62%);
+        background-size: 260% 100%;
+      }
+      .tsx .tile > .scan {
+        position: absolute; left: 4%; right: 4%; height: 3px; top: 0; z-index: 3; border-radius: 999px;
+        background: linear-gradient(90deg, transparent, #fff, transparent);
+        filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.8)); opacity: 0;
+      }
+      .tsx .tile > .spark {
+        position: absolute; width: 6px; height: 6px; z-index: 3; border-radius: 999px; background: #fff;
+        box-shadow: 0 0 10px rgb(255 240 80 / 0.9); opacity: 0;
+      }
+      .tsx .tile > .tlogo {
+        position: absolute; left: 6%; right: 6%; bottom: 9%; z-index: 2; text-align: center;
+        font-family: 'Anton', system-ui, sans-serif; font-weight: 400; text-transform: uppercase;
+        color: #fff; line-height: 0.9; letter-spacing: 0.01em; font-size: 15cqw;
+        text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
+      }
+      .tsx .tile[data-treatment="css"] .lay-kv { animation: heroFloat 4.5s ease-in-out infinite; }
+      .tsx .tile[data-treatment="css"] .shine { animation: heroShine 4.5s ease-in-out infinite; }
+      .tsx .tile[data-treatment="ai"] .lay-kv { animation: heroBreathe 5.5s ease-in-out infinite; transform-origin: 50% 70%; }
+      .tsx .tile[data-treatment="ai"] .scan { animation: heroScan 5.5s ease-in-out infinite; }
+      .tsx .tile[data-treatment="ai"] .spark { animation: heroSpark 5.5s ease-in-out infinite; }
+      .tsx .tile.frameless { border-color: transparent; background: transparent; }
+      .tsx .tile.frameless .lay-bg { filter: blur(16px) brightness(0.82) saturate(1.18); transform: scale(1.4); }
+      @keyframes heroFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+      @keyframes heroShine { 0%, 55% { background-position: 130% 0; } 90%, 100% { background-position: -50% 0; } }
+      @keyframes heroBreathe { 0%, 100% { scale: 1; rotate: 0deg; } 40% { scale: 1.04; rotate: -0.6deg; } 70% { scale: 1.02; rotate: 0.4deg; } }
+      @keyframes heroScan { 0% { top: 2%; opacity: 0; } 8% { opacity: 1; } 46% { top: 92%; opacity: 1; } 54%, 100% { top: 92%; opacity: 0; } }
+      @keyframes heroSpark { 0%, 50% { opacity: 0; scale: 0.4; } 58%, 66% { opacity: 1; scale: 1; } 74%, 100% { opacity: 0; scale: 0.4; } }
 
       /* ---- provider marquee ---- */
       .provhead { text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 18px; }
@@ -724,40 +758,45 @@
         <div>
           <div class="fan tsx" aria-label="Real thumbnails rendered by the template">
             <div class="tilebox" style="width: 150px; aspect-ratio: 2 / 3">
-              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#6C4FE8" data-size="2:3">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#6C4FE8" data-size="2:3" data-treatment="color">
                 <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
                 <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+                <div class="t-prov">PRAGMATIC</div>
               </div>
             </div>
             <div class="tilebox" style="width: 170px; aspect-ratio: 3 / 4">
-              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#E8A33D" data-size="3:4">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#E8A33D" data-size="3:4" data-treatment="css">
                 <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
                 <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
                 <div class="t-prov">PRAGMATIC</div>
+                <div class="shine"></div>
               </div>
             </div>
             <div class="tilebox" style="width: 200px; aspect-ratio: 3 / 4">
-              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#FF4FA3" data-size="3:4" data-treatment="ai">
                 <img class="lay-bg" alt="Sweet Bonanza thumbnail rendered by the live template" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
                 <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
                 <div class="t-prov">PRAGMATIC</div>
+                <div class="scan"></div>
+                <i class="spark" style="left: 22%; top: 26%"></i><i class="spark" style="left: 70%; top: 38%; animation-delay: 0.4s"></i><i class="spark" style="left: 46%; top: 16%; animation-delay: 0.9s"></i>
               </div>
             </div>
             <div class="tilebox" style="width: 170px; aspect-ratio: 47 / 66">
-              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#12C2C2" data-size="47:66">
+              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#12C2C2" data-size="47:66" data-treatment="text">
                 <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+                <img class="lay-kv" alt="" loading="eager" decoding="async" />
                 <div class="t-prov">PRAGMATIC</div>
+                <div class="tlogo">Sweet<br>Bonanza</div>
               </div>
             </div>
             <div class="tilebox" style="width: 210px; aspect-ratio: 16 / 9">
-              <div class="tile" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#7ED321" data-size="16:9">
-                <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
-                <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
+              <div class="tile frameless" data-composite data-id="47453318-634c-4833-aeb2-4598bd73d543" data-accent="#7ED321" data-size="16:9" data-treatment="frameless">
+                <img class="lay-bg" alt="" loading="eager" decoding="async" />
+                <img class="lay-logo" alt="" loading="eager" decoding="async" />
               </div>
             </div>
           </div>
-          <p class="fan-note">Not mock-ups — the real template, five frames. <a href="/studio#editor">Move the layers yourself in the Studio →</a></p>
+          <p class="fan-note">Not mock-ups — five real treatments of one game: colour logo, CSS motion, AI motion, custom text, frameless. <a href="/studio#editor">Move the layers yourself in the Studio →</a></p>
         </div>
       </section>
 
@@ -1242,6 +1281,7 @@
           const id = tile.dataset.id
           const sizeKey = tile.dataset.size || '3:4'
           const hex = tile.dataset.accent || '#FF4FA3'
+          const treat = tile.dataset.treatment || 'color'
           const sz = SIZES.find((x) => x.key === sizeKey) || SIZES[0]
           const t = TEMPLATE[sizeKey] || TEMPLATE['3:4']
           const base = SB + '/assets/' + id
@@ -1251,30 +1291,33 @@
           const logo = q('.lay-logo')
           tile.style.setProperty('--accent', hex)
           tile.style.setProperty('--bg-scale', String(BG_SCALE))
-          const put = () => {
+          const fit = (img, k) => {
+            const nw = img.naturalWidth || 1000
+            const nh = img.naturalHeight || 1000
             const ar = sz.w / sz.h
-            const fit = (img, k) => {
-              const nw = img.naturalWidth || 1000
-              const nh = img.naturalHeight || 1000
-              const H = 1 / ar
-              const f = Math.min(1 / nw, H / nh)
-              return { w: nw * f * k, h: ((nh * f) / H) * k }
+            const H = 1 / ar
+            const f = Math.min(1 / nw, H / nh)
+            return { w: nw * f * k, h: ((nh * f) / H) * k }
+          }
+          const anchor = (al, dx, dy, b) => {
+            const cx = (al[1] === 'l' ? 0.27 : al[1] === 'r' ? 0.73 : 0.5) + dx
+            const cy = (al[0] === 't' ? 0.32 : al[0] === 'b' ? 0.68 : 0.5) + dy
+            return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
+          }
+          const put = () => {
+            if (kv) place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)))
+            if (logo) {
+              if (treat === 'frameless') place(logo, anchor('mc', 0, 0, fit(logo, 0.52)))
+              else place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)))
             }
-            const anchor = (al, dx, dy, b) => {
-              const cx = (al[1] === 'l' ? 0.27 : al[1] === 'r' ? 0.73 : 0.5) + dx
-              const cy = (al[0] === 't' ? 0.32 : al[0] === 'b' ? 0.68 : 0.5) + dy
-              return { x: cx - b.w / 2, y: cy - b.h / 2, w: b.w, h: b.h }
-            }
-            place(kv, anchor(t.kvAlign, t.kvDX, t.kvDY, fit(kv, t.kvScale)))
-            place(logo, anchor(t.logoAlign, t.logoDX, t.logoDY, fit(logo, t.logoScale * LOGO_ASPECT_K)))
-            paintChrome({ band: q('.t-band'), glow: q('.t-glow') }, sizeKey, hex)
+            if (q('.t-band')) paintChrome({ band: q('.t-band'), glow: q('.t-glow') }, sizeKey, hex)
             applyMetrics()
           }
-          kv.addEventListener('load', put)
-          logo.addEventListener('load', put)
+          if (kv) kv.addEventListener('load', put)
+          if (logo) logo.addEventListener('load', put)
           bg.src = base + '/bg.jpg'
-          kv.src = base + '/kv.png'
-          logo.src = base + '/logoWhite.png'
+          if (kv) kv.src = base + '/kv.png'
+          if (logo) logo.src = base + (treat === 'color' || treat === 'frameless' ? '/logoColor.png' : '/logoWhite.png')
           put()
         }
         const boot = () => {
