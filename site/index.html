@@ -201,6 +201,7 @@
         background: #0a0c11;
         border: 1px solid var(--accent, #ff4fa3);
         container-type: inline-size;
+        contain: paint;
       }
       .tsx .tile > .lay-bg {
         position: absolute;
@@ -241,11 +242,6 @@
       }
 
       /* ---- hero treatment variants ---- */
-      .tsx .tile > .shine {
-        position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
-        background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.28) 50%, transparent 62%);
-        background-size: 260% 100%;
-      }
       .tsx .tile > .scan {
         position: absolute; left: 4%; right: 4%; height: 3px; top: 0; z-index: 3; border-radius: 999px;
         background: linear-gradient(90deg, transparent, #fff, transparent);
@@ -262,15 +258,19 @@
         text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
       }
       .tsx .tile[data-treatment="css"] .lay-kv { animation: heroFloat 4.5s ease-in-out infinite; }
-      .tsx .tile[data-treatment="css"] .shine { animation: heroShine 4.5s ease-in-out infinite; }
-      .tsx .tile[data-treatment="ai"] .lay-kv { animation: heroBreathe 5.5s ease-in-out infinite; transform-origin: 50% 70%; }
+      .tsx .tile > .coins { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; z-index: 3; pointer-events: none; }
+      .tsx .tile[data-treatment="ai"] .lay-kv {
+        animation: heroBreathe 5.5s ease-in-out infinite;
+        transform-origin: 50% 62%;
+        will-change: transform;
+        backface-visibility: hidden;
+      }
       .tsx .tile[data-treatment="ai"] .scan { animation: heroScan 5.5s ease-in-out infinite; }
       .tsx .tile[data-treatment="ai"] .spark { animation: heroSpark 5.5s ease-in-out infinite; }
       .tsx .tile.frameless { border-color: transparent; background: transparent; }
       .tsx .tile.frameless .lay-bg { filter: blur(16px) brightness(0.82) saturate(1.18); transform: scale(1.4); }
       @keyframes heroFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
-      @keyframes heroShine { 0%, 55% { background-position: 130% 0; } 90%, 100% { background-position: -50% 0; } }
-      @keyframes heroBreathe { 0%, 100% { scale: 1; rotate: 0deg; } 40% { scale: 1.04; rotate: -0.6deg; } 70% { scale: 1.02; rotate: 0.4deg; } }
+      @keyframes heroBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
       @keyframes heroScan { 0% { top: 2%; opacity: 0; } 8% { opacity: 1; } 46% { top: 92%; opacity: 1; } 54%, 100% { top: 92%; opacity: 0; } }
       @keyframes heroSpark { 0%, 50% { opacity: 0; scale: 0.4; } 58%, 66% { opacity: 1; scale: 1; } 74%, 100% { opacity: 0; scale: 0.4; } }
 
@@ -769,7 +769,7 @@
                 <img class="lay-bg" alt="" loading="eager" decoding="async" /><div class="t-band"></div><div class="t-glow"></div><div class="t-bloom"></div>
                 <img class="lay-kv" alt="" loading="eager" decoding="async" /><img class="lay-logo" alt="" loading="eager" decoding="async" />
                 <div class="t-prov">PRAGMATIC</div>
-                <div class="shine"></div>
+                <canvas class="coins" aria-hidden="true"></canvas>
               </div>
             </div>
             <div class="tilebox" style="width: 200px; aspect-ratio: 3 / 4">
@@ -1320,9 +1320,80 @@
           if (logo) logo.src = base + (treat === 'color' || treat === 'frameless' ? '/logoColor.png' : '/logoWhite.png')
           put()
         }
+        // ---- coins effect (ported from the product: fxParticles 'coins' +
+        // drawParticle 'coin'). Pure function of (phase, index) so the loop is
+        // seamless — a jackpot burst launched from under the bottom edge on a
+        // real parabola, each coin a squashing 3D disc with a milled rim. ----
+        function initCoins(canvas) {
+          const ctx = canvas.getContext('2d')
+          if (!ctx) return
+          const N = 22, PERIOD = 2600
+          const rnd = (i, s) => { const x = Math.sin(i * 127.1 + s * 311.7 + 0.5) * 43758.5453; return x - Math.floor(x) }
+          const frac = (v) => v - Math.floor(v)
+          const edgeFade = (t) => Math.max(0, Math.min(1, t / 0.1, (1 - t) / 0.1))
+          let W = 1, H = 1, unit = 1
+          const resize = () => {
+            const r = canvas.getBoundingClientRect()
+            const dpr = Math.min(2, window.devicePixelRatio || 1)
+            W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height))
+            canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr)
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+            unit = Math.min(W, H)
+          }
+          const particles = (phase) => {
+            const out = []
+            for (let i = 0; i < N; i++) {
+              const r2 = rnd(i, 2), r3 = rnd(i, 3), r4 = rnd(i, 4)
+              const t = frac(phase + rnd(i, 1))
+              const apex = 0.45 + 0.75 * r3
+              const h = 4 * apex * t * (1 - t)
+              const vx = (r2 - 0.5) * 1.1
+              const spin = r4 * 6.283 + t * (7 + 11 * r3)
+              out.push({
+                x: 0.5 + (r4 - 0.5) * 0.22 + vx * t,
+                y: 1.08 - h,
+                size: 0.05 + 0.05 * r3,
+                rot: spin * 0.18,
+                opacity: edgeFade(t),
+                flip: Math.cos(spin),
+                tilt: Math.cos(spin * 0.37 + r2 * 6.283),
+              })
+            }
+            return out
+          }
+          const drawCoin = (p) => {
+            const d = p.size * unit
+            ctx.save()
+            ctx.globalAlpha = Math.max(0, Math.min(1, p.opacity))
+            ctx.translate(p.x * W, p.y * H)
+            const f = Math.max(0.06, Math.abs(p.flip))
+            const edgeOn = 1 - Math.abs(p.flip)
+            const front = p.flip >= 0
+            ctx.rotate(p.rot)
+            ctx.scale(f, 1 - 0.12 * Math.abs(p.tilt))
+            const g = ctx.createRadialGradient(front ? -d * 0.16 : d * 0.16, front ? -d * 0.22 : d * 0.22, d * 0.05, 0, 0, d / 2)
+            if (front) { g.addColorStop(0, '#fff6c8'); g.addColorStop(0.4, '#ffd54a'); g.addColorStop(0.74, '#e8a911'); g.addColorStop(1, '#b97d15') }
+            else { g.addColorStop(0, '#f2d485'); g.addColorStop(0.42, '#e0b431'); g.addColorStop(0.76, '#bf8b12'); g.addColorStop(1, '#8f6210') }
+            ctx.fillStyle = g
+            ctx.beginPath(); ctx.arc(0, 0, d / 2, 0, Math.PI * 2); ctx.fill()
+            ctx.lineWidth = (d * 0.07) / f
+            ctx.strokeStyle = 'rgba(255,244,190,' + (0.35 + 0.5 * edgeOn) + ')'
+            ctx.beginPath(); ctx.arc(0, 0, d / 2 - d * 0.035, 0, Math.PI * 2); ctx.stroke()
+            ctx.restore()
+          }
+          resize()
+          window.addEventListener('resize', resize)
+          const draw = (phase) => { ctx.clearRect(0, 0, W, H); particles(phase).forEach(drawCoin) }
+          if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { draw(0.3); return }
+          let start = 0
+          const loop = (ts) => { if (!start) start = ts; draw(frac((ts - start) / PERIOD)); requestAnimationFrame(loop) }
+          requestAnimationFrame(loop)
+        }
+
         const boot = () => {
           document.querySelectorAll('.tile[data-composite]').forEach(paintComposite)
           applyMetrics()
+          document.querySelectorAll('.tsx .tile[data-treatment="css"] .coins').forEach(initCoins)
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true })
         else boot()
